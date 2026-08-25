@@ -86,20 +86,20 @@ export const AdminDashboard: React.FC = () => {
     <div>
       {/* Welcome Banner */}
       <div style={{
-        padding: '2rem',
-        borderRadius: 'var(--radius-lg)',
-        background: 'linear-gradient(135deg, #3b2417 0%, #241712 100%)',
-        border: '1px solid var(--border-color)',
+        padding: '2.25rem 2rem',
+        borderRadius: '24px',
+        backgroundColor: '#ffffff',
+        border: '1px solid rgba(0, 0, 0, 0.08)',
         marginBottom: '2rem',
-        boxShadow: 'var(--shadow-md)'
+        boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)'
       }}>
         <span className="badge badge-gold" style={{ marginBottom: '0.5rem' }}>
           Real-Time Operations
         </span>
-        <h1 style={{ fontSize: '2.2rem', color: '#ffffff' }}>
+        <h1 style={{ fontSize: '2.2rem', color: '#1d1d1f', fontWeight: 700, letterSpacing: '-0.025em' }}>
           Welcome back, {userProfile?.displayName || 'Administrator'}
         </h1>
-        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginTop: '0.25rem' }}>
+        <p style={{ color: '#515154', fontSize: '0.95rem', marginTop: '0.25rem' }}>
           Here is a live summary of orders, automated subscriptions, stock status, and pending notifications.
         </p>
       </div>

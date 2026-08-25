@@ -118,37 +118,37 @@ export const ProductDetailPage: React.FC = () => {
             <div style={{
               width: '100%',
               aspectRatio: '1',
-              backgroundColor: 'var(--bg-surface)',
-              borderRadius: 'var(--radius-xl)',
-              border: '1px solid var(--border-color)',
+              backgroundColor: '#f5f5f7',
+              borderRadius: '24px',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
               display: 'flex',
               flexDirection: 'column',
               alignItems: 'center',
               justifyContent: 'center',
               padding: '2rem',
               position: 'relative',
-              boxShadow: 'var(--shadow-lg)',
-              background: 'radial-gradient(circle, #332119 0%, #170f0b 100%)'
+              boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)'
             }}>
               {product.imageUrl ? (
                 <img 
                   src={product.imageUrl} 
                   alt={product.name} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: 'var(--radius-lg)' }} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '18px' }} 
                 />
               ) : (
-                <div style={{ textAlign: 'center', color: 'var(--accent-gold)' }}>
+                <div style={{ textAlign: 'center', color: '#b8860b' }}>
                   <Flame size={72} style={{ opacity: 0.9, marginBottom: '1rem' }} />
                   <div style={{
-                    fontFamily: 'var(--font-serif)',
+                    fontFamily: 'var(--font-sans)',
                     fontSize: '1.4rem',
+                    fontWeight: 700,
                     textTransform: 'uppercase',
-                    letterSpacing: '0.15em',
-                    color: '#ffffff'
+                    letterSpacing: '0.12em',
+                    color: '#1d1d1f'
                   }}>
                     {product.brand}
                   </div>
-                  <div style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginTop: '0.5rem' }}>
+                  <div style={{ fontSize: '0.85rem', color: '#86868b', marginTop: '0.5rem' }}>
                     Authentic {product.origin || 'Cuban'} Tobacco
                   </div>
                 </div>

@@ -19,45 +19,48 @@ export const AgeRestrictedPage: React.FC = () => {
       alignItems: 'center',
       justifyContent: 'center',
       padding: '3rem 1.25rem',
-      textAlign: 'center'
+      textAlign: 'center',
+      backgroundColor: '#ffffff'
     }}>
       <div className="card" style={{
-        maxWidth: '540px',
+        maxWidth: '520px',
         padding: '3rem 2rem',
-        border: '2px solid var(--accent-ruby)',
-        background: 'linear-gradient(180deg, #241712 0%, #170f0b 100%)'
+        border: '1px solid rgba(220, 38, 38, 0.25)',
+        borderRadius: '28px',
+        background: '#ffffff',
+        boxShadow: '0 20px 50px rgba(0, 0, 0, 0.08)'
       }}>
         <div style={{
           display: 'inline-flex',
           alignItems: 'center',
           justifyContent: 'center',
-          width: '80px',
-          height: '80px',
+          width: '76px',
+          height: '76px',
           borderRadius: '50%',
-          backgroundColor: 'rgba(155, 44, 44, 0.2)',
-          color: 'var(--accent-ruby)',
+          backgroundColor: 'rgba(220, 38, 38, 0.08)',
+          color: '#dc2626',
           marginBottom: '1.5rem'
         }}>
-          <ShieldAlert size={44} />
+          <ShieldAlert size={40} />
         </div>
 
         <span className="badge badge-red" style={{ marginBottom: '1rem', padding: '0.4rem 1rem' }}>
           Access Restricted
         </span>
 
-        <h1 style={{ fontSize: '2.4rem', color: '#ffffff', marginBottom: '1rem' }}>
+        <h1 style={{ fontSize: '2.2rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '1rem', letterSpacing: '-0.025em' }}>
           18+ Age Requirement
         </h1>
 
-        <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', lineHeight: 1.6, marginBottom: '2rem' }}>
+        <p style={{ color: '#515154', fontSize: '0.975rem', lineHeight: 1.6, marginBottom: '2rem' }}>
           Under Australian Commonwealth and State tobacco laws, you must be <strong>18 years of age or older</strong> to view or purchase cigars and tobacco products.
         </p>
 
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
           <button 
-            className="btn btn-secondary btn-full"
+            className="btn btn-primary btn-full"
             onClick={handleReverify}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderRadius: '9999px', padding: '0.85rem 1.5rem' }}
           >
             <RefreshCw size={16} /> I clicked by mistake (Re-verify Age)
           </button>

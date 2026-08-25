@@ -38,30 +38,31 @@ export const HomePage: React.FC = () => {
       <section style={{
         position: 'relative',
         padding: '5rem 0 6rem 0',
-        background: 'radial-gradient(ellipse at top, #3b2417 0%, #170f0b 70%)',
-        borderBottom: '1px solid var(--border-color)',
+        backgroundColor: '#ffffff',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
         overflow: 'hidden'
       }}>
         <div className="container" style={{ position: 'relative', zIndex: 2 }}>
           <div style={{ maxWidth: '780px', margin: '0 auto', textAlign: 'center' }}>
-            <span className="badge badge-gold" style={{ marginBottom: '1.25rem', fontSize: '0.85rem', padding: '0.4rem 1rem' }}>
+            <span className="badge badge-gold" style={{ marginBottom: '1.25rem', fontSize: '0.85rem', padding: '0.45rem 1.1rem' }}>
               <Sparkles size={14} /> Australia's Premier On-Demand Humidor
             </span>
 
             <h1 style={{ 
               fontSize: 'clamp(2.5rem, 6vw, 4.2rem)', 
-              color: '#ffffff', 
+              color: '#1d1d1f', 
               lineHeight: 1.1,
               marginBottom: '1.5rem',
-              letterSpacing: '0.01em'
+              letterSpacing: '-0.03em',
+              fontWeight: 700
             }}>
               Authentic Cuban Cigars, <br />
-              <span style={{ color: 'var(--accent-gold)', fontStyle: 'italic' }}>Delivered To Your Door.</span>
+              <span style={{ color: '#b8860b' }}>Delivered To Your Door.</span>
             </h1>
 
             <p style={{ 
               fontSize: 'clamp(1.05rem, 2vw, 1.25rem)', 
-              color: 'var(--text-secondary)', 
+              color: '#515154', 
               lineHeight: 1.6,
               marginBottom: '2.5rem'
             }}>
@@ -79,42 +80,44 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
 
-        {/* Ambient Decorative Glow */}
+        {/* Ambient Decorative Soft Glow */}
         <div style={{
           position: 'absolute',
-          top: '20%',
+          top: '10%',
           left: '50%',
           transform: 'translateX(-50%)',
-          width: '600px',
-          height: '400px',
-          background: 'radial-gradient(circle, rgba(212,175,55,0.08) 0%, rgba(0,0,0,0) 70%)',
+          width: '700px',
+          height: '450px',
+          background: 'radial-gradient(circle, rgba(184, 134, 11, 0.06) 0%, rgba(255,255,255,0) 70%)',
           pointerEvents: 'none'
         }} />
       </section>
 
       {/* Category Tiles */}
-      <section style={{ padding: '4rem 0 2rem 0' }}>
+      <section style={{ padding: '4rem 0 2rem 0', backgroundColor: '#f5f5f7' }}>
         <div className="container">
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.75rem' }}>
             {/* Tile 1: Cuban Cigars */}
             <Link to="/shop" style={{ textDecoration: 'none' }}>
               <div className="card card-hover" style={{
-                background: 'linear-gradient(135deg, #332119 0%, #241712 100%)',
-                border: '1px solid var(--border-color)',
+                backgroundColor: '#ffffff',
+                border: '1px solid rgba(0, 0, 0, 0.08)',
+                borderRadius: '24px',
                 padding: '2.5rem 2rem',
                 minHeight: '220px',
                 display: 'flex',
                 flexDirection: 'column',
-                justifyContent: 'space-between'
+                justifyContent: 'space-between',
+                boxShadow: '0 8px 30px rgba(0,0,0,0.04)'
               }}>
                 <div>
                   <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>Available Now</span>
-                  <h3 style={{ fontSize: '2rem', color: '#ffffff', marginBottom: '0.5rem' }}>Cuban Cigars</h3>
-                  <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+                  <h3 style={{ fontSize: '2rem', color: '#1d1d1f', marginBottom: '0.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Cuban Cigars</h3>
+                  <p style={{ color: '#515154', fontSize: '0.95rem' }}>
                     Authentic Habanos selections in singles, packs, and full boxes of 25.
                   </p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-gold)', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#b8860b', fontWeight: 600 }}>
                   <span>Shop Collection</span> <ChevronRight size={18} />
                 </div>
               </div>
@@ -123,23 +126,24 @@ export const HomePage: React.FC = () => {
             {/* Tile 2: Cigarettes - Coming Soon */}
             <Link to="/cigarettes" style={{ textDecoration: 'none' }}>
               <div className="card card-hover" style={{
-                background: 'linear-gradient(135deg, #281e18 0%, #1c130d 100%)',
-                border: '1px solid var(--border-subtle)',
+                backgroundColor: '#ffffff',
+                border: '1px solid rgba(0, 0, 0, 0.08)',
+                borderRadius: '24px',
                 padding: '2.5rem 2rem',
                 minHeight: '220px',
                 display: 'flex',
                 flexDirection: 'column',
                 justifyContent: 'space-between',
-                opacity: 0.95
+                boxShadow: '0 8px 30px rgba(0,0,0,0.04)'
               }}>
                 <div>
                   <span className="badge badge-amber" style={{ marginBottom: '0.75rem' }}>Coming Soon</span>
-                  <h3 style={{ fontSize: '2rem', color: '#ffffff', marginBottom: '0.5rem' }}>Cigarettes</h3>
-                  <p style={{ color: 'var(--text-muted)', fontSize: '0.95rem' }}>
+                  <h3 style={{ fontSize: '2rem', color: '#1d1d1f', marginBottom: '0.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Cigarettes</h3>
+                  <p style={{ color: '#86868b', fontSize: '0.95rem' }}>
                     Australian compliance compliant retail cigarette brands launching soon for door delivery.
                   </p>
                 </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--accent-amber)', fontWeight: 600 }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#d97706', fontWeight: 600 }}>
                   <span>Notify Me at Launch</span> <ChevronRight size={18} />
                 </div>
               </div>
@@ -149,7 +153,7 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Featured Products Showcase */}
-      <section style={{ padding: '3rem 0 5rem 0' }}>
+      <section style={{ padding: '4rem 0 5rem 0', backgroundColor: '#ffffff' }}>
         <div className="container">
           <div style={{
             display: 'flex',
@@ -160,10 +164,10 @@ export const HomePage: React.FC = () => {
             gap: '1rem'
           }}>
             <div>
-              <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--accent-gold)', fontSize: '0.825rem', fontWeight: 600 }}>
+              <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: '#b8860b', fontSize: '0.825rem', fontWeight: 600 }}>
                 Curated Selection
               </span>
-              <h2 style={{ fontSize: '2.4rem', color: '#ffffff', marginTop: '0.25rem' }}>
+              <h2 style={{ fontSize: '2.4rem', color: '#1d1d1f', marginTop: '0.25rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
                 Featured Cuban Cigars
               </h2>
             </div>
@@ -173,7 +177,7 @@ export const HomePage: React.FC = () => {
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '4rem 0', color: 'var(--text-muted)' }}>
+            <div style={{ textAlign: 'center', padding: '4rem 0', color: '#86868b' }}>
               Loading humidor inventory...
             </div>
           ) : (
@@ -193,9 +197,9 @@ export const HomePage: React.FC = () => {
       {/* Subscribe & Save Feature Section */}
       <section style={{
         padding: '5rem 0',
-        backgroundColor: 'var(--bg-surface-elevated)',
-        borderTop: '1px solid var(--border-color)',
-        borderBottom: '1px solid var(--border-color)'
+        backgroundColor: '#f5f5f7',
+        borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.08)'
       }}>
         <div className="container">
           <div style={{
@@ -208,32 +212,32 @@ export const HomePage: React.FC = () => {
               <span className="badge badge-gold" style={{ marginBottom: '1rem' }}>
                 <RefreshCw size={14} /> Subscription Delivery
               </span>
-              <h2 style={{ fontSize: '2.5rem', color: '#ffffff', marginBottom: '1.25rem' }}>
+              <h2 style={{ fontSize: '2.5rem', color: '#1d1d1f', marginBottom: '1.25rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
                 Never Run Low. <br />
-                <span style={{ color: 'var(--accent-gold)' }}>Automated Humidor Restock.</span>
+                <span style={{ color: '#b8860b' }}>Automated Humidor Restock.</span>
               </h2>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2rem' }}>
+              <p style={{ color: '#515154', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2rem' }}>
                 Select your favorite stick or curated collection, pick your schedule (every 2, 4, 6, or 8 weeks), and let CigarsForYou handle the rest. Modify, pause, or cancel anytime from your account portal.
               </p>
 
               <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
                 <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                  <div style={{ backgroundColor: 'rgba(212,175,55,0.15)', color: 'var(--accent-gold)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ backgroundColor: 'rgba(184, 134, 11, 0.1)', color: '#b8860b', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <Clock size={18} />
                   </div>
                   <div>
-                    <h4 style={{ color: '#ffffff', fontSize: '1rem', margin: 0 }}>Flexible Delivery Cycles</h4>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>Choose 2, 4, 6, or 8-week recurring schedules.</p>
+                    <h4 style={{ color: '#1d1d1f', fontSize: '1rem', margin: 0, fontWeight: 600 }}>Flexible Delivery Cycles</h4>
+                    <p style={{ color: '#86868b', fontSize: '0.85rem', margin: 0 }}>Choose 2, 4, 6, or 8-week recurring schedules.</p>
                   </div>
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                  <div style={{ backgroundColor: 'rgba(212,175,55,0.15)', color: 'var(--accent-gold)', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
+                  <div style={{ backgroundColor: 'rgba(184, 134, 11, 0.1)', color: '#b8860b', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
                     <ShieldCheck size={18} />
                   </div>
                   <div>
-                    <h4 style={{ color: '#ffffff', fontSize: '1rem', margin: 0 }}>Guaranteed Freshness</h4>
-                    <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', margin: 0 }}>Each shipment is sealed in humidity-controlled travel pouches.</p>
+                    <h4 style={{ color: '#1d1d1f', fontSize: '1rem', margin: 0, fontWeight: 600 }}>Guaranteed Freshness</h4>
+                    <p style={{ color: '#86868b', fontSize: '0.85rem', margin: 0 }}>Each shipment is sealed in humidity-controlled travel pouches.</p>
                   </div>
                 </div>
               </div>
@@ -244,23 +248,23 @@ export const HomePage: React.FC = () => {
             </div>
 
             <div style={{
-              backgroundColor: 'var(--bg-surface)',
-              border: '1px solid var(--border-color)',
-              borderRadius: 'var(--radius-xl)',
+              backgroundColor: '#ffffff',
+              border: '1px solid rgba(0, 0, 0, 0.08)',
+              borderRadius: '28px',
               padding: '2.5rem',
-              boxShadow: 'var(--shadow-lg)',
+              boxShadow: '0 12px 36px rgba(0,0,0,0.06)',
               textAlign: 'center'
             }}>
-              <Flame size={48} style={{ color: 'var(--accent-gold)', margin: '0 auto 1rem auto' }} />
-              <h3 style={{ fontSize: '1.75rem', color: '#ffffff', marginBottom: '0.75rem' }}>
+              <Flame size={48} style={{ color: '#b8860b', margin: '0 auto 1rem auto' }} />
+              <h3 style={{ fontSize: '1.75rem', color: '#1d1d1f', marginBottom: '0.75rem', fontWeight: 700 }}>
                 Curated Cigar Bundles
               </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
+              <p style={{ color: '#515154', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
                 Enjoy hand-picked selections of premium robustos and churchills delivered effortlessly.
               </p>
-              <div style={{ padding: '1rem', backgroundColor: 'var(--bg-primary)', borderRadius: 'var(--radius-md)', marginBottom: '1.5rem', border: '1px solid var(--border-subtle)' }}>
-                <span style={{ fontSize: '0.85rem', color: 'var(--text-muted)', display: 'block', marginBottom: '0.25rem' }}>Popular Subscription</span>
-                <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', color: 'var(--accent-gold)', fontWeight: 700 }}>Cohiba Siglo VI — Every 4 Weeks</span>
+              <div style={{ padding: '1rem', backgroundColor: '#f5f5f7', borderRadius: '16px', marginBottom: '1.5rem', border: '1px solid rgba(0, 0, 0, 0.06)' }}>
+                <span style={{ fontSize: '0.85rem', color: '#86868b', display: 'block', marginBottom: '0.25rem' }}>Popular Subscription</span>
+                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '1.3rem', color: '#1d1d1f', fontWeight: 700 }}>Cohiba Siglo VI — Every 4 Weeks</span>
               </div>
               <Link to="/shop" className="btn btn-outline btn-full">
                 Browse Subscription Options
@@ -271,13 +275,13 @@ export const HomePage: React.FC = () => {
       </section>
 
       {/* Brand Grid Section */}
-      <section style={{ padding: '5rem 0' }}>
+      <section style={{ padding: '5rem 0', backgroundColor: '#ffffff' }}>
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 3rem auto' }}>
-            <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: 'var(--accent-gold)', fontSize: '0.825rem', fontWeight: 600 }}>
+            <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: '#b8860b', fontSize: '0.825rem', fontWeight: 600 }}>
               World-Renowned Houses
             </span>
-            <h2 style={{ fontSize: '2.5rem', color: '#ffffff', marginTop: '0.25rem' }}>
+            <h2 style={{ fontSize: '2.5rem', color: '#1d1d1f', marginTop: '0.25rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
               Explore Cuban Brands
             </h2>
           </div>
@@ -296,12 +300,14 @@ export const HomePage: React.FC = () => {
                 <div className="card card-hover" style={{
                   textAlign: 'center',
                   padding: '2rem 1rem',
-                  border: '1px solid var(--border-subtle)',
-                  background: 'var(--bg-surface)'
+                  border: '1px solid rgba(0, 0, 0, 0.08)',
+                  borderRadius: '20px',
+                  backgroundColor: '#ffffff',
+                  boxShadow: '0 4px 16px rgba(0,0,0,0.03)'
                 }}>
-                  <Award size={32} style={{ color: 'var(--accent-gold)', marginBottom: '0.75rem', opacity: 0.8 }} />
-                  <h3 style={{ fontSize: '1.2rem', color: '#ffffff' }}>{b.name}</h3>
-                  <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.25rem', display: 'block' }}>View Lineup</span>
+                  <Award size={32} style={{ color: '#b8860b', marginBottom: '0.75rem', opacity: 0.9 }} />
+                  <h3 style={{ fontSize: '1.15rem', color: '#1d1d1f', fontWeight: 600 }}>{b.name}</h3>
+                  <span style={{ fontSize: '0.75rem', color: '#86868b', marginTop: '0.25rem', display: 'block' }}>View Lineup</span>
                 </div>
               </Link>
             ))}

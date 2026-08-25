@@ -30,47 +30,48 @@ export const Navbar: React.FC = () => {
       position: 'sticky',
       top: 0,
       zIndex: 900,
-      backgroundColor: 'rgba(23, 15, 11, 0.95)',
-      backdropFilter: 'blur(10px)',
-      borderBottom: '1px solid var(--border-color)',
-      boxShadow: 'var(--shadow-md)'
+      backgroundColor: 'rgba(255, 255, 255, 0.85)',
+      backdropFilter: 'blur(20px) saturate(180%)',
+      borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
     }}>
       {/* Top Banner Notice */}
       <div style={{
-        backgroundColor: '#110a07',
-        color: 'var(--accent-gold)',
+        backgroundColor: '#f5f5f7',
+        color: '#1d1d1f',
         fontSize: '0.78rem',
-        padding: '0.35rem 1rem',
+        padding: '0.4rem 1rem',
         textAlign: 'center',
-        borderBottom: '1px solid rgba(212,175,55,0.1)',
+        borderBottom: '1px solid rgba(0,0,0,0.06)',
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         gap: '0.5rem',
-        letterSpacing: '0.04em'
+        fontWeight: 500,
+        letterSpacing: '0.01em'
       }}>
-        <ShieldCheck size={14} />
+        <ShieldCheck size={14} style={{ color: '#b8860b' }} />
         <span>AUTHENTIC CUBAN CIGARS · EXPRESS AUSTRALIA-WIDE DELIVERY · 18+ ADULT VERIFIED</span>
       </div>
 
-      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '76px' }}>
+      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '74px' }}>
         {/* Brand Logo */}
         <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
-          <img src="/logo.svg" alt="CigarsForYou Logo" style={{ height: '42px', width: 'auto' }} onError={(e) => {
+          <img src="/logo.svg" alt="CigarsForYou Logo" style={{ height: '40px', width: 'auto' }} onError={(e) => {
             (e.target as HTMLElement).style.display = 'none';
           }} />
           <div style={{ display: 'flex', flexDirection: 'column' }}>
             <span style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: '1.6rem',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '1.5rem',
               fontWeight: 700,
-              color: '#ffffff',
+              color: '#1d1d1f',
               lineHeight: 1,
-              letterSpacing: '0.04em'
+              letterSpacing: '-0.03em'
             }}>
-              Cigars<span style={{ color: 'var(--accent-gold)' }}>ForYou</span>
+              Cigars<span style={{ color: '#b8860b' }}>ForYou</span>
             </span>
-            <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.18em', color: 'var(--text-muted)' }}>
+            <span style={{ fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.16em', color: '#86868b', fontWeight: 600, marginTop: '2px' }}>
               AUSTRALIA HUMIDOR
             </span>
           </div>
@@ -81,9 +82,10 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/" 
             style={{ 
-              color: isActive('/') ? 'var(--accent-gold)' : 'var(--text-primary)', 
-              fontWeight: 600,
-              fontSize: '0.925rem'
+              color: isActive('/') ? '#1d1d1f' : '#515154', 
+              fontWeight: isActive('/') ? 600 : 500,
+              fontSize: '0.925rem',
+              transition: 'color 0.15s ease'
             }}
           >
             Home
@@ -92,9 +94,10 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/shop" 
             style={{ 
-              color: isActive('/shop') ? 'var(--accent-gold)' : 'var(--text-primary)', 
-              fontWeight: 600,
-              fontSize: '0.925rem'
+              color: isActive('/shop') ? '#1d1d1f' : '#515154', 
+              fontWeight: isActive('/shop') ? 600 : 500,
+              fontSize: '0.925rem',
+              transition: 'color 0.15s ease'
             }}
           >
             Shop All Cigars
@@ -108,8 +111,8 @@ export const Navbar: React.FC = () => {
           >
             <button 
               style={{ 
-                color: 'var(--text-primary)', 
-                fontWeight: 600, 
+                color: '#515154', 
+                fontWeight: 500, 
                 fontSize: '0.925rem',
                 display: 'flex', 
                 alignItems: 'center', 
@@ -126,10 +129,11 @@ export const Navbar: React.FC = () => {
                 top: '100%',
                 left: 0,
                 width: '220px',
-                backgroundColor: 'var(--bg-surface-elevated)',
-                border: '1px solid var(--border-color)',
-                borderRadius: 'var(--radius-md)',
-                boxShadow: 'var(--shadow-lg)',
+                backgroundColor: 'rgba(255, 255, 255, 0.95)',
+                backdropFilter: 'blur(20px)',
+                border: '1px solid rgba(0, 0, 0, 0.08)',
+                borderRadius: '16px',
+                boxShadow: '0 12px 32px rgba(0, 0, 0, 0.08)',
                 padding: '0.5rem 0',
                 animation: 'fadeIn 0.15s ease'
               }}>
@@ -140,12 +144,13 @@ export const Navbar: React.FC = () => {
                     style={{
                       display: 'block',
                       padding: '0.6rem 1.2rem',
-                      color: 'var(--text-primary)',
+                      color: '#1d1d1f',
                       fontSize: '0.875rem',
+                      fontWeight: 500,
                       transition: 'background var(--transition-fast)'
                     }}
                     onClick={() => setBrandDropdownOpen(false)}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'var(--bg-surface-light)'}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f7'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     {brand.name}
@@ -158,11 +163,12 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/cigarettes" 
             style={{ 
-              color: 'var(--text-secondary)', 
+              color: '#86868b', 
               fontSize: '0.925rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.35rem'
+              gap: '0.35rem',
+              fontWeight: 500
             }}
           >
             Cigarettes <span className="badge badge-amber" style={{ fontSize: '0.65rem' }}>Coming Soon</span>
@@ -182,7 +188,7 @@ export const Navbar: React.FC = () => {
             to="/cart" 
             style={{ 
               position: 'relative', 
-              color: 'var(--text-primary)', 
+              color: '#1d1d1f', 
               padding: '0.5rem',
               display: 'flex',
               alignItems: 'center'
@@ -195,8 +201,8 @@ export const Navbar: React.FC = () => {
                 position: 'absolute',
                 top: 0,
                 right: 0,
-                backgroundColor: 'var(--accent-gold)',
-                color: 'var(--text-dark)',
+                backgroundColor: '#1d1d1f',
+                color: '#ffffff',
                 fontSize: '0.75rem',
                 fontWeight: 700,
                 width: '20px',
@@ -205,7 +211,7 @@ export const Navbar: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                boxShadow: 'var(--shadow-sm)'
+                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
               }}>
                 {itemCount}
               </span>
@@ -225,7 +231,7 @@ export const Navbar: React.FC = () => {
           ) : (
             <Link 
               to="/login" 
-              className="btn btn-outline btn-sm"
+              className="btn btn-primary btn-sm"
             >
               Sign In
             </Link>
@@ -234,7 +240,7 @@ export const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{ color: 'var(--text-primary)', padding: '0.5rem' }}
+            style={{ color: '#1d1d1f', padding: '0.5rem' }}
             className="mobile-menu-btn"
             aria-label="Toggle Navigation Menu"
           >
@@ -246,29 +252,29 @@ export const Navbar: React.FC = () => {
       {/* Mobile Drawer */}
       {mobileMenuOpen && (
         <div style={{
-          backgroundColor: 'var(--bg-surface)',
-          borderBottom: '1px solid var(--border-color)',
+          backgroundColor: '#ffffff',
+          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
           padding: '1.5rem 1.25rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem'
         }}>
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1d1d1f' }}>
             Home
           </Link>
-          <Link to="/shop" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.1rem', fontWeight: 600, color: 'var(--text-primary)' }}>
+          <Link to="/shop" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1d1d1f' }}>
             Shop All Cigars
           </Link>
           
-          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
-            <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Brands</span>
+          <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
+            <span style={{ fontSize: '0.8rem', color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Brands</span>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
               {CIGAR_BRANDS.map(brand => (
                 <Link
                   key={brand.slug}
                   to={`/shop/${brand.slug}`}
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}
+                  style={{ color: '#515154', fontSize: '0.9rem' }}
                 >
                   {brand.name}
                 </Link>
@@ -276,14 +282,14 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', color: 'var(--text-secondary)', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+          <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', color: '#515154', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
             Cigarettes <span className="badge badge-amber">Coming Soon</span>
           </Link>
           
-          <div style={{ borderTop: '1px solid var(--border-subtle)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
-            <Link to="/terms" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Terms</Link>
-            <Link to="/privacy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Privacy</Link>
-            <Link to="/refund-policy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: 'var(--text-muted)' }}>Refund Policy</Link>
+          <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
+            <Link to="/terms" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#86868b' }}>Terms</Link>
+            <Link to="/privacy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#86868b' }}>Privacy</Link>
+            <Link to="/refund-policy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#86868b' }}>Refund Policy</Link>
           </div>
         </div>
       )}

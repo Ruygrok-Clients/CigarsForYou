@@ -66,20 +66,20 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             display: 'inline-flex',
             alignItems: 'center',
             justifyContent: 'center',
-            width: '54px',
-            height: '54px',
+            width: '56px',
+            height: '56px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(212, 175, 55, 0.1)',
-            color: 'var(--accent-gold)',
+            backgroundColor: 'rgba(184, 134, 11, 0.1)',
+            color: '#b8860b',
             marginBottom: '1rem'
           }}>
             <Bell size={26} />
           </div>
 
-          <h3 style={{ fontSize: '1.5rem', marginBottom: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '0.5rem' }}>
             Back in Stock Notification
           </h3>
-          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
+          <p style={{ fontSize: '0.9rem', color: '#515154' }}>
             We'll email you immediately when <strong>{product.brand} {product.name}</strong> is back in stock.
           </p>
         </div>
@@ -93,24 +93,24 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
               width: '48px',
               height: '48px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(46, 125, 50, 0.2)',
-              color: '#4caf50',
+              backgroundColor: 'rgba(22, 163, 74, 0.1)',
+              color: '#16a34a',
               marginBottom: '1rem'
             }}>
               <Check size={24} />
             </div>
-            <h4 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>You're on the List!</h4>
-            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
+            <h4 style={{ color: '#1d1d1f', fontWeight: 700, marginBottom: '0.5rem' }}>You're on the List!</h4>
+            <p style={{ fontSize: '0.875rem', color: '#515154', marginBottom: '1.5rem' }}>
               We've registered <strong>{email}</strong>. As soon as new inventory arrives, you will be notified.
             </p>
-            <button className="btn btn-primary btn-full" onClick={onClose}>
+            <button className="btn btn-primary btn-full" onClick={onClose} style={{ borderRadius: '9999px' }}>
               Done
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Email Address</label>
+              <label className="form-label" style={{ color: '#1d1d1f' }}>Email Address</label>
               <input
                 type="email"
                 required
@@ -125,7 +125,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ flex: 1 }}
+                style={{ flex: 1, borderRadius: '9999px' }}
                 onClick={onClose}
               >
                 Cancel
@@ -133,7 +133,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
               <button
                 type="submit"
                 className="btn btn-primary"
-                style={{ flex: 2 }}
+                style={{ flex: 2, borderRadius: '9999px' }}
                 disabled={submitting}
               >
                 {submitting ? 'Registering...' : 'Notify Me'}

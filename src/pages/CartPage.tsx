@@ -242,30 +242,30 @@ export const CartPage: React.FC = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   paddingTop: '0.75rem',
-                  borderTop: '1px solid var(--border-subtle)',
+                  borderTop: '1px solid rgba(0, 0, 0, 0.08)',
                   fontWeight: 700,
                   fontSize: '1.25rem',
-                  color: '#ffffff'
+                  color: '#1d1d1f'
                 }}>
                   <span>Total</span>
-                  <span style={{ color: 'var(--accent-gold)' }}>${totalAmount.toFixed(2)} AUD</span>
+                  <span style={{ color: '#1d1d1f' }}>${totalAmount.toFixed(2)} AUD</span>
                 </div>
               </div>
 
               {/* 18+ Warning Pill */}
               <div style={{
-                padding: '0.75rem',
-                backgroundColor: 'rgba(0,0,0,0.3)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)',
+                padding: '0.85rem',
+                backgroundColor: '#f5f5f7',
+                borderRadius: '16px',
+                border: '1px solid rgba(0,0,0,0.06)',
                 fontSize: '0.8rem',
-                color: 'var(--text-muted)',
+                color: '#86868b',
                 marginBottom: '1.5rem',
                 display: 'flex',
                 gap: '0.5rem',
                 alignItems: 'center'
               }}>
-                <ShieldAlert size={16} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} />
+                <ShieldAlert size={16} style={{ color: '#b8860b', flexShrink: 0 }} />
                 <span>Government-issued 18+ photo ID is checked upon delivery.</span>
               </div>
 

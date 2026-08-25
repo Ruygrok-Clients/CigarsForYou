@@ -33,13 +33,17 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
       height: '100%',
       position: 'relative',
       overflow: 'hidden',
-      backgroundColor: 'var(--bg-surface)'
+      backgroundColor: '#ffffff',
+      border: '1px solid rgba(0, 0, 0, 0.08)',
+      borderRadius: '20px',
+      padding: '1.25rem',
+      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
     }}>
       {/* Stock / Sold Out Badge */}
       <div style={{
         position: 'absolute',
-        top: '12px',
-        left: '12px',
+        top: '16px',
+        left: '16px',
         zIndex: 10
       }}>
         {isOutOfStock ? (
@@ -54,17 +58,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
         <div style={{
           width: '100%',
           aspectRatio: '4/3',
-          backgroundColor: 'var(--bg-primary)',
-          borderRadius: 'var(--radius-md)',
+          backgroundColor: '#f5f5f7',
+          borderRadius: '14px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
           justifyContent: 'center',
           position: 'relative',
           marginBottom: '1rem',
-          border: '1px solid var(--border-subtle)',
-          overflow: 'hidden',
-          background: 'radial-gradient(circle, rgba(51,33,25,1) 0%, rgba(23,15,11,1) 100%)'
+          border: '1px solid rgba(0, 0, 0, 0.04)',
+          overflow: 'hidden'
         }}>
           {product.imageUrl ? (
             <img 
@@ -73,14 +76,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
           ) : (
-            <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--accent-gold)' }}>
+            <div style={{ textAlign: 'center', padding: '1rem', color: '#b8860b' }}>
               <Flame size={44} style={{ opacity: 0.85, marginBottom: '0.4rem' }} />
               <div style={{
-                fontFamily: 'var(--font-serif)',
-                fontSize: '0.85rem',
+                fontFamily: 'var(--font-sans)',
+                fontSize: '0.8rem',
+                fontWeight: 600,
                 textTransform: 'uppercase',
-                letterSpacing: '0.12em',
-                color: 'var(--text-muted)'
+                letterSpacing: '0.08em',
+                color: '#86868b'
               }}>
                 {product.origin || 'Cuban'} Selection
               </div>
@@ -91,14 +95,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
 
       {/* Card Content */}
       <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-        <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', marginBottom: '0.2rem' }}>
+        <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868b', fontWeight: 600, marginBottom: '0.25rem' }}>
           {product.brand}
         </span>
 
         <Link to={`/product/${product.slug}`} style={{ textDecoration: 'none' }}>
           <h3 style={{
-            fontSize: '1.25rem',
-            color: 'var(--text-primary)',
+            fontSize: '1.15rem',
+            fontWeight: 700,
+            letterSpacing: '-0.02em',
+            color: '#1d1d1f',
             marginBottom: '0.5rem',
             lineHeight: 1.3
           }}>
@@ -106,20 +112,21 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
           </h3>
         </Link>
 
-        <div style={{ marginTop: 'auto', paddingTop: '1rem' }}>
+        <div style={{ marginTop: 'auto', paddingTop: '0.75rem' }}>
           <div style={{ display: 'flex', alignItems: 'baseline', justifyContent: 'space-between', marginBottom: '0.85rem' }}>
             <span style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: '1.4rem',
+              fontFamily: 'var(--font-sans)',
+              fontSize: '1.35rem',
               fontWeight: 700,
-              color: 'var(--accent-gold)'
+              color: '#1d1d1f',
+              letterSpacing: '-0.02em'
             }}>
-              ${product.price} <span style={{ fontSize: '0.75rem', fontFamily: 'var(--font-sans)', color: 'var(--text-muted)' }}>AUD</span>
+              ${product.price} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#86868b' }}>AUD</span>
             </span>
 
             {!isOutOfStock && (
-              <span style={{ fontSize: '0.75rem', color: '#4caf50', display: 'flex', alignItems: 'center', gap: '0.2rem' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#4caf50', display: 'inline-block' }}></span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#16a34a', display: 'inline-block' }}></span>
                 In Stock
               </span>
             )}
@@ -150,7 +157,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
                   to={`/product/${product.slug}`}
                   className="btn btn-outline btn-sm"
                   title="Subscribe & Save"
-                  style={{ padding: '0.4rem 0.6rem' }}
+                  style={{ padding: '0.4rem 0.6rem', borderRadius: '9999px' }}
                 >
                   <RefreshCw size={14} />
                 </Link>
