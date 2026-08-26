@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { collection, query, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Product } from '../types';
-import { ProductCard } from '../components/ProductCard';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ProductSeparationsSection } from '../components/ProductSeparationsSection';
 import { FeaturedProductsShowcase } from '../components/FeaturedProductsShowcase';
@@ -123,21 +122,34 @@ export const HomePage: React.FC = () => {
               Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty.
             </p>
 
-            <div style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', gap: '1.25rem' }}>
-              <Link to="/shop" className="btn btn-primary btn-lg" style={{
+            <div className="hero-btn-group" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '1.25rem' }}>
+              <Link to="/shop" className="btn btn-primary btn-lg hero-btn" style={{
                 backgroundColor: '#2e1a10',
                 color: '#ffffff',
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.5)'
+                border: '1px solid rgba(46, 26, 16, 0.8)',
+                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.5)',
+                height: '52px',
+                boxSizing: 'border-box',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
                 Explore Cigar Catalog <ChevronRight size={18} />
               </Link>
-              <Link to="/cigarettes" className="btn btn-secondary btn-lg" style={{
+              <Link to="/cigarettes" className="btn btn-secondary btn-lg hero-btn" style={{
                 backgroundColor: 'rgba(255, 255, 255, 0.2)',
                 borderColor: 'rgba(255, 255, 255, 0.4)',
+                borderStyle: 'solid',
+                borderWidth: '1px',
                 backdropFilter: 'blur(16px)',
-                color: '#ffffff'
+                color: '#ffffff',
+                height: '52px',
+                boxSizing: 'border-box',
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center'
               }}>
-                Cigarettes <span className="badge badge-amber" style={{ marginLeft: '0.4rem', backgroundColor: 'rgba(217, 119, 6, 0.3)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.5)' }}>Coming Soon</span>
+                Cigarettes <span className="badge badge-amber" style={{ marginLeft: '0.4rem', backgroundColor: 'rgba(217, 119, 6, 0.3)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.5)', padding: '0.2rem 0.5rem', fontSize: '0.72rem', lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}>Coming Soon</span>
               </Link>
             </div>
           </div>

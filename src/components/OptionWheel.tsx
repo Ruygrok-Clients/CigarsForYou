@@ -66,7 +66,7 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
   const cfgRef = useRef<any>({});
   const onChangeRef = useRef(onChange);
   const selectedRef = useRef<number>(defaultSelected);
-  const wheelTimerRef = useRef<NodeJS.Timeout | number | null>(null);
+  const wheelTimerRef = useRef<any>(null);
   const dragRef = useRef<{ y: number; start: number; id: number } | null>(null);
   const dragMovedRef = useRef<boolean>(false);
   const audioRef = useRef<HTMLAudioElement | null>(null);
@@ -202,13 +202,13 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
       const delta = e.deltaMode === 1 ? e.deltaY * 24 : e.deltaY;
       const step = Math.max(-1, Math.min(1, delta / cfg.rowH));
       applyTarget(targetRef.current + step, false);
-      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current as NodeJS.Timeout);
+      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
       wheelTimerRef.current = setTimeout(() => applyTarget(targetRef.current, true), 140);
     };
     el.addEventListener('wheel', onWheel, { passive: false });
     return () => {
       el.removeEventListener('wheel', onWheel);
-      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current as NodeJS.Timeout);
+      if (wheelTimerRef.current) clearTimeout(wheelTimerRef.current);
     };
   }, [applyTarget]);
 

@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, ChevronRight, Flame, ShieldCheck, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Flame, CheckCircle2, AlertCircle } from 'lucide-react';
 import type { Product } from '../types';
 import { OptionWheel } from './OptionWheel';
 import { useCart } from '../context/CartContext';
@@ -133,8 +133,17 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
   onOpenNotifyModal
 }) => {
   const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const [isMobile, setIsMobile] = useState<boolean>(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const { addToCart } = useCart();
   const { showToast } = useToast();
+
+  useEffect(() => {
+    const handleResize = () => {
+      setIsMobile(window.innerWidth < 768);
+    };
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
 
   const displayProducts = products && products.length > 0 ? products : FALLBACK_PRODUCTS;
   const activeIndex = Math.min(Math.max(selectedIndex, 0), displayProducts.length - 1);
@@ -211,39 +220,17 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
             Loading humidor inventory...
           </div>
         ) : (
-          <div style={{
-            backgroundColor: '#faf8f5',
-            borderRadius: '8px',
-            border: '1px solid rgba(46, 26, 16, 0.08)',
-            padding: '2rem',
-            boxShadow: '0 10px 40px rgba(46, 26, 16, 0.04)'
-          }}>
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '2.5rem',
-              alignItems: 'stretch'
-            }}>
+          <div className="featured-showcase-box">
+            <div className="featured-showcase-grid">
               
               {/* Left Column: Interactive OptionWheel */}
-              <div style={{
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'center',
-                backgroundColor: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid rgba(46, 26, 16, 0.09)',
-                position: 'relative',
-                height: '460px',
-                overflow: 'hidden',
-                boxShadow: 'inset 0 2px 10px rgba(0,0,0,0.02)'
-              }}>
+              <div className="featured-wheel-column">
                 {/* Visual Header Prompt for Wheel */}
                 <div style={{
                   position: 'absolute',
                   top: '14px',
-                  left: '20px',
-                  right: '20px',
+                  left: '16px',
+                  right: '16px',
                   display: 'flex',
                   justifyContent: 'space-between',
                   alignItems: 'center',
@@ -251,7 +238,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   pointerEvents: 'none'
                 }}>
                   <span style={{
-                    fontSize: '0.75rem',
+                    fontSize: '0.72rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
                     color: '#b8860b',
@@ -259,7 +246,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   }}>
                     Selector Wheel
                   </span>
-                  <span style={{ fontSize: '0.75rem', color: '#8e7362', fontWeight: 500 }}>
+                  <span style={{ fontSize: '0.72rem', color: '#8e7362', fontWeight: 500 }}>
                     Scroll / Drag
                   </span>
                 </div>
@@ -270,7 +257,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   top: 0,
                   left: 0,
                   right: 0,
-                  height: '70px',
+                  height: isMobile ? '45px' : '70px',
                   background: 'linear-gradient(to bottom, #ffffff 30%, rgba(255,255,255,0))',
                   zIndex: 5,
                   pointerEvents: 'none'
@@ -280,10 +267,10 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                 <div style={{
                   position: 'absolute',
                   top: '50%',
-                  left: '8px',
-                  right: '8px',
+                  left: '6px',
+                  right: '6px',
                   transform: 'translateY(-50%)',
-                  height: '48px',
+                  height: isMobile ? '40px' : '48px',
                   backgroundColor: 'rgba(184, 134, 11, 0.07)',
                   borderLeft: '4px solid #b8860b',
                   borderRadius: '8px',
@@ -306,14 +293,14 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                     textColor="#8e7362"
                     activeColor="#2e1a10"
                     side="left"
-                    fontSize={1.45}
-                    spacing={1.4}
+                    fontSize={isMobile ? 1.12 : 1.45}
+                    spacing={isMobile ? 1.3 : 1.4}
                     curve={1}
-                    tilt={5}
+                    tilt={isMobile ? 4 : 5}
                     blur={1.5}
                     fade={0.3}
                     smoothing={180}
-                    inset={28}
+                    inset={isMobile ? 16 : 28}
                     loop={false}
                     draggable={true}
                   />
@@ -325,7 +312,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   bottom: 0,
                   left: 0,
                   right: 0,
-                  height: '70px',
+                  height: isMobile ? '45px' : '70px',
                   background: 'linear-gradient(to top, #ffffff 30%, rgba(255,255,255,0))',
                   zIndex: 5,
                   pointerEvents: 'none'
@@ -333,17 +320,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
               </div>
 
               {/* Right Column: Dynamic Active Selected Product Details */}
-              <div style={{
-                backgroundColor: '#ffffff',
-                borderRadius: '8px',
-                border: '1px solid rgba(46, 26, 16, 0.09)',
-                padding: '2.25rem',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 8px 30px rgba(46, 26, 16, 0.04)',
-                minHeight: '460px'
-              }}>
+              <div className="featured-product-card">
                 <div>
                   {/* Top Badges */}
                   <div style={{

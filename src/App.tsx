@@ -58,7 +58,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
       {!isAdminPath && <Navbar />}
       <main style={{ flex: 1 }}>{children}</main>
       {!isAdminPath && <Footer />}
-      {!isAdminPath && <AgeGateModal />}
+      {!isAdminPath && !showLoading && <AgeGateModal />}
     </div>
   );
 }

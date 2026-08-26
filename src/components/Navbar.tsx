@@ -58,7 +58,9 @@ export const Navbar: React.FC = () => {
         backgroundColor: 'rgba(255, 255, 255, 0.96)',
         backdropFilter: 'blur(20px) saturate(180%)',
         borderRadius: isScrolled ? '0px' : '8px',
-        border: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
+        borderTop: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
+        borderLeft: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
+        borderRight: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
         borderBottom: '1px solid rgba(46, 26, 16, 0.08)',
         boxShadow: isScrolled 
           ? '0 4px 20px rgba(0, 0, 0, 0.05)' 
