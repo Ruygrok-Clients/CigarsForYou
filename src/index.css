@@ -31,21 +31,23 @@
 }
 
 :root {
-  /* Brand Palette: Deep Luxury Dark Red (#2f0d0e) & Champagne Gold */
+  /* Brand Palette: Light Theme with Dark Moody Sexy Brown (#2e1a10) & Champagne Gold */
   --bg-primary: #ffffff;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f8f6f6;
-  --bg-surface-light: #f1ecec;
-  --bg-cream: #fafafa;
-  --bg-cream-alt: #f1f1f4;
+  --bg-surface-elevated: #f9f6f3;
+  --bg-surface-light: #f3ebe4;
+  --bg-cream: #faf8f5;
+  --bg-cream-alt: #f3ede6;
   
-  --text-primary: #2f0d0e;
-  --text-secondary: #5c4041;
-  --text-muted: #8c7374;
-  --text-dark: #2f0d0e;
+  --text-primary: #2e1a10;
+  --text-secondary: #5e4233;
+  --text-muted: #8e7362;
+  --text-dark: #2e1a10;
 
-  --accent-dark-red: #2f0d0e;
-  --accent-dark-red-hover: #441416;
+  --accent-dark-brown: #2e1a10;
+  --accent-dark-brown-hover: #422618;
+  --accent-leather: #381e13;
+  --accent-leather-hover: #4e2b1b;
   --accent-gold: #b8860b;
   --accent-gold-hover: #9a6f07;
   --accent-gold-muted: #c59b27;
@@ -53,9 +55,9 @@
   --accent-ruby: #dc2626;
   --accent-green: #16a34a;
 
-  --border-color: rgba(47, 13, 14, 0.12);
-  --border-color-strong: rgba(47, 13, 14, 0.22);
-  --border-subtle: rgba(47, 13, 14, 0.06);
+  --border-color: rgba(46, 26, 16, 0.12);
+  --border-color-strong: rgba(46, 26, 16, 0.24);
+  --border-subtle: rgba(46, 26, 16, 0.06);
 
   --font-serif: 'Placard Next Wide', 'Cormorant Garamond', Georgia, serif;
   --font-sans: 'Placard Next Wide', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Plus Jakarta Sans', system-ui, sans-serif;
@@ -66,9 +68,9 @@
   --radius-xl: 24px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 2px 10px rgba(47, 13, 14, 0.04);
-  --shadow-md: 0 8px 30px rgba(47, 13, 14, 0.06);
-  --shadow-lg: 0 20px 40px rgba(47, 13, 14, 0.12);
+  --shadow-sm: 0 2px 10px rgba(46, 26, 16, 0.04);
+  --shadow-md: 0 8px 30px rgba(46, 26, 16, 0.07);
+  --shadow-lg: 0 20px 40px rgba(46, 26, 16, 0.12);
   --shadow-gold: 0 6px 24px rgba(184, 134, 11, 0.2);
 
   --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -76,12 +78,12 @@
   --transition-slow: 0.4s cubic-bezier(0.16, 1, 0.3, 1);
 }
 
-/* Dark Theme Overrides if explicitly enabled */
+/* Theme Fallbacks */
 [data-theme="dark"] {
-  --bg-primary: #1c0909;
-  --bg-surface: #2f0d0e;
-  --bg-surface-elevated: #3d1415;
-  --bg-surface-light: #4c1a1c;
+  --bg-primary: #1c110b;
+  --bg-surface: #2e1a10;
+  --bg-surface-elevated: #3b2317;
+  --bg-surface-light: #482b1d;
 
   --text-primary: #f8f5f0;
   --text-secondary: #cbb8a9;
@@ -196,15 +198,15 @@ img {
 }
 
 .btn-primary {
-  background: #2f0d0e;
+  background: #2e1a10;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(47, 13, 14, 0.2);
+  box-shadow: 0 4px 14px rgba(46, 26, 16, 0.2);
 }
 
 .btn-primary:hover {
-  background: #441416;
+  background: #422618;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(47, 13, 14, 0.28);
+  box-shadow: 0 6px 20px rgba(46, 26, 16, 0.28);
   color: #ffffff;
 }
 
@@ -216,20 +218,20 @@ img {
 
 .btn-secondary:hover {
   background: var(--bg-surface-light);
-  border-color: rgba(47, 13, 14, 0.2);
+  border-color: rgba(46, 26, 16, 0.2);
   color: var(--text-primary);
 }
 
 .btn-outline {
   background: transparent;
   color: var(--text-primary);
-  border: 1px solid rgba(47, 13, 14, 0.22);
+  border: 1px solid rgba(46, 26, 16, 0.22);
 }
 
 .btn-outline:hover {
-  background: rgba(47, 13, 14, 0.05);
-  border-color: #2f0d0e;
-  color: #2f0d0e;
+  background: rgba(46, 26, 16, 0.05);
+  border-color: #2e1a10;
+  color: #2e1a10;
 }
 
 .btn-gold {
@@ -348,8 +350,8 @@ img {
 .form-control:focus {
   outline: none;
   background-color: #ffffff;
-  border-color: #2f0d0e;
-  box-shadow: 0 0 0 4px rgba(47, 13, 14, 0.08);
+  border-color: #2e1a10;
+  box-shadow: 0 0 0 4px rgba(46, 26, 16, 0.08);
 }
 
 .form-control::placeholder {
@@ -398,6 +400,7 @@ img {
   animation: appleSpringUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   max-height: 90vh;
   overflow-y: auto;
+  color: var(--text-primary);
 }
 
 @keyframes fadeIn {
@@ -435,7 +438,7 @@ img {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: #2f0d0e;
+  background-color: #2e1a10;
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
   padding: 0.9rem 1.4rem;

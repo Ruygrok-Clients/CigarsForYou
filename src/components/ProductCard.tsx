@@ -33,11 +33,11 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
       height: '100%',
       position: 'relative',
       overflow: 'hidden',
-      backgroundColor: '#ffffff',
-      border: '1px solid rgba(0, 0, 0, 0.08)',
+      backgroundColor: 'var(--bg-surface)',
+      border: '1px solid var(--border-color)',
       borderRadius: '20px',
       padding: '1.25rem',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.04)'
+      boxShadow: 'var(--shadow-sm)'
     }}>
       {/* Stock / Sold Out Badge */}
       <div style={{
@@ -58,7 +58,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
         <div style={{
           width: '100%',
           aspectRatio: '4/3',
-          backgroundColor: '#f5f5f7',
+          backgroundColor: 'var(--bg-surface-elevated)',
           borderRadius: '14px',
           display: 'flex',
           flexDirection: 'column',
@@ -66,7 +66,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
           justifyContent: 'center',
           position: 'relative',
           marginBottom: '1rem',
-          border: '1px solid rgba(0, 0, 0, 0.04)',
+          border: '1px solid var(--border-subtle)',
           overflow: 'hidden'
         }}>
           {product.imageUrl ? (
@@ -76,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
           ) : (
-            <div style={{ textAlign: 'center', padding: '1rem', color: '#b8860b' }}>
+            <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--accent-gold)' }}>
               <Flame size={44} style={{ opacity: 0.85, marginBottom: '0.4rem' }} />
               <div style={{
                 fontFamily: 'var(--font-sans)',
@@ -84,7 +84,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
                 fontWeight: 600,
                 textTransform: 'uppercase',
                 letterSpacing: '0.08em',
-                color: '#86868b'
+                color: 'var(--text-muted)'
               }}>
                 {product.origin || 'Cuban'} Selection
               </div>
@@ -95,7 +95,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
 
       {/* Card Content */}
       <div style={{ display: 'flex', flexDirection: 'column', flexGrow: 1 }}>
-        <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: '#86868b', fontWeight: 600, marginBottom: '0.25rem' }}>
+        <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', fontWeight: 600, marginBottom: '0.25rem' }}>
           {product.brand}
         </span>
 
@@ -104,7 +104,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
             fontSize: '1.15rem',
             fontWeight: 700,
             letterSpacing: '-0.02em',
-            color: '#2f0d0e',
+            color: 'var(--text-primary)',
             marginBottom: '0.5rem',
             lineHeight: 1.3
           }}>
@@ -118,15 +118,15 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
               fontFamily: 'var(--font-sans)',
               fontSize: '1.35rem',
               fontWeight: 700,
-              color: '#2f0d0e',
+              color: 'var(--text-primary)',
               letterSpacing: '-0.02em'
             }}>
-              ${product.price} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#86868b' }}>AUD</span>
+              ${product.price} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: 'var(--text-muted)' }}>AUD</span>
             </span>
 
             {!isOutOfStock && (
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#16a34a', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#16a34a', display: 'inline-block' }}></span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4ade80', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block' }}></span>
                 In Stock
               </span>
             )}

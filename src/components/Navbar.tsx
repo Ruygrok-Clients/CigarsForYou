@@ -57,8 +57,8 @@ export const Navbar: React.FC = () => {
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px) saturate(180%)',
         borderRadius: isScrolled ? '0px' : '9999px',
-        border: isScrolled ? 'none' : '1px solid rgba(0, 0, 0, 0.08)',
-        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+        border: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
+        borderBottom: '1px solid rgba(46, 26, 16, 0.08)',
         boxShadow: isScrolled 
           ? '0 4px 20px rgba(0, 0, 0, 0.05)' 
           : '0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03)',
@@ -88,7 +88,7 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/" 
             style={{ 
-              color: isActive('/') ? '#2f0d0e' : '#4b5563', 
+              color: isActive('/') ? '#2e1a10' : '#5e4233', 
               fontWeight: isActive('/') ? 600 : 500,
               fontSize: '0.925rem',
               transition: 'color 0.15s ease',
@@ -101,7 +101,7 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/shop" 
             style={{ 
-              color: isActive('/shop') ? '#2f0d0e' : '#4b5563', 
+              color: isActive('/shop') ? '#2e1a10' : '#5e4233', 
               fontWeight: isActive('/shop') ? 600 : 500,
               fontSize: '0.925rem',
               transition: 'color 0.15s ease',
@@ -119,7 +119,7 @@ export const Navbar: React.FC = () => {
           >
             <button 
               style={{ 
-                color: brandDropdownOpen || location.pathname.startsWith('/shop/') ? '#2f0d0e' : '#4b5563', 
+                color: brandDropdownOpen || location.pathname.startsWith('/shop/') ? '#2e1a10' : '#5e4233', 
                 fontWeight: 500, 
                 fontSize: '0.925rem',
                 display: 'flex', 
@@ -155,14 +155,14 @@ export const Navbar: React.FC = () => {
                     style={{
                       display: 'block',
                       padding: '0.65rem 1.25rem',
-                      color: '#2f0d0e',
+                      color: '#2e1a10',
                       fontSize: '0.875rem',
                       fontWeight: 500,
                       textDecoration: 'none',
                       transition: 'background 0.15s ease'
                     }}
                     onClick={() => setBrandDropdownOpen(false)}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f6f3'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     {brand.name}
@@ -175,7 +175,7 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/cigarettes" 
             style={{ 
-              color: '#6b7280', 
+              color: '#8e7362', 
               fontSize: '0.925rem',
               display: 'flex',
               alignItems: 'center',
@@ -226,7 +226,7 @@ export const Navbar: React.FC = () => {
             to="/cart" 
             style={{ 
               position: 'relative', 
-              color: '#2f0d0e', 
+              color: '#2e1a10', 
               padding: '0.5rem',
               display: 'flex',
               alignItems: 'center',
@@ -240,7 +240,7 @@ export const Navbar: React.FC = () => {
                 position: 'absolute',
                 top: '2px',
                 right: '2px',
-                backgroundColor: '#2f0d0e',
+                backgroundColor: '#2e1a10',
                 color: '#ffffff',
                 fontSize: '0.7rem',
                 fontWeight: 700,
@@ -256,7 +256,7 @@ export const Navbar: React.FC = () => {
             )}
           </Link>
 
-          {/* Sign In / Account Pill Button (Matching dark rounded pill style in dark red #2f0d0e) */}
+          {/* Sign In / Account Pill Button */}
           {currentUser ? (
             <Link 
               to="/account" 
@@ -266,16 +266,16 @@ export const Navbar: React.FC = () => {
                 gap: '0.4rem',
                 padding: '0.6rem 1.3rem',
                 borderRadius: '999px',
-                backgroundColor: '#2f0d0e',
+                backgroundColor: '#2e1a10',
                 color: '#ffffff',
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 textDecoration: 'none',
                 transition: 'all 0.15s ease',
-                boxShadow: '0 2px 8px rgba(47, 13, 14, 0.25)'
+                boxShadow: '0 2px 8px rgba(46, 26, 16, 0.25)'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#441416'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2f0d0e'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#422618'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2e1a10'}
             >
               <User size={15} />
               <span>{userProfile?.displayName || 'My Account'}</span>
@@ -289,16 +289,16 @@ export const Navbar: React.FC = () => {
                 justifyContent: 'center',
                 padding: '0.65rem 1.4rem',
                 borderRadius: '999px',
-                backgroundColor: '#2f0d0e',
+                backgroundColor: '#2e1a10',
                 color: '#ffffff',
                 fontSize: '0.875rem',
                 fontWeight: 600,
                 textDecoration: 'none',
                 transition: 'all 0.15s ease',
-                boxShadow: '0 2px 10px rgba(47, 13, 14, 0.2)'
+                boxShadow: '0 2px 10px rgba(46, 26, 16, 0.2)'
               }}
-              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#441416'}
-              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2f0d0e'}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#422618'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2e1a10'}
             >
               Sign In
             </Link>
@@ -307,7 +307,7 @@ export const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{ color: '#2f0d0e', padding: '0.4rem', background: 'none', border: 'none', cursor: 'pointer' }}
+            style={{ color: '#2e1a10', padding: '0.4rem', background: 'none', border: 'none', cursor: 'pointer' }}
             className="mobile-menu-btn"
             aria-label="Toggle Navigation Menu"
           >
@@ -329,22 +329,22 @@ export const Navbar: React.FC = () => {
           gap: '1rem',
           boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)'
         }}>
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.05rem', fontWeight: 600, color: '#2f0d0e', textDecoration: 'none' }}>
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.05rem', fontWeight: 600, color: '#2e1a10', textDecoration: 'none' }}>
             Home
           </Link>
-          <Link to="/shop" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.05rem', fontWeight: 600, color: '#2f0d0e', textDecoration: 'none' }}>
+          <Link to="/shop" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.05rem', fontWeight: 600, color: '#2e1a10', textDecoration: 'none' }}>
             Shop All Cigars
           </Link>
           
           <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Brands</span>
+            <span style={{ fontSize: '0.8rem', color: '#8e7362', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Brands</span>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
               {CIGAR_BRANDS.map(brand => (
                 <Link
                   key={brand.slug}
                   to={`/shop/${brand.slug}`}
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{ color: '#374151', fontSize: '0.9rem', textDecoration: 'none' }}
+                  style={{ color: '#5e4233', fontSize: '0.9rem', textDecoration: 'none' }}
                 >
                   {brand.name}
                 </Link>
@@ -352,14 +352,14 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', color: '#374151', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+          <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', color: '#5e4233', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
             Cigarettes <span style={{ fontSize: '0.65rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.5rem', borderRadius: '999px' }}>Coming Soon</span>
           </Link>
           
           <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
-            <Link to="/terms" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none' }}>Terms</Link>
-            <Link to="/privacy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none' }}>Privacy</Link>
-            <Link to="/refund-policy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none' }}>Refund Policy</Link>
+            <Link to="/terms" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#8e7362', textDecoration: 'none' }}>Terms</Link>
+            <Link to="/privacy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#8e7362', textDecoration: 'none' }}>Privacy</Link>
+            <Link to="/refund-policy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#8e7362', textDecoration: 'none' }}>Refund Policy</Link>
           </div>
         </div>
       )}
