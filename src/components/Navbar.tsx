@@ -98,9 +98,11 @@ export const Navbar: React.FC = () => {
 
   return (
     <header style={{
-      position: 'sticky',
+      position: 'fixed',
       top: 0,
-      zIndex: 990,
+      left: 0,
+      right: 0,
+      zIndex: 1000,
       width: '100%',
       backgroundColor: '#ffffff',
       borderBottom: '1px solid rgba(46, 26, 16, 0.1)',

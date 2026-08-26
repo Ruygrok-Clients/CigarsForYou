@@ -136,6 +136,17 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
+/* Storefront Main Container Padding to offset Fixed Navbar across all screensizes */
+.storefront-main {
+  padding-top: 115px;
+}
+
+@media (max-width: 860px) {
+  .storefront-main {
+    padding-top: 105px;
+  }
+}
+
 /* Typography Defaults */
 h1, h2, h3, h4, h5, h6 {
   font-family: var(--font-sans);

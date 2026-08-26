@@ -15,7 +15,7 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
-import { CigarettesComingSoonPage } from './pages/CigarettesComingSoonPage';
+import { CigarettesPage } from './pages/CigarettesPage';
 import { CartPage } from './pages/CartPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { AccountPage } from './pages/AccountPage';
@@ -73,7 +73,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
         />
       )}
       {!isAdminPath && <Navbar />}
-      <main style={{ flex: 1 }}>{children}</main>
+      <main className={isAdminPath ? '' : 'storefront-main'} style={{ flex: 1 }}>{children}</main>
       {!isAdminPath && <Footer />}
       {!isAdminPath && !showLoading && <AgeGateModal />}
     </div>
@@ -97,7 +97,8 @@ export default function App() {
                       <Route path="/shop" element={<ShopPage />} />
                       <Route path="/shop/:brandSlug" element={<ShopPage />} />
                       <Route path="/product/:slug" element={<ProductDetailPage />} />
-                      <Route path="/cigarettes" element={<CigarettesComingSoonPage />} />
+                      <Route path="/cigarettes" element={<CigarettesPage />} />
+                      <Route path="/cigarettes/:brandSlug" element={<CigarettesPage />} />
                       <Route path="/cart" element={<CartPage />} />
                       <Route path="/checkout" element={<CheckoutPage />} />
                       <Route path="/account" element={<AccountPage />} />
