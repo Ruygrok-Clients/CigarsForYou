@@ -284,18 +284,18 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   left: '6px',
                   right: '6px',
                   transform: 'translateY(-50%)',
-                  height: isMobile ? '40px' : '48px',
+                  height: isMobile ? '30px' : '36px',
                   backgroundColor: 'rgba(192, 101, 23, 0.07)',
                   borderLeft: '4px solid #c06517',
-                  borderRadius: '8px',
+                  borderRadius: '6px',
                   zIndex: 1,
                   pointerEvents: 'none',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'flex-end',
-                  paddingRight: '12px'
+                  paddingRight: '10px'
                 }}>
-                  <ChevronRight size={18} style={{ color: '#c06517', opacity: 0.9 }} />
+                  <ChevronRight size={16} style={{ color: '#c06517', opacity: 0.9 }} />
                 </div>
 
                 {/* OptionWheel Component */}
