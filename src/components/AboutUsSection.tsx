@@ -144,11 +144,13 @@ export const AboutUsSection: React.FC = () => {
               borderRadius: '24px',
               overflow: 'hidden',
               boxShadow: '0 20px 40px rgba(0, 0, 0, 0.12)',
+              backgroundColor: '#f3f4f6',
               zIndex: 1
             }}>
               <img
                 src={imgBack}
                 alt="CigarsForYou Craftsmanship"
+                decoding="async"
                 style={{
                   width: '100%',
                   height: '100%',
@@ -157,7 +159,7 @@ export const AboutUsSection: React.FC = () => {
               />
             </div>
 
-            {/* Front Image Card (Tilted) */}
+            {/* Front Image Card (Tilted with hardware acceleration) */}
             <div style={{
               position: 'absolute',
               bottom: '10px',
@@ -167,14 +169,18 @@ export const AboutUsSection: React.FC = () => {
               borderRadius: '24px',
               overflow: 'hidden',
               boxShadow: '0 25px 50px rgba(0, 0, 0, 0.22)',
-              transform: 'rotate(9deg)',
+              transform: 'rotate(9deg) translateZ(0)',
               transformOrigin: 'bottom right',
               border: '4px solid #ffffff',
+              backgroundColor: '#f3f4f6',
+              willChange: 'transform',
+              backfaceVisibility: 'hidden',
               zIndex: 2
             }}>
               <img
                 src={imgFront}
                 alt="Premium Cigar Selection"
+                decoding="async"
                 style={{
                   width: '100%',
                   height: '100%',

@@ -323,7 +323,7 @@ export const HomePage: React.FC = () => {
       />
 
       {/* About Us Feature Section */}
-      <div id="about-us">
+      <div id="about-us" style={{ scrollMarginTop: '90px' }}>
         <AboutUsSection />
       </div>
 
