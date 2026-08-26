@@ -47,12 +47,6 @@ export const CheckoutPage: React.FC = () => {
     }
   }, [userProfile]);
   
-  // Payment tab
-  const [paymentMethod, setPaymentMethod] = useState<'Stripe' | 'PayPal'>('Stripe');
-  const [cardNumber, setCardNumber] = useState('4242 •••• •••• 4242');
-  const [cardExpiry, setCardExpiry] = useState('12/28');
-  const [cardCvc, setCardCvc] = useState('123');
-
   // 18+ Confirmation checkbox
   const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [submitting, setSubmitting] = useState(false);
@@ -194,7 +188,7 @@ export const CheckoutPage: React.FC = () => {
         currency: 'AUD',
         status: 'Verified',
         source: 'Website',
-        paymentMethod: paymentMethod === 'Stripe' ? 'Stripe' : 'PayPal',
+        paymentMethod: 'Stripe',
         deliveryAddress: addressObj,
         ageConfirmed: true,
         createdAt: new Date().toISOString(),
