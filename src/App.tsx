@@ -44,6 +44,23 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const isAdminPath = location.pathname.startsWith('/admin');
   const [showLoading, setShowLoading] = useState(true);
 
+  React.useEffect(() => {
+    let scrollTimer: NodeJS.Timeout;
+    const handleScroll = () => {
+      document.body.classList.add('is-scrolling');
+      clearTimeout(scrollTimer);
+      scrollTimer = setTimeout(() => {
+        document.body.classList.remove('is-scrolling');
+      }, 1000);
+    };
+
+    window.addEventListener('scroll', handleScroll, { capture: true, passive: true });
+    return () => {
+      window.removeEventListener('scroll', handleScroll, { capture: true } as any);
+      clearTimeout(scrollTimer);
+    };
+  }, []);
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {!isAdminPath && showLoading && (

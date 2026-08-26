@@ -121,6 +121,8 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
+  overflow-y: overlay;
+  scrollbar-gutter: auto;
 }
 
 body {
@@ -129,6 +131,7 @@ body {
   color: var(--text-primary);
   line-height: 1.6;
   overflow-x: hidden;
+  overflow-y: overlay;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -175,20 +178,33 @@ img {
   display: block;
 }
 
-/* Custom Scrollbar */
+/* Custom Scrollbar - Overlapping & Auto-Hiding Capsule */
 ::-webkit-scrollbar {
-  width: 8px;
-  height: 8px;
+  width: 6px;
+  height: 6px;
 }
+
 ::-webkit-scrollbar-track {
-  background: var(--bg-primary);
+  background: transparent;
 }
+
 ::-webkit-scrollbar-thumb {
-  background: #d1d1d6;
-  border-radius: 4px;
+  background: transparent;
+  border-radius: 9999px;
+  transition: background 0.3s ease;
 }
+
+body.is-scrolling::-webkit-scrollbar-thumb,
 ::-webkit-scrollbar-thumb:hover {
-  background: #a1a1a6;
+  background: rgba(47, 13, 14, 0.65);
+}
+
+body.is-scrolling::-webkit-scrollbar-thumb:hover {
+  background: rgba(47, 13, 14, 0.88);
+}
+
+::-webkit-scrollbar-corner {
+  background: transparent;
 }
 
 /* Common Layout Utilities */

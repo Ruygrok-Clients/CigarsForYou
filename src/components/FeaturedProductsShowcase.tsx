@@ -127,12 +127,27 @@ interface FeaturedProductsShowcaseProps {
   onOpenNotifyModal?: (product: Product) => void;
 }
 
+const getMontecristoNo2Index = (productList: Product[]): number => {
+  const index = productList.findIndex(p =>
+    p.id === 'montecristo-no-2' ||
+    p.slug === 'montecristo-no-2' ||
+    p.name.toLowerCase().includes('montecristo no.2') ||
+    p.name.toLowerCase().includes('montecristo no 2') ||
+    (p.brand?.toLowerCase().includes('montecristo') && p.name.toLowerCase().includes('2'))
+  );
+  return index !== -1 ? index : 0;
+};
+
 export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> = ({
   products,
   loading = false,
   onOpenNotifyModal
 }) => {
-  const [selectedIndex, setSelectedIndex] = useState<number>(0);
+  const displayProducts = products && products.length > 0 ? products : FALLBACK_PRODUCTS;
+
+  const [selectedIndex, setSelectedIndex] = useState<number>(() => {
+    return getMontecristoNo2Index(displayProducts);
+  });
   const [isMobile, setIsMobile] = useState<boolean>(typeof window !== 'undefined' ? window.innerWidth < 768 : false);
   const { addToCart } = useCart();
   const { showToast } = useToast();
@@ -145,7 +160,12 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
     return () => window.removeEventListener('resize', handleResize);
   }, []);
 
-  const displayProducts = products && products.length > 0 ? products : FALLBACK_PRODUCTS;
+  useEffect(() => {
+    const activeList = products && products.length > 0 ? products : FALLBACK_PRODUCTS;
+    const defaultIdx = getMontecristoNo2Index(activeList);
+    setSelectedIndex(defaultIdx);
+  }, [products]);
+
   const activeIndex = Math.min(Math.max(selectedIndex, 0), displayProducts.length - 1);
   const activeProduct = displayProducts[activeIndex] || displayProducts[0];
 

@@ -271,6 +271,12 @@ export const OptionWheel: React.FC<OptionWheelProps> = ({
     applyTarget(targetRef.current, false);
   }, [items, fontSize, spacing, curve, tilt, blur, fade, minOpacity, side, loop, smoothing, applyTarget]);
 
+  useEffect(() => {
+    if (defaultSelected !== selectedRef.current) {
+      applyTarget(defaultSelected, true);
+    }
+  }, [defaultSelected, applyTarget]);
+
   useEffect(
     () => () => {
       if (rafRef.current != null) cancelAnimationFrame(rafRef.current);
