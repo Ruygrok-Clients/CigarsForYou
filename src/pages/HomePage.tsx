@@ -72,8 +72,12 @@ export const HomePage: React.FC = () => {
 
   const handleHeroShopNow = (e: React.FormEvent) => {
     e.preventDefault();
+    if (heroCategory === 'Cigarettes') {
+      navigate('/cigarettes');
+      return;
+    }
     const params = new URLSearchParams();
-    if (heroCategory !== 'All Categories') params.append('category', heroCategory);
+    if (heroCategory === 'Cigars') params.append('category', 'cigars');
     if (heroBrand !== 'Brands') params.append('brand', heroBrand);
     if (skuInput.trim()) params.append('search', skuInput.trim());
     
@@ -271,10 +275,8 @@ export const HomePage: React.FC = () => {
                   style={{ flex: '1 1 140px', minWidth: '140px' }}
                 >
                   <option value="All Categories">All Categories</option>
-                  <option value="Cuban Cigars">Cuban Cigars</option>
-                  <option value="Sampler Packs">Sampler Packs</option>
+                  <option value="Cigars">Cigars</option>
                   <option value="Cigarettes">Cigarettes</option>
-                  <option value="Accessories">Accessories</option>
                 </select>
 
                 <select 
