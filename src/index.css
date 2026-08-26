@@ -30,6 +30,14 @@
   font-display: swap;
 }
 
+@font-face {
+  font-family: 'Placard Next Wide';
+  src: url('./assets/Font/PlacardNextWideBd.TTF') format('truetype');
+  font-weight: 800;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
   /* Primary Terracotta / Orange (#ea580c) from More About button */
   --color-primary: #ea580c;
@@ -508,9 +516,9 @@ img {
 }
 
 .product-sep-big-title {
-  font-family: 'Placard Next Wide', 'Impact', 'Arial Black', sans-serif;
+  font-family: var(--font-sans);
   font-size: clamp(3.2rem, 7.5vw, 6.2rem);
-  font-weight: 800;
+  font-weight: 700;
   line-height: 0.88;
   letter-spacing: -0.025em;
   color: #2f0d0e;

@@ -171,7 +171,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
   };
 
   return (
-    <section style={{ padding: '1rem 0 5rem 0', backgroundColor: '#ffffff' }}>
+    <section style={{ padding: '4.5rem 0 5rem 0', backgroundColor: '#ffffff' }}>
       <div className="container">
         {/* Section Header with updated name: Featured Products */}
         <div style={{
