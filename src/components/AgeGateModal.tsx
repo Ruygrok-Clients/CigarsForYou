@@ -34,15 +34,15 @@ export const AgeGateModal: React.FC = () => {
           backdropFilter: 'blur(30px) saturate(190%)',
           border: '1px solid rgba(255, 255, 255, 0.8)',
           boxShadow: '0 25px 60px -15px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(0, 0, 0, 0.05)',
-          borderRadius: '28px'
+          borderRadius: '8px'
         }}
       >
-        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.85rem', backgroundColor: 'rgba(184, 134, 11, 0.08)', color: '#b8860b', border: '1px solid rgba(184, 134, 11, 0.2)', borderRadius: '9999px', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1.25rem' }}>
+        <div style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', padding: '0.35rem 0.85rem', backgroundColor: 'rgba(184, 134, 11, 0.08)', color: '#b8860b', border: '1px solid rgba(184, 134, 11, 0.2)', borderRadius: '4px', fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.06em', marginBottom: '1.25rem' }}>
           <Lock size={12} />
           <span>Strict Age Verification</span>
         </div>
 
-        <h2 style={{ fontSize: '2.1rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#2f0d0e', marginBottom: '0.75rem', fontFamily: 'var(--font-sans)' }}>
+        <h2 style={{ fontSize: '2.1rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#2e1a10', marginBottom: '0.75rem', fontFamily: 'var(--font-sans)' }}>
           Cigars<span style={{ color: '#b8860b' }}>ForYou</span>
         </h2>
 
@@ -53,11 +53,11 @@ export const AgeGateModal: React.FC = () => {
         <div style={{
           padding: '1.1rem 1.25rem',
           backgroundColor: '#f5f5f7',
-          borderRadius: '16px',
+          borderRadius: '6px',
           border: '1px solid rgba(0, 0, 0, 0.06)',
           marginBottom: '1.75rem'
         }}>
-          <p style={{ margin: 0, fontWeight: 600, fontSize: '1.05rem', color: '#2f0d0e' }}>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: '1.05rem', color: '#2e1a10' }}>
             Are you 18 years of age or older?
           </p>
         </div>
@@ -73,13 +73,13 @@ export const AgeGateModal: React.FC = () => {
               justifyContent: 'center', 
               gap: '0.6rem',
               width: '100%',
-              borderRadius: '9999px',
+              borderRadius: '6px',
               padding: '0.9rem 1.5rem',
               fontSize: '1rem',
               fontWeight: 600,
-              backgroundColor: '#2f0d0e',
+              backgroundColor: '#2e1a10',
               color: '#ffffff',
-              boxShadow: '0 4px 16px rgba(47, 13, 14, 0.25)',
+              boxShadow: '0 4px 16px rgba(46, 26, 16, 0.25)',
               transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
@@ -98,7 +98,7 @@ export const AgeGateModal: React.FC = () => {
               justifyContent: 'center', 
               gap: '0.4rem',
               width: '100%',
-              borderRadius: '9999px',
+              borderRadius: '6px',
               padding: '0.75rem 1.5rem',
               fontSize: '0.9rem',
               fontWeight: 500,
@@ -108,8 +108,8 @@ export const AgeGateModal: React.FC = () => {
               transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#2f0d0e';
-              e.currentTarget.style.backgroundColor = 'rgba(47, 13, 14, 0.04)';
+              e.currentTarget.style.color = '#2e1a10';
+              e.currentTarget.style.backgroundColor = 'rgba(46, 26, 16, 0.04)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = '#86868b';

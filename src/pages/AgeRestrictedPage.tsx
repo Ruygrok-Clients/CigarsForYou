@@ -26,7 +26,7 @@ export const AgeRestrictedPage: React.FC = () => {
         maxWidth: '520px',
         padding: '3rem 2rem',
         border: '1px solid rgba(220, 38, 38, 0.25)',
-        borderRadius: '28px',
+        borderRadius: '8px',
         background: '#ffffff',
         boxShadow: '0 20px 50px rgba(0, 0, 0, 0.08)'
       }}>
@@ -48,7 +48,7 @@ export const AgeRestrictedPage: React.FC = () => {
           Access Restricted
         </span>
 
-        <h1 style={{ fontSize: '2.2rem', fontWeight: 700, color: '#2f0d0e', marginBottom: '1rem', letterSpacing: '-0.025em' }}>
+        <h1 style={{ fontSize: '2.2rem', fontWeight: 700, color: '#2e1a10', marginBottom: '1rem', letterSpacing: '-0.025em' }}>
           18+ Age Requirement
         </h1>
 
@@ -60,7 +60,7 @@ export const AgeRestrictedPage: React.FC = () => {
           <button 
             className="btn btn-primary btn-full"
             onClick={handleReverify}
-            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderRadius: '9999px', padding: '0.85rem 1.5rem' }}
+            style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', borderRadius: '6px', padding: '0.85rem 1.5rem' }}
           >
             <RefreshCw size={16} /> I clicked by mistake (Re-verify Age)
           </button>

@@ -46,7 +46,7 @@ export const HomePage: React.FC = () => {
         justifyContent: 'center',
         backgroundColor: '#000000',
         overflow: 'hidden',
-        paddingTop: '5rem'
+        paddingTop: '2rem'
       }}>
         {/* Background Video */}
         <video
@@ -154,7 +154,6 @@ export const HomePage: React.FC = () => {
           zIndex: 1
         }} />
       </section>
-
       {/* Category Tiles (Light Theme) */}
       <section style={{ padding: '5rem 0 3rem 0', backgroundColor: '#f9f6f3' }}>
         <div className="container">
@@ -164,7 +163,7 @@ export const HomePage: React.FC = () => {
               <div className="card card-hover" style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid rgba(46, 26, 16, 0.08)',
-                borderRadius: '24px',
+                borderRadius: '8px',
                 padding: '2.5rem 2rem',
                 minHeight: '230px',
                 display: 'flex',
@@ -190,7 +189,7 @@ export const HomePage: React.FC = () => {
               <div className="card card-hover" style={{
                 backgroundColor: '#ffffff',
                 border: '1px solid rgba(46, 26, 16, 0.08)',
-                borderRadius: '24px',
+                borderRadius: '8px',
                 padding: '2.5rem 2rem',
                 minHeight: '230px',
                 display: 'flex',
@@ -312,7 +311,7 @@ export const HomePage: React.FC = () => {
             <div style={{
               backgroundColor: '#ffffff',
               border: '1px solid rgba(46, 26, 16, 0.08)',
-              borderRadius: '28px',
+              borderRadius: '8px',
               padding: '2.5rem',
               boxShadow: '0 12px 36px rgba(46, 26, 16, 0.06)',
               textAlign: 'center'
@@ -324,7 +323,7 @@ export const HomePage: React.FC = () => {
               <p style={{ color: '#5e4233', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
                 Enjoy hand-picked selections of premium robustos and churchills delivered effortlessly.
               </p>
-              <div style={{ padding: '1rem', backgroundColor: '#f9f6f3', borderRadius: '16px', marginBottom: '1.5rem', border: '1px solid rgba(46, 26, 16, 0.06)' }}>
+              <div style={{ padding: '1rem', backgroundColor: '#f9f6f3', borderRadius: '6px', marginBottom: '1.5rem', border: '1px solid rgba(46, 26, 16, 0.06)' }}>
                 <span style={{ fontSize: '0.85rem', color: '#8e7362', display: 'block', marginBottom: '0.25rem' }}>Popular Subscription</span>
                 <span style={{ fontFamily: 'var(--font-sans)', fontSize: '1.3rem', color: '#2e1a10', fontWeight: 700 }}>Cohiba Siglo VI — Every 4 Weeks</span>
               </div>
@@ -363,7 +362,7 @@ export const HomePage: React.FC = () => {
                   textAlign: 'center',
                   padding: '2rem 1rem',
                   border: '1px solid rgba(46, 26, 16, 0.08)',
-                  borderRadius: '20px',
+                  borderRadius: '8px',
                   backgroundColor: '#ffffff',
                   boxShadow: '0 4px 16px rgba(46, 26, 16, 0.04)'
                 }}>

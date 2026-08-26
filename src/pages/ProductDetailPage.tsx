@@ -119,7 +119,7 @@ export const ProductDetailPage: React.FC = () => {
               width: '100%',
               aspectRatio: '1',
               backgroundColor: '#f5f5f7',
-              borderRadius: '24px',
+              borderRadius: '8px',
               border: '1px solid rgba(0, 0, 0, 0.08)',
               display: 'flex',
               flexDirection: 'column',
@@ -133,7 +133,7 @@ export const ProductDetailPage: React.FC = () => {
                 <img 
                   src={product.imageUrl} 
                   alt={product.name} 
-                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '18px' }} 
+                  style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '6px' }} 
                 />
               ) : (
                 <div style={{ textAlign: 'center', color: '#b8860b' }}>

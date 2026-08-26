@@ -56,7 +56,7 @@ export const Navbar: React.FC = () => {
         margin: '0 auto',
         backgroundColor: 'rgba(255, 255, 255, 0.95)',
         backdropFilter: 'blur(20px) saturate(180%)',
-        borderRadius: isScrolled ? '0px' : '9999px',
+        borderRadius: isScrolled ? '0px' : '6px',
         border: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
         borderBottom: '1px solid rgba(46, 26, 16, 0.08)',
         boxShadow: isScrolled 
@@ -142,7 +142,7 @@ export const Navbar: React.FC = () => {
                 width: '230px',
                 backgroundColor: '#ffffff',
                 border: '1px solid rgba(0, 0, 0, 0.08)',
-                borderRadius: '16px',
+                borderRadius: '6px',
                 boxShadow: '0 12px 32px rgba(0, 0, 0, 0.1)',
                 padding: '0.5rem 0',
                 animation: 'fadeIn 0.15s ease',
@@ -189,7 +189,7 @@ export const Navbar: React.FC = () => {
               fontSize: '0.65rem',
               fontWeight: 600,
               padding: '0.15rem 0.5rem',
-              borderRadius: '999px',
+              borderRadius: '4px',
               backgroundColor: '#fef3c7',
               color: '#d97706',
               border: '1px solid #fde68a'
@@ -209,7 +209,7 @@ export const Navbar: React.FC = () => {
               alignItems: 'center',
               gap: '0.35rem',
               padding: '0.35rem 0.75rem',
-              borderRadius: '999px',
+              borderRadius: '4px',
               backgroundColor: '#f3f4f6',
               border: '1px solid #e5e7eb',
               color: '#374151',
@@ -246,7 +246,7 @@ export const Navbar: React.FC = () => {
                 fontWeight: 700,
                 width: '18px',
                 height: '18px',
-                borderRadius: '50%',
+                borderRadius: '4px',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center'
@@ -256,7 +256,7 @@ export const Navbar: React.FC = () => {
             )}
           </Link>
 
-          {/* Sign In / Account Pill Button */}
+          {/* Sign In / Account Button */}
           {currentUser ? (
             <Link 
               to="/account" 
@@ -265,7 +265,7 @@ export const Navbar: React.FC = () => {
                 alignItems: 'center',
                 gap: '0.4rem',
                 padding: '0.6rem 1.3rem',
-                borderRadius: '999px',
+                borderRadius: '6px',
                 backgroundColor: '#2e1a10',
                 color: '#ffffff',
                 fontSize: '0.875rem',
@@ -288,7 +288,7 @@ export const Navbar: React.FC = () => {
                 alignItems: 'center',
                 justifyContent: 'center',
                 padding: '0.65rem 1.4rem',
-                borderRadius: '999px',
+                borderRadius: '6px',
                 backgroundColor: '#2e1a10',
                 color: '#ffffff',
                 fontSize: '0.875rem',
@@ -321,7 +321,7 @@ export const Navbar: React.FC = () => {
         <div style={{
           backgroundColor: '#ffffff',
           borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: isScrolled ? '0' : '24px',
+          borderRadius: isScrolled ? '0' : '6px',
           margin: isScrolled ? '0' : '0.5rem 1.25rem 0 1.25rem',
           padding: '1.5rem 1.25rem',
           display: 'flex',
@@ -353,7 +353,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', color: '#5e4233', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-            Cigarettes <span style={{ fontSize: '0.65rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.5rem', borderRadius: '999px' }}>Coming Soon</span>
+            Cigarettes <span style={{ fontSize: '0.65rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>Coming Soon</span>
           </Link>
           
           <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>

@@ -35,7 +35,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
       overflow: 'hidden',
       backgroundColor: 'var(--bg-surface)',
       border: '1px solid var(--border-color)',
-      borderRadius: '20px',
+      borderRadius: '8px',
       padding: '1.25rem',
       boxShadow: 'var(--shadow-sm)'
     }}>
@@ -59,7 +59,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
           width: '100%',
           aspectRatio: '4/3',
           backgroundColor: 'var(--bg-surface-elevated)',
-          borderRadius: '14px',
+          borderRadius: '6px',
           display: 'flex',
           flexDirection: 'column',
           alignItems: 'center',
@@ -157,7 +157,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
                   to={`/product/${product.slug}`}
                   className="btn btn-outline btn-sm"
                   title="Subscribe & Save"
-                  style={{ padding: '0.4rem 0.6rem', borderRadius: '9999px' }}
+                  style={{ padding: '0.4rem 0.6rem', borderRadius: '6px' }}
                 >
                   <RefreshCw size={14} />
                 </Link>

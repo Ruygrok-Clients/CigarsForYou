@@ -256,7 +256,7 @@ export const CartPage: React.FC = () => {
               <div style={{
                 padding: '0.85rem',
                 backgroundColor: '#f5f5f7',
-                borderRadius: '16px',
+                borderRadius: '6px',
                 border: '1px solid rgba(0,0,0,0.06)',
                 fontSize: '0.8rem',
                 color: '#86868b',

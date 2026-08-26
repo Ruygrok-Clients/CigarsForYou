@@ -103,14 +103,14 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             <p style={{ fontSize: '0.875rem', color: '#515154', marginBottom: '1.5rem' }}>
               We've registered <strong>{email}</strong>. As soon as new inventory arrives, you will be notified.
             </p>
-            <button className="btn btn-primary btn-full" onClick={onClose} style={{ borderRadius: '9999px' }}>
+            <button className="btn btn-primary btn-full" onClick={onClose} style={{ borderRadius: '6px' }}>
               Done
             </button>
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" style={{ color: '#2f0d0e' }}>Email Address</label>
+              <label className="form-label" style={{ color: '#2e1a10' }}>Email Address</label>
               <input
                 type="email"
                 required
@@ -125,7 +125,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
               <button
                 type="button"
                 className="btn btn-secondary"
-                style={{ flex: 1, borderRadius: '9999px' }}
+                style={{ flex: 1, borderRadius: '6px' }}
                 onClick={onClose}
               >
                 Cancel
@@ -133,7 +133,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
               <button
                 type="submit"
                 className="btn btn-primary"
-                style={{ flex: 2, borderRadius: '9999px' }}
+                style={{ flex: 2, borderRadius: '6px' }}
                 disabled={submitting}
               >
                 {submitting ? 'Registering...' : 'Notify Me'}

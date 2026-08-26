@@ -87,7 +87,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Welcome Banner */}
       <div style={{
         padding: '2.25rem 2rem',
-        borderRadius: '24px',
+        borderRadius: '8px',
         backgroundColor: '#ffffff',
         border: '1px solid rgba(0, 0, 0, 0.08)',
         marginBottom: '2rem',

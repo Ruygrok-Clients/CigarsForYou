@@ -112,7 +112,7 @@ export const Footer: React.FC = () => {
         <div style={{
           backgroundColor: '#24140d',
           border: '1px solid rgba(201, 154, 78, 0.3)',
-          borderRadius: '16px',
+          borderRadius: '8px',
           padding: '1.25rem 1.5rem',
           textAlign: 'center',
           marginBottom: '2rem',
