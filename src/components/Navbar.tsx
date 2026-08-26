@@ -1,9 +1,19 @@
 import React, { useState, useEffect } from 'react';
-import { Link, useLocation } from 'react-router-dom';
-import { ShoppingBag, User, ChevronDown, Menu, X, ShieldCheck } from 'lucide-react';
+import { Link, useNavigate } from 'react-router-dom';
+import { 
+  ShoppingBag, 
+  ChevronDown, 
+  Menu, 
+  X, 
+  Search, 
+  MapPin, 
+  Sparkles, 
+  CheckCircle2, 
+  Percent, 
+  ArrowRight
+} from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
-import { useAgeGate } from '../context/AgeGateContext';
 
 export const CIGAR_BRANDS = [
   { name: 'Cohiba', slug: 'cohiba' },
@@ -15,14 +25,27 @@ export const CIGAR_BRANDS = [
   { name: 'Punch', slug: 'punch' }
 ];
 
+export const CATEGORY_PILLS = [
+  { label: 'Shop by Categories', path: '/shop' },
+  { label: 'Under 1000', path: '/shop' },
+  { label: 'New Arrivals', icon: Sparkles, iconColor: '#10b981', path: '/shop' },
+  { label: 'Best Selling', icon: CheckCircle2, iconColor: '#3b82f6', path: '/shop' },
+  { label: 'New Offer', icon: Percent, iconColor: '#f97316', path: '/shop' },
+  { label: 'Personal care', path: '/shop' },
+  { label: 'Vitamins & Supplements', path: '/shop' }
+];
+
 export const Navbar: React.FC = () => {
   const { itemCount } = useCart();
   const { currentUser, userProfile } = useAuth();
-  const { isAgeVerified } = useAgeGate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
-  const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
+  const [selectedCategory, setSelectedCategory] = useState('All Categories');
+  const [searchQuery, setSearchQuery] = useState('');
+  const [selectedLocation, setSelectedLocation] = useState('Dhaka');
+  const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
   const [isScrolled, setIsScrolled] = useState(false);
-  const location = useLocation();
+  
+  const navigate = useNavigate();
 
   useEffect(() => {
     const handleScroll = () => {
@@ -37,365 +60,409 @@ export const Navbar: React.FC = () => {
     return () => window.removeEventListener('scroll', handleScroll);
   }, []);
 
-  const isActive = (path: string) => location.pathname === path;
+  const handleSearchSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (searchQuery.trim()) {
+      navigate(`/shop?search=${encodeURIComponent(searchQuery.trim())}`);
+    } else {
+      navigate('/shop');
+    }
+  };
+
+  const handlePillScrollRight = () => {
+    const el = document.getElementById('medicart-pills-container');
+    if (el) {
+      el.scrollBy({ left: 200, behavior: 'smooth' });
+    }
+  };
 
   return (
     <header style={{
-      position: 'fixed',
+      position: 'sticky',
       top: 0,
-      left: 0,
-      right: 0,
       zIndex: 990,
       width: '100%',
-      padding: isScrolled ? '0' : '0.75rem 1.25rem',
-      transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+      backgroundColor: '#ffffff',
+      borderBottom: '1px solid #f0f0f0',
+      transition: 'all 0.3s ease',
+      boxShadow: isScrolled ? '0 4px 20px rgba(0, 0, 0, 0.05)' : 'none'
     }}>
-      {/* Expanding White Outer Bar */}
+      {/* Top Header Bar Container */}
       <div style={{
-        maxWidth: isScrolled ? '100%' : '1180px',
-        width: '100%',
+        maxWidth: '1320px',
         margin: '0 auto',
-        backgroundColor: 'rgba(255, 255, 255, 0.96)',
-        backdropFilter: 'blur(20px) saturate(180%)',
-        borderRadius: isScrolled ? '0px' : '8px',
-        borderTop: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
-        borderLeft: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
-        borderRight: isScrolled ? 'none' : '1px solid rgba(46, 26, 16, 0.08)',
-        borderBottom: '1px solid rgba(46, 26, 16, 0.08)',
-        boxShadow: isScrolled 
-          ? '0 4px 20px rgba(0, 0, 0, 0.05)' 
-          : '0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03)',
-        transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+        padding: '0.85rem 1.5rem',
+        display: 'flex',
+        alignItems: 'center',
+        justifyContent: 'space-between',
+        gap: '1.25rem'
       }}>
-        {/* Inner Content Wrapper: Expands from 1180px to site container width (1280px) on scroll */}
-        <div style={{
-          maxWidth: isScrolled ? '1280px' : '1180px',
-          width: '100%',
-          margin: '0 auto',
-          padding: isScrolled ? '0.7rem 1.5rem' : '0.65rem 1.5rem',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-          transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-        }}>
-          
-          {/* Brand Logo */}
-          <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-            <img 
-              src="/logo.svg" 
-              alt="CigarsForYou" 
-              style={{ 
-                height: isScrolled ? '36px' : '38px', 
-                width: 'auto',
-                display: 'block',
-                transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
-              }} 
-            />
-          </Link>
+        
+        {/* Brand Logo (Medicart style with star emblem) */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none', minWidth: '150px' }}>
+          <div style={{
+            width: '28px',
+            height: '28px',
+            borderRadius: '6px',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            color: '#111827'
+          }}>
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg">
+              <path d="M12 2L14.5 9.5H22L16 14L18.5 21.5L12 17L5.5 21.5L8 14L2 9.5H9.5L12 2Z" fill="#111827" />
+            </svg>
+          </div>
+          <span style={{
+            fontSize: '1.45rem',
+            fontWeight: 800,
+            color: '#111827',
+            letterSpacing: '-0.03em',
+            fontFamily: 'system-ui, -apple-system, sans-serif'
+          }}>
+            Medicart
+          </span>
+        </Link>
 
-          {/* Desktop Navigation Links */}
-          <nav style={{ display: 'none', gap: '2.25rem', alignItems: 'center' }} className="desktop-nav">
-            <Link 
-              to="/" 
-              style={{ 
-                color: isActive('/') ? '#2e1a10' : '#5e4233', 
-                fontWeight: isActive('/') ? 600 : 500,
-                fontSize: '0.925rem',
-                transition: 'color 0.15s ease',
-                textDecoration: 'none'
-              }}
-            >
-              Home
-            </Link>
-
-            <Link 
-              to="/shop" 
-              style={{ 
-                color: isActive('/shop') ? '#2e1a10' : '#5e4233', 
-                fontWeight: isActive('/shop') ? 600 : 500,
-                fontSize: '0.925rem',
-                transition: 'color 0.15s ease',
-                textDecoration: 'none'
-              }}
-            >
-              Shop All Cigars
-            </Link>
-
-            {/* Brands Dropdown */}
-            <div 
-              style={{ position: 'relative' }}
-              onMouseEnter={() => setBrandDropdownOpen(true)}
-              onMouseLeave={() => setBrandDropdownOpen(false)}
-            >
-              <button 
-                style={{ 
-                  color: brandDropdownOpen || location.pathname.startsWith('/shop/') ? '#2e1a10' : '#5e4233', 
-                  fontWeight: 500, 
-                  fontSize: '0.925rem',
-                  display: 'flex', 
-                  alignItems: 'center', 
-                  gap: '0.35rem',
-                  padding: '0.5rem 0',
-                  background: 'none',
-                  border: 'none',
-                  cursor: 'pointer'
-                }}
-              >
-                Brands <ChevronDown size={14} style={{ transform: brandDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
-              </button>
-
-              {brandDropdownOpen && (
-                <div style={{
-                  position: 'absolute',
-                  top: '100%',
-                  left: '-10px',
-                  width: '230px',
-                  backgroundColor: '#ffffff',
-                  border: '1px solid rgba(0, 0, 0, 0.08)',
-                  borderRadius: '6px',
-                  boxShadow: '0 12px 32px rgba(0, 0, 0, 0.1)',
-                  padding: '0.5rem 0',
-                  animation: 'fadeIn 0.15s ease',
-                  zIndex: 1000
-                }}>
-                  {CIGAR_BRANDS.map(brand => (
-                    <Link
-                      key={brand.slug}
-                      to={`/shop/${brand.slug}`}
-                      style={{
-                        display: 'block',
-                        padding: '0.65rem 1.25rem',
-                        color: '#2e1a10',
-                        fontSize: '0.875rem',
-                        fontWeight: 500,
-                        textDecoration: 'none',
-                        transition: 'background 0.15s ease'
-                      }}
-                      onClick={() => setBrandDropdownOpen(false)}
-                      onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f8f6f3'}
-                      onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
-                    >
-                      {brand.name}
-                    </Link>
-                  ))}
-                </div>
-              )}
-            </div>
-
-            <Link 
-              to="/cigarettes" 
-              style={{ 
-                color: '#8e7362', 
-                fontSize: '0.925rem',
-                display: 'flex',
-                alignItems: 'center',
-                gap: '0.4rem',
-                fontWeight: 500,
-                textDecoration: 'none'
-              }}
-            >
-              Cigarettes 
-              <span style={{
-                fontSize: '0.65rem',
+        {/* Center Search Capsule (Desktop) */}
+        <form 
+          onSubmit={handleSearchSubmit} 
+          className="desktop-search-form"
+          style={{ flex: 1, maxWidth: '580px', display: 'flex' }}
+        >
+          <div className="medicart-search-bar" style={{ width: '100%' }}>
+            {/* Category Select Dropdown */}
+            <select
+              value={selectedCategory}
+              onChange={(e) => setSelectedCategory(e.target.value)}
+              style={{
+                border: 'none',
+                background: 'transparent',
+                fontSize: '0.875rem',
                 fontWeight: 600,
-                padding: '0.15rem 0.5rem',
-                borderRadius: '4px',
-                backgroundColor: '#fef3c7',
-                color: '#d97706',
-                border: '1px solid #fde68a'
-              }}>
-                Coming Soon
-              </span>
-            </Link>
-          </nav>
-
-          {/* Right Action Items */}
-          <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
-            
-            {/* 18+ Verification Pill */}
-            {isAgeVerified && (
-              <div className="desktop-age-badge" style={{
-                display: 'inline-flex',
-                alignItems: 'center',
-                gap: '0.35rem',
-                padding: '0.35rem 0.75rem',
-                borderRadius: '4px',
-                backgroundColor: '#f3f4f6',
-                border: '1px solid #e5e7eb',
                 color: '#374151',
-                fontSize: '0.75rem',
-                fontWeight: 600
-              }}>
-                <ShieldCheck size={14} style={{ color: '#059669' }} />
-                <span>18+ Verified</span>
-              </div>
-            )}
+                outline: 'none',
+                cursor: 'pointer',
+                paddingRight: '0.5rem'
+              }}
+            >
+              <option value="All Categories">All Categories</option>
+              <option value="Medicines">Medicines</option>
+              <option value="Cuban Cigars">Cuban Cigars</option>
+              <option value="Personal Care">Personal Care</option>
+              <option value="Vitamins">Vitamins</option>
+            </select>
 
-            {/* Cart Icon */}
-            <Link 
-              to="/cart" 
-              style={{ 
-                position: 'relative', 
-                color: '#2e1a10', 
-                padding: '0.5rem',
+            <div style={{ width: '1px', height: '18px', backgroundColor: '#d1d5db', margin: '0 10px' }} />
+
+            {/* Search Input */}
+            <input
+              type="text"
+              placeholder="Search for medicines, health products..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              style={{
+                flex: 1,
+                border: 'none',
+                background: 'transparent',
+                fontSize: '0.875rem',
+                color: '#111827',
+                outline: 'none'
+              }}
+            />
+
+            {/* Search Button */}
+            <button
+              type="submit"
+              aria-label="Search"
+              style={{
+                width: '32px',
+                height: '32px',
+                borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
-                textDecoration: 'none'
+                justifyContent: 'center',
+                background: 'transparent',
+                transition: 'background 0.15s ease'
               }}
-              aria-label="Shopping Cart"
             >
-              <ShoppingBag size={21} />
-              {itemCount > 0 && (
-                <span style={{
-                  position: 'absolute',
-                  top: '2px',
-                  right: '2px',
-                  backgroundColor: '#2e1a10',
-                  color: '#ffffff',
-                  fontSize: '0.7rem',
-                  fontWeight: 700,
-                  width: '18px',
-                  height: '18px',
-                  borderRadius: '4px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center'
-                }}>
-                  {itemCount}
-                </span>
-              )}
-            </Link>
-
-            {/* Sign In / Account Button */}
-            {currentUser ? (
-              <Link 
-                to="/account" 
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  gap: '0.4rem',
-                  padding: '0.6rem 1.3rem',
-                  borderRadius: '6px',
-                  backgroundColor: '#2e1a10',
-                  color: '#ffffff',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  transition: 'all 0.15s ease',
-                  boxShadow: '0 2px 8px rgba(46, 26, 16, 0.25)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#422618'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2e1a10'}
-              >
-                <User size={15} />
-                <span>{userProfile?.displayName || 'My Account'}</span>
-              </Link>
-            ) : (
-              <Link 
-                to="/login" 
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  padding: '0.65rem 1.4rem',
-                  borderRadius: '6px',
-                  backgroundColor: '#2e1a10',
-                  color: '#ffffff',
-                  fontSize: '0.875rem',
-                  fontWeight: 600,
-                  textDecoration: 'none',
-                  transition: 'all 0.15s ease',
-                  boxShadow: '0 2px 10px rgba(46, 26, 16, 0.2)'
-                }}
-                onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#422618'}
-                onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2e1a10'}
-              >
-                Sign In
-              </Link>
-            )}
-
-            {/* Mobile Menu Button */}
-            <button 
-              onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-              style={{ color: '#2e1a10', padding: '0.4rem', background: 'none', border: 'none', cursor: 'pointer' }}
-              className="mobile-menu-btn"
-              aria-label="Toggle Navigation Menu"
-            >
-              {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+              <Search size={18} style={{ color: '#4b5563' }} />
             </button>
           </div>
+        </form>
+
+        {/* Right Section: Location, Cart, Profile */}
+        <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
+          
+          {/* Location Selector Pill */}
+          <div 
+            style={{ position: 'relative', cursor: 'pointer' }} 
+            className="desktop-location-picker"
+            onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
+          >
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
+              <div style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                backgroundColor: '#f9fafb',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                border: '1px solid #f3f4f6'
+              }}>
+                <MapPin size={17} style={{ color: '#4b5563' }} />
+              </div>
+              <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2 }}>
+                <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 500 }}>Select location</span>
+                <span style={{ fontSize: '0.85rem', color: '#111827', fontWeight: 700, display: 'flex', alignItems: 'center', gap: '2px' }}>
+                  {selectedLocation} <ChevronDown size={12} />
+                </span>
+              </div>
+            </div>
+
+            {/* Location Dropdown */}
+            {locationDropdownOpen && (
+              <div style={{
+                position: 'absolute',
+                top: '120%',
+                right: 0,
+                width: '170px',
+                backgroundColor: '#ffffff',
+                border: '1px solid #e5e7eb',
+                borderRadius: '10px',
+                boxShadow: '0 10px 25px rgba(0, 0, 0, 0.08)',
+                padding: '0.4rem 0',
+                zIndex: 1000
+              }}>
+                {['Dhaka', 'Sydney', 'Miami', 'London', 'New York'].map(loc => (
+                  <div
+                    key={loc}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      setSelectedLocation(loc);
+                      setLocationDropdownOpen(false);
+                    }}
+                    style={{
+                      padding: '0.5rem 1rem',
+                      fontSize: '0.85rem',
+                      fontWeight: selectedLocation === loc ? 700 : 500,
+                      color: '#111827',
+                      backgroundColor: selectedLocation === loc ? '#f3f4f6' : 'transparent',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    {loc}
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Shopping Bag Button */}
+          <Link 
+            to="/cart" 
+            style={{ 
+              position: 'relative',
+              width: '38px',
+              height: '38px',
+              borderRadius: '50%',
+              backgroundColor: '#f9fafb',
+              border: '1px solid #f3f4f6',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              textDecoration: 'none'
+            }}
+            aria-label="View Shopping Cart"
+          >
+            <ShoppingBag size={18} style={{ color: '#111827' }} />
+            {itemCount > 0 && (
+              <span style={{
+                position: 'absolute',
+                top: '-2px',
+                right: '-2px',
+                backgroundColor: '#10b981',
+                color: '#ffffff',
+                fontSize: '0.68rem',
+                fontWeight: 700,
+                width: '18px',
+                height: '18px',
+                borderRadius: '50%',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center'
+              }}>
+                {itemCount}
+              </span>
+            )}
+          </Link>
+
+          {/* User Profile Chip */}
+          <Link 
+            to={currentUser ? "/account" : "/login"}
+            style={{ textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.6rem' }}
+          >
+            <img 
+              src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?auto=format&fit=crop&w=120&q=80" 
+              alt="User Profile" 
+              style={{
+                width: '36px',
+                height: '36px',
+                borderRadius: '50%',
+                objectFit: 'cover'
+              }}
+            />
+            <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.25 }} className="desktop-user-name">
+              <span style={{ fontSize: '0.72rem', color: '#6b7280', fontWeight: 500 }}>Hello!</span>
+              <span style={{ fontSize: '0.85rem', color: '#111827', fontWeight: 700 }}>
+                {userProfile?.displayName || 'Jacob Jones'}
+              </span>
+            </div>
+          </Link>
+
+          {/* Mobile Hamburger Toggle */}
+          <button 
+            onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
+            style={{ color: '#111827', padding: '0.4rem', background: 'none', border: 'none', cursor: 'pointer' }}
+            className="mobile-menu-btn"
+            aria-label="Toggle Navigation Menu"
+          >
+            {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
+          </button>
         </div>
       </div>
 
-      {/* Mobile Menu Drawer */}
+      {/* Category Pills Ribbon Row */}
+      <div style={{ borderTop: '1px solid #f3f4f6', backgroundColor: '#ffffff' }}>
+        <div style={{
+          maxWidth: '1320px',
+          margin: '0 auto',
+          padding: '0.65rem 1.5rem',
+          display: 'flex',
+          alignItems: 'center',
+          gap: '0.75rem',
+          position: 'relative'
+        }}>
+          
+          {/* Scrollable Pills List */}
+          <div 
+            id="medicart-pills-container"
+            className="no-scrollbar"
+            style={{
+              display: 'flex',
+              alignItems: 'center',
+              gap: '0.6rem',
+              overflowX: 'auto',
+              flex: 1,
+              paddingRight: '1rem'
+            }}
+          >
+            {CATEGORY_PILLS.map((pill, idx) => {
+              const IconComp = pill.icon;
+              return (
+                <Link
+                  key={idx}
+                  to={pill.path}
+                  className="medicart-pill-btn"
+                >
+                  {IconComp && <IconComp size={15} style={{ color: pill.iconColor }} />}
+                  <span>{pill.label}</span>
+                </Link>
+              );
+            })}
+          </div>
+
+          {/* Right Navigation Arrow Button */}
+          <button
+            onClick={handlePillScrollRight}
+            style={{
+              width: '32px',
+              height: '32px',
+              borderRadius: '50%',
+              backgroundColor: '#063b30',
+              color: '#ffffff',
+              display: 'flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              flexShrink: 0,
+              cursor: 'pointer',
+              boxShadow: '0 2px 8px rgba(6, 59, 48, 0.25)'
+            }}
+            aria-label="Scroll Categories Right"
+          >
+            <ArrowRight size={16} />
+          </button>
+        </div>
+      </div>
+
+      {/* Mobile Drawer Navigation */}
       {mobileMenuOpen && (
         <div style={{
           backgroundColor: '#ffffff',
-          borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-          borderRadius: isScrolled ? '0' : '6px',
-          maxWidth: isScrolled ? '1280px' : '1180px',
-          margin: isScrolled ? '0 auto' : '0.5rem auto 0 auto',
-          padding: '1.5rem 1.25rem',
+          borderBottom: '1px solid #e5e7eb',
+          padding: '1.25rem 1.5rem',
           display: 'flex',
           flexDirection: 'column',
           gap: '1rem',
-          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)',
-          transition: 'all 0.4s cubic-bezier(0.16, 1, 0.3, 1)'
+          animation: 'fadeIn 0.2s ease'
         }}>
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.05rem', fontWeight: 600, color: '#2e1a10', textDecoration: 'none' }}>
+          {/* Mobile Search Bar */}
+          <form onSubmit={handleSearchSubmit}>
+            <div className="medicart-search-bar">
+              <input
+                type="text"
+                placeholder="Search products..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                style={{ flex: 1, border: 'none', background: 'transparent', fontSize: '0.9rem', outline: 'none' }}
+              />
+              <button type="submit" style={{ background: 'none', border: 'none' }}>
+                <Search size={18} style={{ color: '#4b5563' }} />
+              </button>
+            </div>
+          </form>
+
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', textDecoration: 'none' }}>
             Home
           </Link>
-          <Link to="/shop" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.05rem', fontWeight: 600, color: '#2e1a10', textDecoration: 'none' }}>
-            Shop All Cigars
+          <Link to="/shop" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', fontWeight: 600, color: '#111827', textDecoration: 'none' }}>
+            Shop All
           </Link>
           
-          <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#8e7362', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Brands</span>
+          <div style={{ borderTop: '1px solid #f3f4f6', paddingTop: '0.75rem' }}>
+            <span style={{ fontSize: '0.75rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Cigar Brands</span>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
               {CIGAR_BRANDS.map(brand => (
                 <Link
                   key={brand.slug}
                   to={`/shop/${brand.slug}`}
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{ color: '#5e4233', fontSize: '0.9rem', textDecoration: 'none' }}
+                  style={{ color: '#4b5563', fontSize: '0.875rem', textDecoration: 'none' }}
                 >
                   {brand.name}
                 </Link>
               ))}
             </div>
           </div>
-
-          <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', color: '#5e4233', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
-            Cigarettes <span style={{ fontSize: '0.65rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>Coming Soon</span>
-          </Link>
-          
-          <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
-            <Link to="/terms" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#8e7362', textDecoration: 'none' }}>Terms</Link>
-            <Link to="/privacy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#8e7362', textDecoration: 'none' }}>Privacy</Link>
-            <Link to="/refund-policy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#8e7362', textDecoration: 'none' }}>Refund Policy</Link>
-          </div>
         </div>
       )}
 
-      {/* Scoped CSS Styles for Media Queries */}
+      {/* CSS Breakpoint Rules */}
       <style>{`
-        @keyframes fadeIn {
-          from { opacity: 0; transform: translateY(-4px); }
-          to { opacity: 1; transform: translateY(0); }
-        }
         @media (min-width: 860px) {
-          .desktop-nav { display: flex !important; }
-          .desktop-age-badge { display: inline-flex !important; }
+          .desktop-search-form { display: flex !important; }
+          .desktop-location-picker { display: flex !important; }
+          .desktop-user-name { display: flex !important; }
           .mobile-menu-btn { display: none !important; }
         }
         @media (max-width: 859px) {
-          .desktop-nav { display: none !important; }
-          .desktop-age-badge { display: none !important; }
+          .desktop-search-form { display: none !important; }
+          .desktop-location-picker { display: none !important; }
+          .desktop-user-name { display: none !important; }
           .mobile-menu-btn { display: flex !important; }
         }
       `}</style>
     </header>
   );
 };
-
-

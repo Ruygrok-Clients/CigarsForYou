@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { collection, query, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Product } from '../types';
@@ -8,13 +8,19 @@ import { ProductSeparationsSection } from '../components/ProductSeparationsSecti
 import { FeaturedProductsShowcase } from '../components/FeaturedProductsShowcase';
 import { AboutUsSection } from '../components/AboutUsSection';
 import { CIGAR_BRANDS } from '../components/Navbar';
-import { Truck, ChevronRight, Award } from 'lucide-react';
-import bgVideo from '../assets/BG-Vid.mov';
+import { Star, Award } from 'lucide-react';
 
 export const HomePage: React.FC = () => {
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNotifyProduct, setSelectedNotifyProduct] = useState<Product | null>(null);
+
+  // Hero docked widget state
+  const [heroCategory, setHeroCategory] = useState('All Categories');
+  const [heroBrand, setHeroBrand] = useState('Brands');
+  const [skuInput, setSkuInput] = useState('');
+
+  const navigate = useNavigate();
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -35,141 +41,241 @@ export const HomePage: React.FC = () => {
     fetchFeatured();
   }, []);
 
+  const handleHeroShopNow = (e: React.FormEvent) => {
+    e.preventDefault();
+    const params = new URLSearchParams();
+    if (heroCategory !== 'All Categories') params.append('category', heroCategory);
+    if (heroBrand !== 'Brands') params.append('brand', heroBrand);
+    if (skuInput.trim()) params.append('search', skuInput.trim());
+    
+    const queryString = params.toString();
+    navigate(queryString ? `/shop?${queryString}` : '/shop');
+  };
+
   return (
     <div>
-      {/* 100VH Hero Section with Background Video & Transparent 60% Dark Overlay */}
-      <section style={{
-        position: 'relative',
-        minHeight: '100vh',
-        height: '100vh',
-        width: '100%',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: '#000000',
-        overflow: 'hidden',
-        paddingTop: '2rem'
-      }}>
-        {/* Background Video */}
-        <video
-          autoPlay
-          loop
-          muted
-          playsInline
-          preload="auto"
-          src="/BG-Vid.mov"
-          style={{
-            position: 'absolute',
-            top: 0,
-            left: 0,
-            width: '100%',
-            height: '100%',
-            objectFit: 'cover',
-            zIndex: 0
-          }}
-        >
-          <source src="/BG-Vid.mov" type="video/quicktime" />
-          <source src={bgVideo} type="video/mp4" />
-        </video>
+      {/* Medicart Hero Section Container */}
+      <section style={{ padding: '1.25rem 1.25rem 3.5rem 1.25rem', backgroundColor: '#ffffff' }}>
+        <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
+          
+          {/* Main Dark Emerald Green Hero Card */}
+          <div className="medicart-hero-card">
+            
+            {/* Grid Content Wrapper */}
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
+              alignItems: 'center',
+              gap: '2rem',
+              padding: '4rem 3.5rem 7.5rem 3.5rem',
+              position: 'relative',
+              zIndex: 2
+            }} className="hero-grid-wrapper">
+              
+              {/* Left Column: Social Proof, Title, Subtitle, Buttons */}
+              <div style={{ maxWidth: '580px' }}>
+                
+                {/* Social Proof Avatar Group & Rating */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.85rem', marginBottom: '2rem' }}>
+                  {/* Overlapping Avatars */}
+                  <div style={{ display: 'flex', alignItems: 'center' }}>
+                    <img 
+                      src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?auto=format&fit=crop&w=100&q=80" 
+                      alt="User 1" 
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2.5px solid #063b30', objectFit: 'cover' }}
+                    />
+                    <img 
+                      src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?auto=format&fit=crop&w=100&q=80" 
+                      alt="User 2" 
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2.5px solid #063b30', objectFit: 'cover', marginLeft: '-12px' }}
+                    />
+                    <img 
+                      src="https://images.unsplash.com/photo-1500648767791-00dcc994a43e?auto=format&fit=crop&w=100&q=80" 
+                      alt="User 3" 
+                      style={{ width: '40px', height: '40px', borderRadius: '50%', border: '2.5px solid #063b30', objectFit: 'cover', marginLeft: '-12px' }}
+                    />
+                  </div>
 
-        {/* Transparent Dark Overlay (60% Opacity as requested so video behind is clearly visible) */}
-        <div style={{
-          position: 'absolute',
-          inset: 0,
-          backgroundColor: 'rgba(0, 0, 0, 0.6)',
-          zIndex: 1
-        }} />
+                  {/* Rating Stars & Text */}
+                  <div style={{ display: 'flex', flexDirection: 'column', justifyContent: 'center' }}>
+                    <div style={{ display: 'flex', alignItems: 'center', gap: '2px', marginBottom: '2px' }}>
+                      <Star size={16} fill="#eab308" color="#eab308" />
+                      <Star size={16} fill="#eab308" color="#eab308" />
+                      <Star size={16} fill="#eab308" color="#eab308" />
+                      <Star size={16} fill="#eab308" color="#eab308" />
+                      <Star size={16} color="#eab308" />
+                    </div>
+                    <span style={{ fontSize: '0.825rem', color: '#ffffff', fontWeight: 600, opacity: 0.95 }}>
+                      Trusted by 50,000+ families
+                    </span>
+                  </div>
+                </div>
 
-        {/* Hero Content Overlay */}
-        <div className="container" style={{ position: 'relative', zIndex: 2 }}>
-          <div style={{ maxWidth: '820px', margin: '0 auto', textAlign: 'center' }}>
-            <span className="badge badge-gold" style={{
-              marginBottom: '1.5rem',
-              fontSize: '0.875rem',
-              padding: '0.5rem 1.25rem',
-              backgroundColor: 'rgba(184, 134, 11, 0.2)',
-              color: '#fde68a',
-              border: '1px solid rgba(253, 230, 138, 0.4)',
-              backdropFilter: 'blur(12px)'
-            }}>
-              <Truck size={15} /> 1-3hr Delivery On All Tobacco Products.
-            </span>
+                {/* Main Hero Title */}
+                <h1 style={{
+                  fontSize: 'clamp(2.8rem, 5.5vw, 4.4rem)',
+                  fontWeight: 800,
+                  color: '#ffffff',
+                  lineHeight: 1.08,
+                  letterSpacing: '-0.035em',
+                  marginBottom: '1.25rem',
+                  fontFamily: 'system-ui, -apple-system, sans-serif'
+                }}>
+                  Healthcare <br />
+                  Delivered to Your <br />
+                  Doorstep
+                </h1>
 
-            <h1 style={{ 
-              fontSize: 'clamp(2.8rem, 6.5vw, 4.6rem)', 
-              color: '#ffffff', 
-              lineHeight: 1.1,
-              marginBottom: '1.5rem',
-              letterSpacing: '-0.03em',
-              fontWeight: 700,
-              textShadow: '0 4px 20px rgba(0, 0, 0, 0.7)'
-            }}>
-              Authentic Cuban Cigars, <br />
-              <span style={{
-                color: '#f59e0b',
-                textShadow: '0 2px 10px rgba(0, 0, 0, 0.5)'
-              }}>Delivered To Your Door.</span>
-            </h1>
+                {/* Subtitle */}
+                <p style={{
+                  fontSize: 'clamp(1rem, 1.8vw, 1.2rem)',
+                  color: 'rgba(255, 255, 255, 0.88)',
+                  lineHeight: 1.55,
+                  marginBottom: '2.5rem',
+                  maxWidth: '480px',
+                  fontWeight: 400
+                }}>
+                  Order medicines, consult doctors online, and get doorstep delivery within 24 hours.
+                </p>
 
-            <p style={{ 
-              fontSize: 'clamp(1.1rem, 2vw, 1.3rem)', 
-              color: '#f3f4f6', 
-              lineHeight: 1.65,
-              marginBottom: '2.75rem',
-              maxWidth: '700px',
-              marginInline: 'auto',
-              textShadow: '0 2px 10px rgba(0, 0, 0, 0.7)'
-            }}>
-              Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty.
-            </p>
+                {/* Action Buttons */}
+                <div style={{ display: 'flex', alignItems: 'center', gap: '1rem', flexWrap: 'wrap' }}>
+                  <Link to="/shop" className="medicart-hero-pill-primary">
+                    Order Medicines
+                  </Link>
+                  <Link to="/shop" className="medicart-hero-pill-secondary">
+                    Upload Prescription
+                  </Link>
+                </div>
 
-            <div className="hero-btn-group" style={{ display: 'flex', flexWrap: 'wrap', justifyContent: 'center', alignItems: 'center', gap: '1.25rem' }}>
-              <Link to="/shop" className="btn btn-primary btn-lg hero-btn" style={{
-                backgroundColor: '#2e1a10',
-                color: '#ffffff',
-                border: '1px solid rgba(46, 26, 16, 0.8)',
-                boxShadow: '0 8px 25px rgba(0, 0, 0, 0.5)',
-                height: '52px',
-                boxSizing: 'border-box',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                Explore Cigar Catalog <ChevronRight size={18} />
-              </Link>
-              <Link to="/cigarettes" className="btn btn-secondary btn-lg hero-btn" style={{
-                backgroundColor: 'rgba(255, 255, 255, 0.2)',
-                borderColor: 'rgba(255, 255, 255, 0.4)',
-                borderStyle: 'solid',
-                borderWidth: '1px',
-                backdropFilter: 'blur(16px)',
-                color: '#ffffff',
-                height: '52px',
-                boxSizing: 'border-box',
-                display: 'inline-flex',
-                alignItems: 'center',
-                justifyContent: 'center'
-              }}>
-                Cigarettes <span className="badge badge-amber" style={{ marginLeft: '0.4rem', backgroundColor: 'rgba(217, 119, 6, 0.3)', color: '#fbbf24', border: '1px solid rgba(251, 191, 36, 0.5)', padding: '0.2rem 0.5rem', fontSize: '0.72rem', lineHeight: 1, display: 'inline-flex', alignItems: 'center' }}>Coming Soon</span>
-              </Link>
+              </div>
+
+              {/* Right Column: Delivery Courier Cutout Image */}
+              <div style={{
+                display: 'flex',
+                alignItems: 'flex-end',
+                justifyContent: 'center',
+                position: 'relative',
+                height: '100%',
+                minHeight: '380px'
+              }} className="hero-image-col">
+                <img 
+                  src="https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=900&q=80" 
+                  alt="Medicart Delivery Courier"
+                  style={{
+                    maxHeight: '460px',
+                    width: 'auto',
+                    objectFit: 'cover',
+                    borderRadius: '24px',
+                    boxShadow: '0 20px 40px rgba(0,0,0,0.3)',
+                    transform: 'scaleX(-1)' // Mirror for front facing posture
+                  }}
+                />
+              </div>
+
             </div>
+
+            {/* Bottom Docked White Floating Search Card */}
+            <div className="medicart-bottom-dock" style={{
+              position: 'absolute',
+              bottom: '1.5rem',
+              left: '2rem',
+              right: '2rem',
+              zIndex: 10
+            }}>
+              <form onSubmit={handleHeroShopNow} style={{ display: 'flex', alignItems: 'center', width: '100%', gap: '1rem', flexWrap: 'wrap' }}>
+                <span style={{ fontSize: '0.95rem', fontWeight: 800, color: '#111827', minWidth: '130px' }}>
+                  Select a product
+                </span>
+
+                <select 
+                  className="medicart-select"
+                  value={heroCategory}
+                  onChange={(e) => setHeroCategory(e.target.value)}
+                  style={{ flex: '1 1 140px', minWidth: '140px' }}
+                >
+                  <option value="All Categories">All Categories</option>
+                  <option value="Medicines">Medicines</option>
+                  <option value="Cuban Cigars">Cuban Cigars</option>
+                  <option value="Personal Care">Personal Care</option>
+                  <option value="Vitamins">Vitamins</option>
+                </select>
+
+                <select 
+                  className="medicart-select"
+                  value={heroBrand}
+                  onChange={(e) => setHeroBrand(e.target.value)}
+                  style={{ flex: '1 1 140px', minWidth: '140px' }}
+                >
+                  <option value="Brands">Brands</option>
+                  {CIGAR_BRANDS.map(b => (
+                    <option key={b.slug} value={b.name}>{b.name}</option>
+                  ))}
+                </select>
+
+                <span style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500 }}>or</span>
+
+                <input 
+                  type="text"
+                  placeholder="Enter SKU"
+                  className="medicart-input"
+                  value={skuInput}
+                  onChange={(e) => setSkuInput(e.target.value)}
+                  style={{ flex: '1 1 160px', minWidth: '140px' }}
+                />
+
+                <button 
+                  type="submit"
+                  style={{
+                    backgroundColor: '#063b30',
+                    color: '#ffffff',
+                    fontWeight: 700,
+                    fontSize: '0.925rem',
+                    padding: '12px 32px',
+                    borderRadius: '9999px',
+                    marginLeft: 'auto',
+                    transition: 'all 0.2s ease',
+                    boxShadow: '0 4px 14px rgba(6, 59, 48, 0.3)',
+                    cursor: 'pointer'
+                  }}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#042a22'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#063b30'}
+                >
+                  Shop Now
+                </button>
+              </form>
+            </div>
+
           </div>
+
         </div>
 
-        {/* Ambient Soft Glow */}
-        <div style={{
-          position: 'absolute',
-          top: '30%',
-          left: '50%',
-          transform: 'translateX(-50%)',
-          width: '800px',
-          height: '500px',
-          background: 'radial-gradient(circle, rgba(184, 134, 11, 0.12) 0%, rgba(0,0,0,0) 70%)',
-          pointerEvents: 'none',
-          zIndex: 1
-        }} />
+        {/* Responsive Adjustments for Bottom Dock & Hero Grid */}
+        <style>{`
+          @media (max-width: 991px) {
+            .hero-grid-wrapper {
+              padding: 2.5rem 2rem 14rem 2rem !important;
+            }
+            .hero-image-col {
+              display: none !important;
+            }
+          }
+          @media (max-width: 768px) {
+            .medicart-bottom-dock {
+              position: relative !important;
+              bottom: auto !important;
+              left: auto !important;
+              right: auto !important;
+              margin: -4rem 1rem 0 1rem !important;
+            }
+            .hero-grid-wrapper {
+              padding: 2rem 1.5rem 6rem 1.5rem !important;
+            }
+          }
+        `}</style>
       </section>
-      {/* Product Separations Section (Redesigned with Interactive Tabs & 3D Cascade Assets) */}
+
+      {/* Product Separations Section */}
       <ProductSeparationsSection />
 
       {/* Featured Products Showcase (Light Theme) */}
@@ -182,7 +288,7 @@ export const HomePage: React.FC = () => {
       {/* About Us Feature Section */}
       <AboutUsSection />
 
-      {/* Brand Grid Section (Light Theme) */}
+      {/* Brand Grid Section */}
       <section style={{ padding: '5rem 0', backgroundColor: '#ffffff' }}>
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 3rem auto' }}>
