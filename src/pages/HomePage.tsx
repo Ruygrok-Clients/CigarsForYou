@@ -6,6 +6,7 @@ import type { Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ProductSeparationsSection } from '../components/ProductSeparationsSection';
+import { FeaturedProductsShowcase } from '../components/FeaturedProductsShowcase';
 import { CIGAR_BRANDS } from '../components/Navbar';
 import { ShieldCheck, Clock, Truck, Flame, ChevronRight, Award, RefreshCw } from 'lucide-react';
 import bgVideo from '../assets/BG-Vid.mov';
@@ -159,46 +160,11 @@ export const HomePage: React.FC = () => {
       <ProductSeparationsSection />
 
       {/* Featured Products Showcase (Light Theme) */}
-      <section style={{ padding: '4rem 0 5rem 0', backgroundColor: '#ffffff' }}>
-        <div className="container">
-          <div style={{
-            display: 'flex',
-            justifyContent: 'space-between',
-            alignItems: 'flex-end',
-            marginBottom: '2.5rem',
-            flexWrap: 'wrap',
-            gap: '1rem'
-          }}>
-            <div>
-              <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: '#b8860b', fontSize: '0.825rem', fontWeight: 600 }}>
-                Curated Selection
-              </span>
-              <h2 style={{ fontSize: '2.4rem', color: '#2e1a10', marginTop: '0.25rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
-                Featured Cuban Cigars
-              </h2>
-            </div>
-            <Link to="/shop" className="btn btn-outline">
-              View All Cigars ({featuredProducts.length || '60+'})
-            </Link>
-          </div>
-
-          {loading ? (
-            <div style={{ textAlign: 'center', padding: '4rem 0', color: '#8e7362' }}>
-              Loading humidor inventory...
-            </div>
-          ) : (
-            <div className="grid-responsive">
-              {featuredProducts.slice(0, 8).map(product => (
-                <ProductCard 
-                  key={product.id || product.slug} 
-                  product={product} 
-                  onOpenNotifyModal={(p) => setSelectedNotifyProduct(p)}
-                />
-              ))}
-            </div>
-          )}
-        </div>
-      </section>
+      <FeaturedProductsShowcase
+        products={featuredProducts}
+        loading={loading}
+        onOpenNotifyModal={(p) => setSelectedNotifyProduct(p)}
+      />
 
       {/* Subscribe & Save Feature Section (Light Theme) */}
       <section style={{
