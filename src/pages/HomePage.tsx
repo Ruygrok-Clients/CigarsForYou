@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import type { Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { StockNotificationModal } from '../components/StockNotificationModal';
+import { ProductSeparationsSection } from '../components/ProductSeparationsSection';
 import { CIGAR_BRANDS } from '../components/Navbar';
 import { ShieldCheck, Clock, Sparkles, Flame, ChevronRight, Award, RefreshCw } from 'lucide-react';
 import bgVideo from '../assets/BG-Vid.mov';
@@ -90,7 +91,7 @@ export const HomePage: React.FC = () => {
               border: '1px solid rgba(253, 230, 138, 0.4)',
               backdropFilter: 'blur(12px)'
             }}>
-              <Sparkles size={15} /> Australia's Premier On-Demand Humidor
+              <Sparkles size={15} /> Hand-Delivering All Tobacco Products.
             </span>
 
             <h1 style={{ 
@@ -154,64 +155,8 @@ export const HomePage: React.FC = () => {
           zIndex: 1
         }} />
       </section>
-      {/* Category Tiles (Light Theme) */}
-      <section style={{ padding: '5rem 0 3rem 0', backgroundColor: '#f9f6f3' }}>
-        <div className="container">
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(300px, 1fr))', gap: '1.75rem' }}>
-            {/* Tile 1: Cuban Cigars */}
-            <Link to="/shop" style={{ textDecoration: 'none' }}>
-              <div className="card card-hover" style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid rgba(46, 26, 16, 0.08)',
-                borderRadius: '8px',
-                padding: '2.5rem 2rem',
-                minHeight: '230px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 8px 30px rgba(46, 26, 16, 0.05)'
-              }}>
-                <div>
-                  <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>Available Now</span>
-                  <h3 style={{ fontSize: '2rem', color: '#2e1a10', marginBottom: '0.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Cuban Cigars</h3>
-                  <p style={{ color: '#5e4233', fontSize: '0.95rem' }}>
-                    Authentic Habanos selections in singles, packs, and full boxes of 25.
-                  </p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#b8860b', fontWeight: 600 }}>
-                  <span>Shop Collection</span> <ChevronRight size={18} />
-                </div>
-              </div>
-            </Link>
-
-            {/* Tile 2: Cigarettes - Coming Soon */}
-            <Link to="/cigarettes" style={{ textDecoration: 'none' }}>
-              <div className="card card-hover" style={{
-                backgroundColor: '#ffffff',
-                border: '1px solid rgba(46, 26, 16, 0.08)',
-                borderRadius: '8px',
-                padding: '2.5rem 2rem',
-                minHeight: '230px',
-                display: 'flex',
-                flexDirection: 'column',
-                justifyContent: 'space-between',
-                boxShadow: '0 8px 30px rgba(46, 26, 16, 0.05)'
-              }}>
-                <div>
-                  <span className="badge badge-amber" style={{ marginBottom: '0.75rem' }}>Coming Soon</span>
-                  <h3 style={{ fontSize: '2rem', color: '#2e1a10', marginBottom: '0.5rem', fontWeight: 700, letterSpacing: '-0.02em' }}>Cigarettes</h3>
-                  <p style={{ color: '#8e7362', fontSize: '0.95rem' }}>
-                    Australian compliance compliant retail cigarette brands launching soon for door delivery.
-                  </p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#d97706', fontWeight: 600 }}>
-                  <span>Notify Me at Launch</span> <ChevronRight size={18} />
-                </div>
-              </div>
-            </Link>
-          </div>
-        </div>
-      </section>
+      {/* Product Separations Section (Redesigned with Interactive Tabs & 3D Cascade Assets) */}
+      <ProductSeparationsSection />
 
       {/* Featured Products Showcase (Light Theme) */}
       <section style={{ padding: '4rem 0 5rem 0', backgroundColor: '#ffffff' }}>
