@@ -28,8 +28,64 @@ export const AboutUsPage: React.FC = () => {
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
       
+      {/* Mobile Responsive Layout (<1110px) */}
+      <style>{`
+        @media (max-width: 1109px) {
+          .about-hero-section {
+            padding: 2.5rem 1.25rem 3.25rem 1.25rem !important;
+          }
+          .about-page-section {
+            padding-top: 2.25rem !important;
+            padding-bottom: 3.25rem !important;
+            padding-left: 1.25rem !important;
+            padding-right: 1.25rem !important;
+          }
+          .about-cta-section {
+            padding: 3.25rem 1.25rem !important;
+          }
+          .about-grid-2col {
+            grid-template-columns: 1fr !important;
+            gap: 2.5rem !important;
+          }
+          .about-grid-3col {
+            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
+            gap: 1.5rem !important;
+          }
+          .about-text-col {
+            max-width: 100% !important;
+          }
+          .about-stat-grid {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 1.25rem !important;
+            padding-top: 1.5rem !important;
+          }
+          .about-card-padding {
+            padding: 1.5rem 1.25rem !important;
+          }
+        }
+
+        @media (max-width: 779px) {
+          .about-hero-section {
+            padding: 2rem 1rem 2.5rem 1rem !important;
+          }
+          .about-page-section {
+            padding-top: 1.75rem !important;
+            padding-bottom: 2.5rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+          }
+          .about-cta-section {
+            padding: 2.5rem 1rem !important;
+          }
+          .about-grid-3col {
+            grid-template-columns: 1fr !important;
+            gap: 1.25rem !important;
+          }
+        }
+      `}</style>
+      
       {/* 1. Hero Header Section (Expanded Dark Luxury aesthetic) */}
-      <section style={{
+      <section className="about-hero-section" style={{
         backgroundColor: '#2f0d0e',
         color: '#ffffff',
         padding: '6rem 1.5rem 7rem 1.5rem',
@@ -102,7 +158,7 @@ export const AboutUsPage: React.FC = () => {
           </p>
 
           {/* Key Stat Badges Row */}
-          <div style={{
+          <div className="about-stat-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
             gap: '2rem',
@@ -135,16 +191,16 @@ export const AboutUsPage: React.FC = () => {
       </section>
 
       {/* 2. Our Origin & Story Section (Big Side-by-Side with Hero Image) */}
-      <section style={{ padding: '6.5rem 1.5rem', backgroundColor: '#ffffff' }}>
+      <section className="about-page-section" style={{ padding: '6.5rem 1.5rem', backgroundColor: '#ffffff' }}>
         <div className="container" style={{ maxWidth: '1240px' }}>
-          <div style={{
+          <div className="about-grid-2col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
             gap: '5rem',
             alignItems: 'center'
           }}>
             {/* Left Narrative Text */}
-            <div>
+            <div className="about-text-col">
               <span style={{
                 fontSize: '0.875rem',
                 fontWeight: 700,
@@ -267,7 +323,7 @@ export const AboutUsPage: React.FC = () => {
       </section>
 
       {/* 3. The 3 Steps of Craftsmanship (Visual 3-Card Photo Grid) */}
-      <section style={{ backgroundColor: '#faf6f5', padding: '6.5rem 1.5rem', borderTop: '1px solid rgba(46, 26, 16, 0.08)' }}>
+      <section className="about-page-section" style={{ backgroundColor: '#faf6f5', padding: '6.5rem 1.5rem', borderTop: '1px solid rgba(46, 26, 16, 0.08)' }}>
         <div className="container" style={{ maxWidth: '1240px' }}>
           <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4.5rem auto' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#c06517', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
@@ -288,7 +344,7 @@ export const AboutUsPage: React.FC = () => {
             </p>
           </div>
 
-          <div style={{
+          <div className="about-grid-3col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: '2.5rem'
@@ -414,9 +470,9 @@ export const AboutUsPage: React.FC = () => {
       </section>
 
       {/* 4. Deep-Dive Section: The Humidor Vault Experience */}
-      <section style={{ padding: '6.5rem 1.5rem', backgroundColor: '#ffffff' }}>
+      <section className="about-page-section" style={{ padding: '6.5rem 1.5rem', backgroundColor: '#ffffff' }}>
         <div className="container" style={{ maxWidth: '1240px' }}>
-          <div style={{
+          <div className="about-grid-2col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
             gap: '4.5rem',
@@ -433,7 +489,7 @@ export const AboutUsPage: React.FC = () => {
             </div>
 
             {/* Right Narrative Content */}
-            <div>
+            <div className="about-text-col">
               <span style={{
                 fontSize: '0.875rem',
                 fontWeight: 700,
@@ -553,7 +609,7 @@ export const AboutUsPage: React.FC = () => {
       </section>
 
       {/* 5. Our 6 Core Commitments Grid */}
-      <section style={{ backgroundColor: '#2f0d0e', color: '#ffffff', padding: '6.5rem 1.5rem' }}>
+      <section className="about-page-section" style={{ backgroundColor: '#2f0d0e', color: '#ffffff', padding: '6.5rem 1.5rem' }}>
         <div className="container" style={{ maxWidth: '1240px' }}>
           <div style={{ textAlign: 'center', maxWidth: '780px', margin: '0 auto 4.5rem auto' }}>
             <span style={{ fontSize: '0.875rem', fontWeight: 700, color: '#e59d5c', textTransform: 'uppercase', letterSpacing: '0.12em' }}>
@@ -574,7 +630,7 @@ export const AboutUsPage: React.FC = () => {
             </p>
           </div>
 
-          <div style={{
+          <div className="about-grid-3col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: '2rem'
@@ -679,7 +735,7 @@ export const AboutUsPage: React.FC = () => {
       </section>
 
       {/* 6. Grand Call to Action Banner with Rich Background Image */}
-      <section style={{
+      <section className="about-cta-section" style={{
         position: 'relative',
         padding: '7rem 1.5rem',
         backgroundColor: '#2f0d0e',

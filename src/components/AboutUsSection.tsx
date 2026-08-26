@@ -39,11 +39,13 @@ export const AboutUsSection: React.FC = () => {
           display: none;
         }
 
-        /* Mobile top margin/padding reduction (<1110px) */
+        /* Mobile top/horizontal margin & padding reduction (<1110px) */
         @media (max-width: 1109px) {
           .about-us-section {
             padding-top: 2.25rem !important;
             padding-bottom: 3.5rem !important;
+            padding-left: 1.25rem !important;
+            padding-right: 1.25rem !important;
           }
         }
 
@@ -52,6 +54,8 @@ export const AboutUsSection: React.FC = () => {
           .about-us-section {
             padding-top: 1.75rem !important;
             padding-bottom: 3rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
           }
           .about-us-svg-desktop {
             display: none !important;
