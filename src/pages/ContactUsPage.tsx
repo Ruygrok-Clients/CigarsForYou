@@ -62,8 +62,57 @@ export const ContactUsPage: React.FC = () => {
 
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
+      {/* Mobile Responsive Layout (<1110px) */}
+      <style>{`
+        @media (max-width: 1109px) {
+          .contact-hero-section {
+            padding: 2.5rem 1.25rem 3.25rem 1.25rem !important;
+          }
+          .contact-page-section {
+            padding-top: 2.25rem !important;
+            padding-bottom: 3.25rem !important;
+            padding-left: 1.25rem !important;
+            padding-right: 1.25rem !important;
+          }
+          .contact-grid-2col {
+            grid-template-columns: 1fr !important;
+            gap: 2rem !important;
+          }
+          .contact-card-padding {
+            padding: 1.5rem 1.25rem !important;
+          }
+          .contact-faq-section {
+            padding-top: 2.5rem !important;
+            padding-bottom: 3.25rem !important;
+            padding-left: 1.25rem !important;
+            padding-right: 1.25rem !important;
+          }
+        }
+
+        @media (max-width: 779px) {
+          .contact-hero-section {
+            padding: 2rem 1rem 2.5rem 1rem !important;
+          }
+          .contact-page-section {
+            padding-top: 1.75rem !important;
+            padding-bottom: 2.5rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+          }
+          .contact-faq-section {
+            padding-top: 2rem !important;
+            padding-bottom: 2.5rem !important;
+            padding-left: 1rem !important;
+            padding-right: 1rem !important;
+          }
+          .form-two-col {
+            grid-template-columns: 1fr !important;
+          }
+        }
+      `}</style>
+
       {/* Hero Header */}
-      <section style={{
+      <section className="contact-hero-section" style={{
         backgroundColor: '#2f0d0e',
         color: '#ffffff',
         padding: '5rem 1.5rem 5.5rem 1.5rem',
@@ -114,9 +163,9 @@ export const ContactUsPage: React.FC = () => {
       </section>
 
       {/* Main Grid: Form + Contact Info */}
-      <section style={{ padding: '5rem 1.5rem', backgroundColor: '#ffffff' }}>
+      <section className="contact-page-section" style={{ padding: '5rem 1.5rem', backgroundColor: '#ffffff' }}>
         <div className="container" style={{ maxWidth: '1200px' }}>
-          <div style={{
+          <div className="contact-grid-2col" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(340px, 1fr))',
             gap: '3.5rem',
@@ -124,7 +173,7 @@ export const ContactUsPage: React.FC = () => {
           }}>
 
             {/* Left Column: Interactive Contact Form */}
-            <div style={{
+            <div className="contact-card-padding" style={{
               backgroundColor: '#ffffff',
               borderRadius: '20px',
               padding: '2.5rem',
@@ -339,7 +388,7 @@ export const ContactUsPage: React.FC = () => {
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
 
               {/* Contact Information Card */}
-              <div style={{
+              <div className="contact-card-padding" style={{
                 backgroundColor: '#2f0d0e',
                 color: '#ffffff',
                 borderRadius: '20px',
@@ -457,7 +506,7 @@ export const ContactUsPage: React.FC = () => {
       </section>
 
       {/* Frequently Asked Questions Accordion */}
-      <section style={{ backgroundColor: '#faf6f5', padding: '5rem 1.5rem 6rem 1.5rem', borderTop: '1px solid rgba(46, 26, 16, 0.08)' }}>
+      <section className="contact-faq-section" style={{ backgroundColor: '#faf6f5', padding: '5rem 1.5rem 6rem 1.5rem', borderTop: '1px solid rgba(46, 26, 16, 0.08)' }}>
         <div className="container" style={{ maxWidth: '840px' }}>
           <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
             <HelpCircle size={32} style={{ color: '#c06517', marginBottom: '0.75rem' }} />
