@@ -413,8 +413,8 @@ body.is-scrolling::-webkit-scrollbar-thumb:hover {
   padding: 0.8rem 1.1rem;
   font-family: var(--font-sans);
   font-size: 0.95rem;
-  background-color: var(--bg-surface-elevated);
-  color: var(--text-primary);
+  background-color: #ffffff;
+  color: #000000 !important;
   border: 1px solid var(--border-color);
   border-radius: var(--radius-md);
   transition: border-color var(--transition-fast), box-shadow var(--transition-fast);
@@ -423,12 +423,23 @@ body.is-scrolling::-webkit-scrollbar-thumb:hover {
 .form-control:focus {
   outline: none;
   background-color: #ffffff;
-  border-color: #2e1a10;
-  box-shadow: 0 0 0 4px rgba(46, 26, 16, 0.08);
+  color: #000000 !important;
+  border-color: #c06517;
+  box-shadow: 0 0 0 4px rgba(192, 101, 23, 0.15);
 }
 
 .form-control::placeholder {
-  color: var(--text-muted);
+  color: #666666;
+}
+
+/* Chrome / Safari / Edge autofill styles for input fields */
+.form-control:-webkit-autofill,
+.form-control:-webkit-autofill:hover,
+.form-control:-webkit-autofill:focus,
+.form-control:-webkit-autofill:active {
+  -webkit-text-fill-color: #000000 !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  transition: background-color 5000s ease-in-out 0s;
 }
 
 /* Card Container */

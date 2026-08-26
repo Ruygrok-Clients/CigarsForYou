@@ -34,7 +34,7 @@ export const ForgotPasswordPage: React.FC = () => {
             <Link to="/login" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               <ArrowLeft size={14} /> Back to Sign In
             </Link>
-            <h1 style={{ fontSize: '2rem', color: '#ffffff', marginTop: '0.5rem' }}>Reset Password</h1>
+            <h1 style={{ fontSize: '2rem', color: 'var(--text-primary)', marginTop: '0.5rem' }}>Reset Password</h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.4rem' }}>
               Enter your email address and we'll send you a password reset link.
             </p>
@@ -42,7 +42,7 @@ export const ForgotPasswordPage: React.FC = () => {
 
           {sent ? (
             <div style={{ textAlign: 'center', padding: '1rem 0' }}>
-              <p style={{ color: 'var(--accent-gold)', fontWeight: 600, marginBottom: '1.5rem' }}>
+              <p style={{ color: 'var(--color-primary)', fontWeight: 600, marginBottom: '1.5rem' }}>
                 Instructions sent to <strong>{email}</strong>
               </p>
               <Link to="/login" className="btn btn-primary btn-full">
@@ -52,14 +52,14 @@ export const ForgotPasswordPage: React.FC = () => {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label className="form-label">Account Email</label>
+                <label className="form-label" style={{ color: 'var(--text-primary)' }}>Account Email</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
                     type="email"
                     required
                     className="form-control"
-                    style={{ paddingLeft: '2.5rem' }}
+                    style={{ paddingLeft: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
                     placeholder="name@example.com.au"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

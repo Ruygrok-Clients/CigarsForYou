@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { addDoc, collection, doc, updateDoc, increment } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -11,7 +11,8 @@ import {
   CreditCard, 
   CheckCircle2, 
   Lock, 
-  ArrowLeft
+  ArrowLeft,
+  MapPin
 } from 'lucide-react';
 
 export const CheckoutPage: React.FC = () => {
@@ -19,14 +20,32 @@ export const CheckoutPage: React.FC = () => {
   const { currentUser, userProfile } = useAuth();
   const { showToast } = useToast();
 
+  const savedAddress = userProfile?.address || userProfile?.addresses?.[0];
+
   // Form State
   const [fullName, setFullName] = useState(userProfile?.displayName || '');
-  const [email, setEmail] = useState(currentUser?.email || '');
+  const [email, setEmail] = useState(currentUser?.email || userProfile?.email || '');
   const [phone, setPhone] = useState(userProfile?.phone || '');
-  const [street, setStreet] = useState('');
-  const [suburb, setSuburb] = useState('');
-  const [state, setState] = useState('NSW');
-  const [postcode, setPostcode] = useState('');
+  const [street, setStreet] = useState(savedAddress?.street || '');
+  const [suburb, setSuburb] = useState(savedAddress?.suburb || '');
+  const [state, setState] = useState(savedAddress?.state || 'NSW');
+  const [postcode, setPostcode] = useState(savedAddress?.postcode || '');
+
+  useEffect(() => {
+    if (userProfile) {
+      if (userProfile.displayName && !fullName) setFullName(userProfile.displayName);
+      if ((currentUser?.email || userProfile.email) && !email) setEmail(currentUser?.email || userProfile.email);
+      if (userProfile.phone && !phone) setPhone(userProfile.phone);
+
+      const addr = userProfile.address || userProfile.addresses?.[0];
+      if (addr) {
+        if (addr.street && !street) setStreet(addr.street);
+        if (addr.suburb && !suburb) setSuburb(addr.suburb);
+        if (addr.state) setState(addr.state);
+        if (addr.postcode && !postcode) setPostcode(addr.postcode);
+      }
+    }
+  }, [userProfile]);
   
   // Payment tab
   const [paymentMethod, setPaymentMethod] = useState<'Stripe' | 'PayPal'>('Stripe');
@@ -292,9 +311,40 @@ export const CheckoutPage: React.FC = () => {
 
               {/* Step 2: Shipping Address */}
               <div className="card" style={{ padding: '1.75rem' }}>
-                <h3 style={{ fontSize: '1.3rem', color: '#ffffff', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  2. Australian Shipping Address
-                </h3>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
+                  <h3 style={{ fontSize: '1.3rem', color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                    2. Australian Shipping Address
+                  </h3>
+                  {savedAddress && (
+                    <span className="badge badge-gold" style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <MapPin size={13} /> Auto-filled from account
+                    </span>
+                  )}
+                </div>
+
+                {userProfile?.addresses && userProfile.addresses.length > 1 && (
+                  <div className="form-group" style={{ marginBottom: '1.25rem' }}>
+                    <label className="form-label" style={{ color: 'var(--accent-gold)' }}>Select Saved Shipping Address</label>
+                    <select
+                      className="form-control"
+                      onChange={(e) => {
+                        const selected = userProfile.addresses?.find(a => a.id === e.target.value);
+                        if (selected) {
+                          setStreet(selected.street);
+                          setSuburb(selected.suburb);
+                          setState(selected.state);
+                          setPostcode(selected.postcode);
+                        }
+                      }}
+                    >
+                      {userProfile.addresses.map(a => (
+                        <option key={a.id} value={a.id}>
+                          {a.street}, {a.suburb} {a.state} {a.postcode} {a.isDefault ? '(Primary Default)' : ''}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+                )}
 
                 <div className="form-group">
                   <label className="form-label">Street Address</label>

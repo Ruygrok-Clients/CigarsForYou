@@ -1,9 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Product } from '../types';
 import { X, Bell, Check } from 'lucide-react';
 import { useToast } from './Toast';
+import { useAuth } from '../context/AuthContext';
 
 interface StockNotificationModalProps {
   product: Product | null;
@@ -11,10 +12,17 @@ interface StockNotificationModalProps {
 }
 
 export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ product, onClose }) => {
-  const [email, setEmail] = useState('');
+  const { currentUser, userProfile } = useAuth();
+  const [email, setEmail] = useState(currentUser?.email || userProfile?.email || '');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { showToast } = useToast();
+
+  useEffect(() => {
+    if (currentUser?.email || userProfile?.email) {
+      setEmail(currentUser?.email || userProfile?.email || '');
+    }
+  }, [currentUser, userProfile]);
 
   if (!product) return null;
 
@@ -32,6 +40,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         productName: product.name,
         productBrand: product.brand,
         email: email.trim(),
+        userId: currentUser?.uid || null,
         requestedAt: new Date().toISOString(),
         notified: false
       });

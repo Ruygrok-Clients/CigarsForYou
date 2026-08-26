@@ -16,8 +16,11 @@ export interface UserProfile {
   displayName?: string;
   dateOfBirth?: string; // YYYY-MM-DD format
   role: UserRole;
+  address?: Address;
   addresses?: Address[];
   phone?: string;
+  rewardsProgramInterest?: boolean;
+  rewardsProgramVotedAt?: string;
   createdAt: string;
 }
 
@@ -106,6 +109,7 @@ export interface Order {
 
 export interface StockNotification {
   id?: string;
+  userId?: string;
   productId: string;
   productName: string;
   productBrand: string;

@@ -2,7 +2,7 @@ import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth, calculateAge } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { ShieldCheck, UserPlus, Lock, Mail, Calendar, User } from 'lucide-react';
+import { ShieldCheck, UserPlus, Lock, Mail, Calendar, User, Eye, EyeOff } from 'lucide-react';
 
 export const SignupPage: React.FC = () => {
   const { signUp } = useAuth();
@@ -12,6 +12,7 @@ export const SignupPage: React.FC = () => {
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [dateOfBirth, setDateOfBirth] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -49,7 +50,7 @@ export const SignupPage: React.FC = () => {
             <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>
               <ShieldCheck size={14} /> Strict 18+ Account Registration
             </span>
-            <h1 style={{ fontSize: '2.2rem', color: '#ffffff', marginTop: '0.25rem' }}>
+            <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)', marginTop: '0.25rem' }}>
               Create Your Account
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
@@ -59,14 +60,14 @@ export const SignupPage: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label">Full Name</label>
+              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Full Name</label>
               <div style={{ position: 'relative' }}>
                 <User size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
                   type="text"
                   required
                   className="form-control"
-                  style={{ paddingLeft: '2.5rem' }}
+                  style={{ paddingLeft: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
                   placeholder="e.g. Alexander Smith"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -75,14 +76,14 @@ export const SignupPage: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Email Address</label>
+              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Email Address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
                   type="email"
                   required
                   className="form-control"
-                  style={{ paddingLeft: '2.5rem' }}
+                  style={{ paddingLeft: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
                   placeholder="name@example.com.au"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -92,16 +93,16 @@ export const SignupPage: React.FC = () => {
 
             {/* Mandatory Date of Birth Field */}
             <div className="form-group">
-              <label className="form-label">
+              <label className="form-label" style={{ color: 'var(--text-primary)' }}>
                 Date of Birth (Mandatory 18+ Check)
               </label>
               <div style={{ position: 'relative' }}>
-                <Calendar size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--accent-gold)' }} />
+                <Calendar size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-primary)' }} />
                 <input
                   type="date"
                   required
                   className="form-control"
-                  style={{ paddingLeft: '2.5rem', color: dateOfBirth ? 'var(--text-primary)' : 'var(--text-muted)' }}
+                  style={{ paddingLeft: '2.5rem', color: dateOfBirth ? '#000000' : '#666666', backgroundColor: '#ffffff' }}
                   value={dateOfBirth}
                   onChange={(e) => setDateOfBirth(e.target.value)}
                 />
@@ -112,19 +113,40 @@ export const SignupPage: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label">Password</label>
+              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Password</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
-                  type="password"
+                  type={showPassword ? "text" : "password"}
                   required
                   minLength={6}
                   className="form-control"
-                  style={{ paddingLeft: '2.5rem' }}
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
                   placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
                 />
+                <button
+                  type="button"
+                  onClick={() => setShowPassword(!showPassword)}
+                  style={{
+                    position: 'absolute',
+                    right: '0.85rem',
+                    top: '50%',
+                    transform: 'translateY(-50%)',
+                    background: 'none',
+                    border: 'none',
+                    cursor: 'pointer',
+                    color: 'var(--text-muted)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    padding: 0
+                  }}
+                  title={showPassword ? "Hide password" : "Show password"}
+                  aria-label={showPassword ? "Hide password" : "Show password"}
+                >
+                  {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+                </button>
               </div>
             </div>
 

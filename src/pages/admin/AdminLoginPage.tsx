@@ -6,7 +6,7 @@ import { auth, db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useToast } from '../../components/Toast';
 import { useAdminContext } from './AdminContext';
-import { ShieldCheck, Lock, Mail, UserPlus, KeyRound, Sun, Moon } from 'lucide-react';
+import { ShieldCheck, Lock, Mail, UserPlus, KeyRound, Sun, Moon, Eye, EyeOff } from 'lucide-react';
 
 export const AdminLoginPage: React.FC = () => {
   const { refreshProfile } = useAuth();
@@ -16,6 +16,7 @@ export const AdminLoginPage: React.FC = () => {
 
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
+  const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSetupMode, setIsSetupMode] = useState(false);
   const [setupName, setSetupName] = useState('');
@@ -144,14 +145,35 @@ export const AdminLoginPage: React.FC = () => {
             <div style={{ position: 'relative' }}>
               <Lock size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
               <input
-                type="password"
+                type={showPassword ? "text" : "password"}
                 required
                 className="form-control"
-                style={{ paddingLeft: '2.5rem' }}
+                style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
               />
+              <button
+                type="button"
+                onClick={() => setShowPassword(!showPassword)}
+                style={{
+                  position: 'absolute',
+                  right: '0.85rem',
+                  top: '50%',
+                  transform: 'translateY(-50%)',
+                  background: 'none',
+                  border: 'none',
+                  cursor: 'pointer',
+                  color: 'var(--text-muted)',
+                  display: 'flex',
+                  alignItems: 'center',
+                  padding: 0
+                }}
+                title={showPassword ? "Hide password" : "Show password"}
+                aria-label={showPassword ? "Hide password" : "Show password"}
+              >
+                {showPassword ? <EyeOff size={18} /> : <Eye size={18} />}
+              </button>
             </div>
           </div>
 
