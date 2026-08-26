@@ -592,6 +592,20 @@ body.is-scrolling::-webkit-scrollbar-thumb:hover {
   position: relative;
 }
 
+.featured-products-section {
+  padding: 4.5rem 0 5rem 0;
+  background-color: #ffffff;
+}
+
+@media (max-width: 1109px) {
+  .product-sep-section {
+    padding-top: 2.25rem;
+  }
+  .featured-products-section {
+    padding-top: 2.25rem;
+  }
+}
+
 .product-sep-header {
   text-align: left;
   margin-bottom: 2.75rem;
