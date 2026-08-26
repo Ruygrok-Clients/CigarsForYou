@@ -298,6 +298,21 @@ export const ProductDetailPage: React.FC = () => {
 
   return (
     <div style={{ backgroundColor: '#ffffff', color: '#1d1d1f', minHeight: '100vh', paddingBottom: '5rem' }}>
+      <style>{`
+        @media (max-width: 800px) {
+          .product-detail-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2rem !important;
+          }
+          .product-detail-image-col {
+            position: relative !important;
+            top: auto !important;
+            align-self: stretch !important;
+            width: 100% !important;
+          }
+        }
+      `}</style>
+
       {/* Top Breadcrumb Navigation */}
       <div style={{ borderBottom: '1px solid #f0f0f2', backgroundColor: '#ffffff', padding: '1rem 0' }}>
         <div className="container">
@@ -316,14 +331,14 @@ export const ProductDetailPage: React.FC = () => {
       {/* Main Product Details Section */}
       <div style={{ padding: '2.5rem 0 4rem 0' }}>
         <div className="container">
-          <div style={{
+          <div className="product-detail-grid" style={{
             display: 'grid',
             gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
             gap: '3.5rem',
             alignItems: 'start'
           }}>
-            {/* Left Column: Product Image Frame (Sticky to Product Text Height) */}
-            <div style={{
+            {/* Left Column: Product Image Frame (Sticky to Product Text Height on desktop) */}
+            <div className="product-detail-image-col" style={{
               position: 'sticky',
               top: 'calc(var(--navbar-height, 120px) + 1.5rem)',
               alignSelf: 'start'

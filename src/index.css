@@ -905,7 +905,87 @@ body.is-scrolling::-webkit-scrollbar-thumb:hover {
   border-color: #c06517;
 }
 
+/* Checkout Page Responsive Layout */
+.checkout-container-grid {
+  display: grid;
+  grid-template-columns: 1fr 380px;
+  gap: 2.5rem;
+  align-items: start;
+}
 
+.checkout-form-row-2 {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 1rem;
+}
 
+.checkout-form-row-3 {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+}
 
+.checkout-address-fields {
+  display: grid;
+  grid-template-columns: 2fr 1fr 1fr;
+  gap: 1rem;
+}
+
+.checkout-state-postcode-container {
+  display: contents;
+}
+
+.checkout-payment-tabs {
+  display: flex;
+  gap: 1rem;
+  margin-bottom: 1.25rem;
+}
+
+@media (max-width: 990px) {
+  .checkout-container-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+
+  .checkout-form-row-2 {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .checkout-form-row-3 {
+    grid-template-columns: 1fr !important;
+    gap: 1rem !important;
+  }
+
+  .checkout-address-fields {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .checkout-state-postcode-container {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .checkout-payment-tabs {
+    flex-direction: column !important;
+    gap: 0.75rem !important;
+  }
+}
+
+@media (max-width: 500px) {
+  .checkout-address-fields {
+    display: flex !important;
+    flex-direction: column !important;
+    gap: 1rem !important;
+  }
+
+  .checkout-state-postcode-container {
+    display: grid !important;
+    grid-template-columns: 1fr 1fr !important;
+    gap: 0.85rem !important;
+  }
+}
 

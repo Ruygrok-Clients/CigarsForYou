@@ -256,12 +256,7 @@ export const CheckoutPage: React.FC = () => {
         </div>
 
         <form onSubmit={handlePlaceOrder}>
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '2.5rem',
-            alignItems: 'start'
-          }}>
+          <div className="checkout-container-grid">
             {/* Left Column: Form Details */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
               {/* Step 1: Customer Contact */}
@@ -282,7 +277,7 @@ export const CheckoutPage: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                <div className="checkout-form-row-2">
                   <div className="form-group">
                     <label className="form-label">Email Address</label>
                     <input
@@ -358,7 +353,7 @@ export const CheckoutPage: React.FC = () => {
                   />
                 </div>
 
-                <div style={{ display: 'grid', gridTemplateColumns: '2fr 1fr 1fr', gap: '1rem' }}>
+                <div className="checkout-address-fields">
                   <div className="form-group">
                     <label className="form-label">Suburb / City</label>
                     <input
@@ -371,137 +366,66 @@ export const CheckoutPage: React.FC = () => {
                     />
                   </div>
 
-                  <div className="form-group">
-                    <label className="form-label">State</label>
-                    <select
-                      className="form-control"
-                      value={state}
-                      onChange={(e) => setState(e.target.value)}
-                    >
-                      <option value="NSW">NSW</option>
-                      <option value="VIC">VIC</option>
-                      <option value="QLD">QLD</option>
-                      <option value="SA">SA</option>
-                      <option value="WA">WA</option>
-                      <option value="TAS">TAS</option>
-                      <option value="ACT">ACT</option>
-                      <option value="NT">NT</option>
-                    </select>
-                  </div>
+                  <div className="checkout-state-postcode-container">
+                    <div className="form-group">
+                      <label className="form-label">State</label>
+                      <select
+                        className="form-control"
+                        value={state}
+                        onChange={(e) => setState(e.target.value)}
+                      >
+                        <option value="NSW">NSW</option>
+                        <option value="VIC">VIC</option>
+                        <option value="QLD">QLD</option>
+                        <option value="SA">SA</option>
+                        <option value="WA">WA</option>
+                        <option value="TAS">TAS</option>
+                        <option value="ACT">ACT</option>
+                        <option value="NT">NT</option>
+                      </select>
+                    </div>
 
-                  <div className="form-group">
-                    <label className="form-label">Postcode</label>
-                    <input
-                      type="text"
-                      required
-                      className="form-control"
-                      placeholder="2000"
-                      value={postcode}
-                      onChange={(e) => setPostcode(e.target.value)}
-                    />
+                    <div className="form-group">
+                      <label className="form-label">Postcode</label>
+                      <input
+                        type="text"
+                        required
+                        className="form-control"
+                        placeholder="2000"
+                        value={postcode}
+                        onChange={(e) => setPostcode(e.target.value)}
+                      />
+                    </div>
                   </div>
                 </div>
               </div>
 
               {/* Step 3: Payment Method */}
               <div className="card" style={{ padding: '1.75rem' }}>
-                <h3 style={{ fontSize: '1.3rem', color: '#ffffff', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  3. Payment Integration (Stripe / PayPal)
+                <h3 style={{ fontSize: '1.3rem', color: '#ffffff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  3. Payment Method
                 </h3>
 
-                {/* Tabs */}
-                <div style={{ display: 'flex', gap: '1rem', marginBottom: '1.25rem' }}>
-                  <button
-                    type="button"
-                    className={`btn btn-sm ${paymentMethod === 'Stripe' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setPaymentMethod('Stripe')}
-                    style={{ flex: 1, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
-                  >
-                    <CreditCard size={16} /> Credit Card (Stripe)
-                  </button>
-                  <button
-                    type="button"
-                    className={`btn btn-sm ${paymentMethod === 'PayPal' ? 'btn-primary' : 'btn-secondary'}`}
-                    onClick={() => setPaymentMethod('PayPal')}
-                    style={{ flex: 1 }}
-                  >
-                    PayPal Express
-                  </button>
-                </div>
-
-                {paymentMethod === 'Stripe' ? (
-                  <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                    <div className="form-group">
-                      <label className="form-label">Card Number (Tokenized via Stripe)</label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={cardNumber}
-                        onChange={(e) => setCardNumber(e.target.value)}
-                      />
-                    </div>
-                    <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                      <div className="form-group">
-                        <label className="form-label">Expiry Date</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={cardExpiry}
-                          onChange={(e) => setCardExpiry(e.target.value)}
-                        />
-                      </div>
-                      <div className="form-group">
-                        <label className="form-label">CVC</label>
-                        <input
-                          type="text"
-                          className="form-control"
-                          value={cardCvc}
-                          onChange={(e) => setCardCvc(e.target.value)}
-                        />
-                      </div>
-                    </div>
-                  </div>
-                ) : (
-                  <div style={{
-                    padding: '1.5rem',
-                    backgroundColor: 'var(--bg-primary)',
-                    borderRadius: 'var(--radius-md)',
-                    textAlign: 'center',
-                    border: '1px solid var(--border-subtle)'
-                  }}>
-                    <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
-                      You will be directed to PayPal to complete authentication upon placing order.
-                    </p>
-                  </div>
-                )}
-              </div>
-
-              {/* Step 4: Mandatory Age Confirmation Checkbox */}
-              <div className="card" style={{
-                padding: '1.5rem',
-                border: '2px solid var(--accent-gold)',
-                backgroundColor: 'rgba(212, 175, 55, 0.05)'
-              }}>
-                <label style={{
+                <div style={{
+                  padding: '1.5rem',
+                  backgroundColor: 'var(--bg-primary)',
+                  borderRadius: 'var(--radius-md)',
+                  border: '1px solid var(--border-subtle)',
                   display: 'flex',
-                  alignItems: 'flex-start',
-                  gap: '0.85rem',
-                  cursor: 'pointer',
-                  fontSize: '0.95rem',
-                  color: '#ffffff',
-                  lineHeight: 1.5
+                  flexDirection: 'column',
+                  gap: '0.85rem'
                 }}>
-                  <input
-                    type="checkbox"
-                    required
-                    checked={ageConfirmed}
-                    onChange={(e) => setAgeConfirmed(e.target.checked)}
-                    style={{ width: '20px', height: '20px', accentColor: 'var(--accent-gold)', marginTop: '2px' }}
-                  />
-                  <span>
-                    <strong>I confirm I am 18 years of age or older</strong> and that this order of tobacco products is for my own personal consumption. I understand that government-issued photo ID is checked upon delivery.
-                  </span>
-                </label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ffffff', fontWeight: 600, fontSize: '1rem', flexWrap: 'wrap' }}>
+                    <CreditCard size={20} style={{ color: 'var(--accent-gold)' }} />
+                    <span>Secure Checkout via Stripe</span>
+                    <span className="badge badge-gold" style={{ marginLeft: 'auto', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center' }}>
+                      <Lock size={12} style={{ marginRight: '4px' }} /> 256-Bit Encrypted
+                    </span>
+                  </div>
+                  <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>
+                    After reviewing your details, clicking <strong>Pay & Place Order</strong> will securely redirect you to Stripe Hosted Checkout to complete your payment.
+                  </p>
+                </div>
               </div>
             </div>
 
@@ -562,6 +486,36 @@ export const CheckoutPage: React.FC = () => {
                 >
                   <Lock size={18} /> {submitting ? 'Processing Order...' : `Pay & Place Order ($${totalAmount.toFixed(2)})`}
                 </button>
+
+                {/* Mandatory Age Confirmation Checkbox */}
+                <div style={{
+                  marginTop: '1.25rem',
+                  padding: '1.1rem',
+                  border: '1.5px solid var(--accent-gold)',
+                  borderRadius: 'var(--radius-md)',
+                  backgroundColor: 'rgba(212, 175, 55, 0.05)'
+                }}>
+                  <label style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: '0.75rem',
+                    cursor: 'pointer',
+                    fontSize: '0.88rem',
+                    color: '#ffffff',
+                    lineHeight: 1.45
+                  }}>
+                    <input
+                      type="checkbox"
+                      required
+                      checked={ageConfirmed}
+                      onChange={(e) => setAgeConfirmed(e.target.checked)}
+                      style={{ width: '18px', height: '18px', accentColor: 'var(--accent-gold)', marginTop: '2px', flexShrink: 0 }}
+                    />
+                    <span>
+                      <strong>I confirm I am 18 years of age or older</strong> and that this order of tobacco products is for my own personal consumption. I understand that government-issued photo ID is checked upon delivery.
+                    </span>
+                  </label>
+                </div>
               </div>
             </div>
           </div>
