@@ -45,7 +45,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const [showLoading, setShowLoading] = useState(true);
 
   React.useEffect(() => {
-    let scrollTimer: NodeJS.Timeout;
+    let scrollTimer: ReturnType<typeof setTimeout>;
     const handleScroll = () => {
       document.body.classList.add('is-scrolling');
       clearTimeout(scrollTimer);
