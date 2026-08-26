@@ -42,7 +42,7 @@ export const AgeGateModal: React.FC = () => {
           <span>Strict Age Verification</span>
         </div>
 
-        <h2 style={{ fontSize: '2.1rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1d1d1f', marginBottom: '0.75rem', fontFamily: 'var(--font-sans)' }}>
+        <h2 style={{ fontSize: '2.1rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#2f0d0e', marginBottom: '0.75rem', fontFamily: 'var(--font-sans)' }}>
           Cigars<span style={{ color: '#b8860b' }}>ForYou</span>
         </h2>
 
@@ -57,7 +57,7 @@ export const AgeGateModal: React.FC = () => {
           border: '1px solid rgba(0, 0, 0, 0.06)',
           marginBottom: '1.75rem'
         }}>
-          <p style={{ margin: 0, fontWeight: 600, fontSize: '1.05rem', color: '#1d1d1f' }}>
+          <p style={{ margin: 0, fontWeight: 600, fontSize: '1.05rem', color: '#2f0d0e' }}>
             Are you 18 years of age or older?
           </p>
         </div>
@@ -77,9 +77,9 @@ export const AgeGateModal: React.FC = () => {
               padding: '0.9rem 1.5rem',
               fontSize: '1rem',
               fontWeight: 600,
-              backgroundColor: '#1d1d1f',
+              backgroundColor: '#2f0d0e',
               color: '#ffffff',
-              boxShadow: '0 4px 16px rgba(0,0,0,0.15)',
+              boxShadow: '0 4px 16px rgba(47, 13, 14, 0.25)',
               transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
             onMouseEnter={(e) => e.currentTarget.style.transform = 'scale(1.02)'}
@@ -108,8 +108,8 @@ export const AgeGateModal: React.FC = () => {
               transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.color = '#1d1d1f';
-              e.currentTarget.style.backgroundColor = 'rgba(0, 0, 0, 0.04)';
+              e.currentTarget.style.color = '#2f0d0e';
+              e.currentTarget.style.backgroundColor = 'rgba(47, 13, 14, 0.04)';
             }}
             onMouseLeave={(e) => {
               e.currentTarget.style.color = '#86868b';

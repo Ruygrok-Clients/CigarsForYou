@@ -48,7 +48,7 @@ export const AgeRestrictedPage: React.FC = () => {
           Access Restricted
         </span>
 
-        <h1 style={{ fontSize: '2.2rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '1rem', letterSpacing: '-0.025em' }}>
+        <h1 style={{ fontSize: '2.2rem', fontWeight: 700, color: '#2f0d0e', marginBottom: '1rem', letterSpacing: '-0.025em' }}>
           18+ Age Requirement
         </h1>
 

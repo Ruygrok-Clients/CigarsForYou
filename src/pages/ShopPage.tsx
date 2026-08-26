@@ -84,7 +84,7 @@ export const ShopPage: React.FC = () => {
   }, [products, selectedBrand, inStockOnly, searchQuery, sortBy]);
 
   return (
-    <div style={{ padding: '3rem 0 6rem 0' }}>
+    <div style={{ padding: '7rem 0 6rem 0' }}>
       <div className="container">
         {/* Header Title */}
         <div style={{ marginBottom: '2.5rem' }}>

@@ -144,7 +144,7 @@ export const ProductDetailPage: React.FC = () => {
                     fontWeight: 700,
                     textTransform: 'uppercase',
                     letterSpacing: '0.12em',
-                    color: '#1d1d1f'
+                    color: '#2f0d0e'
                   }}>
                     {product.brand}
                   </div>

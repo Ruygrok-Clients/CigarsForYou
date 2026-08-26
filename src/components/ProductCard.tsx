@@ -104,7 +104,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
             fontSize: '1.15rem',
             fontWeight: 700,
             letterSpacing: '-0.02em',
-            color: '#1d1d1f',
+            color: '#2f0d0e',
             marginBottom: '0.5rem',
             lineHeight: 1.3
           }}>
@@ -118,7 +118,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
               fontFamily: 'var(--font-sans)',
               fontSize: '1.35rem',
               fontWeight: 700,
-              color: '#1d1d1f',
+              color: '#2f0d0e',
               letterSpacing: '-0.02em'
             }}>
               ${product.price} <span style={{ fontSize: '0.75rem', fontWeight: 500, color: '#86868b' }}>AUD</span>

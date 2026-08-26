@@ -64,7 +64,7 @@ export const AdminLayout: React.FC = () => {
           justifyContent: 'space-between'
         }}>
           <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{ fontFamily: 'var(--font-serif)', fontSize: '1.4rem', fontWeight: 700, color: '#ffffff' }}>
+            <span style={{ fontFamily: 'var(--font-sans)', fontSize: '1.4rem', fontWeight: 700, color: 'var(--text-primary)' }}>
               CFY <span style={{ color: 'var(--accent-gold)' }}>Admin</span>
             </span>
             <span style={{ fontSize: '0.65rem', textTransform: 'uppercase', letterSpacing: '0.15em', color: 'var(--text-muted)' }}>

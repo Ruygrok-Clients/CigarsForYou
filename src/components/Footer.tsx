@@ -26,28 +26,28 @@ export const Footer: React.FC = () => {
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
             <Truck size={26} style={{ color: '#b8860b', flexShrink: 0 }} />
             <div>
-              <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#1d1d1f', fontWeight: 600 }}>Australia-Wide Express</h4>
+              <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#2f0d0e', fontWeight: 600 }}>Australia-Wide Express</h4>
               <p style={{ fontSize: '0.85rem', color: '#86868b', margin: 0 }}>Fast humidor-sealed delivery directly to your doorstep.</p>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
             <ShieldCheck size={26} style={{ color: '#b8860b', flexShrink: 0 }} />
             <div>
-              <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#1d1d1f', fontWeight: 600 }}>100% Genuine Cuban</h4>
+              <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#2f0d0e', fontWeight: 600 }}>100% Genuine Cuban</h4>
               <p style={{ fontSize: '0.85rem', color: '#86868b', margin: 0 }}>Guaranteed authentic premium hand-rolled selection.</p>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
             <Clock size={26} style={{ color: '#b8860b', flexShrink: 0 }} />
             <div>
-              <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#1d1d1f', fontWeight: 600 }}>Subscribe & Save</h4>
+              <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#2f0d0e', fontWeight: 600 }}>Subscribe & Save</h4>
               <p style={{ fontSize: '0.85rem', color: '#86868b', margin: 0 }}>Never run out. Automated delivery on your preferred schedule.</p>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
             <Lock size={26} style={{ color: '#b8860b', flexShrink: 0 }} />
             <div>
-              <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#1d1d1f', fontWeight: 600 }}>Age Verified 18+</h4>
+              <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: '#2f0d0e', fontWeight: 600 }}>Age Verified 18+</h4>
               <p style={{ fontSize: '0.85rem', color: '#86868b', margin: 0 }}>Strict regulatory compliance and ID verification on delivery.</p>
             </div>
           </div>
@@ -63,7 +63,7 @@ export const Footer: React.FC = () => {
           {/* Brand Info */}
           <div style={{ gridColumn: 'span 1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '1.6rem', fontWeight: 700, color: '#1d1d1f', letterSpacing: '-0.03em' }}>
+              <span style={{ fontFamily: 'var(--font-sans)', fontSize: '1.6rem', fontWeight: 700, color: '#2f0d0e', letterSpacing: '-0.03em' }}>
                 Cigars<span style={{ color: '#b8860b' }}>ForYou</span>
               </span>
             </div>
@@ -74,7 +74,7 @@ export const Footer: React.FC = () => {
 
           {/* Quick Links */}
           <div>
-            <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: '#1d1d1f', fontWeight: 600 }}>Quick Links</h4>
+            <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: '#2f0d0e', fontWeight: 600 }}>Quick Links</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
               <li><Link to="/shop" style={{ color: '#515154', fontSize: '0.875rem' }}>Shop All Cigars</Link></li>
               <li><Link to="/cigarettes" style={{ color: '#515154', fontSize: '0.875rem' }}>Cigarettes (Coming Soon)</Link></li>
@@ -85,7 +85,7 @@ export const Footer: React.FC = () => {
 
           {/* Premium Brands */}
           <div>
-            <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: '#1d1d1f', fontWeight: 600 }}>Cuban Brands</h4>
+            <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: '#2f0d0e', fontWeight: 600 }}>Cuban Brands</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
               {CIGAR_BRANDS.map(brand => (
                 <li key={brand.slug}>
@@ -99,7 +99,7 @@ export const Footer: React.FC = () => {
 
           {/* Compliance & Legal */}
           <div>
-            <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: '#1d1d1f', fontWeight: 600 }}>Compliance & Legal</h4>
+            <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: '#2f0d0e', fontWeight: 600 }}>Compliance & Legal</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem' }}>
               <li><Link to="/terms" style={{ color: '#515154', fontSize: '0.875rem' }}>Terms & Conditions</Link></li>
               <li><Link to="/privacy" style={{ color: '#515154', fontSize: '0.875rem' }}>Privacy Policy</Link></li>
@@ -110,12 +110,12 @@ export const Footer: React.FC = () => {
 
         {/* Health Warning Box */}
         <div style={{
-          backgroundColor: '#1d1d1f',
+          backgroundColor: '#2f0d0e',
           borderRadius: '16px',
           padding: '1.25rem 1.5rem',
           textAlign: 'center',
           marginBottom: '2rem',
-          boxShadow: '0 4px 20px rgba(0, 0, 0, 0.08)'
+          boxShadow: '0 4px 20px rgba(47, 13, 14, 0.2)'
         }}>
           <p style={{
             color: '#ffffff',

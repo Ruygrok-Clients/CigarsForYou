@@ -56,7 +56,7 @@ export const CigarettesComingSoonPage: React.FC = () => {
           Category Launch Preview
         </span>
 
-        <h1 style={{ fontSize: '3rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#1d1d1f', marginBottom: '1rem' }}>
+        <h1 style={{ fontSize: '3rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#2f0d0e', marginBottom: '1rem' }}>
           Retail Cigarettes <br />
           <span style={{ color: '#d97706' }}>Coming Soon</span>
         </h1>
@@ -88,14 +88,14 @@ export const CigarettesComingSoonPage: React.FC = () => {
               }}>
                 <CheckCircle2 size={28} />
               </div>
-              <h3 style={{ fontSize: '1.5rem', color: '#1d1d1f', marginBottom: '0.5rem', fontWeight: 700 }}>You're Registered!</h3>
+              <h3 style={{ fontSize: '1.5rem', color: '#2f0d0e', marginBottom: '0.5rem', fontWeight: 700 }}>You're Registered!</h3>
               <p style={{ color: '#515154', fontSize: '0.95rem' }}>
                 We'll email <strong>{email}</strong> the moment the cigarette catalog opens for doorstep delivery.
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
-              <h3 style={{ fontSize: '1.4rem', color: '#1d1d1f', marginBottom: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+              <h3 style={{ fontSize: '1.4rem', color: '#2f0d0e', marginBottom: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
                 <Bell size={20} style={{ color: '#d97706' }} /> Get Notified First At Launch
               </h3>
               <p style={{ color: '#86868b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
@@ -116,7 +116,7 @@ export const CigarettesComingSoonPage: React.FC = () => {
                   type="submit"
                   className="btn btn-primary"
                   disabled={submitting}
-                  style={{ backgroundColor: '#1d1d1f', color: '#ffffff', borderRadius: '9999px', padding: '0.75rem 1.5rem' }}
+                  style={{ backgroundColor: '#2f0d0e', color: '#ffffff', borderRadius: '9999px', padding: '0.75rem 1.5rem' }}
                 >
                   {submitting ? 'Registering...' : 'Notify Me'}
                 </button>

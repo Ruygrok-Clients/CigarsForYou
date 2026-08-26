@@ -76,7 +76,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             <Bell size={26} />
           </div>
 
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2f0d0e', marginBottom: '0.5rem' }}>
             Back in Stock Notification
           </h3>
           <p style={{ fontSize: '0.9rem', color: '#515154' }}>
@@ -99,7 +99,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             }}>
               <Check size={24} />
             </div>
-            <h4 style={{ color: '#1d1d1f', fontWeight: 700, marginBottom: '0.5rem' }}>You're on the List!</h4>
+            <h4 style={{ color: '#2f0d0e', fontWeight: 700, marginBottom: '0.5rem' }}>You're on the List!</h4>
             <p style={{ fontSize: '0.875rem', color: '#515154', marginBottom: '1.5rem' }}>
               We've registered <strong>{email}</strong>. As soon as new inventory arrives, you will be notified.
             </p>
@@ -110,7 +110,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" style={{ color: '#1d1d1f' }}>Email Address</label>
+              <label className="form-label" style={{ color: '#2f0d0e' }}>Email Address</label>
               <input
                 type="email"
                 required

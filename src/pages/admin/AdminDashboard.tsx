@@ -96,7 +96,7 @@ export const AdminDashboard: React.FC = () => {
         <span className="badge badge-gold" style={{ marginBottom: '0.5rem' }}>
           Real-Time Operations
         </span>
-        <h1 style={{ fontSize: '2.2rem', color: '#1d1d1f', fontWeight: 700, letterSpacing: '-0.025em' }}>
+        <h1 style={{ fontSize: '2.2rem', color: '#2f0d0e', fontWeight: 700, letterSpacing: '-0.025em' }}>
           Welcome back, {userProfile?.displayName || 'Administrator'}
         </h1>
         <p style={{ color: '#515154', fontSize: '0.95rem', marginTop: '0.25rem' }}>

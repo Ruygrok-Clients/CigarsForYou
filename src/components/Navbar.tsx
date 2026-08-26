@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link, useLocation } from 'react-router-dom';
 import { ShoppingBag, User, ChevronDown, Menu, X, ShieldCheck } from 'lucide-react';
 import { useCart } from '../context/CartContext';
@@ -9,10 +9,10 @@ export const CIGAR_BRANDS = [
   { name: 'Cohiba', slug: 'cohiba' },
   { name: 'Partagas', slug: 'partagas' },
   { name: 'Romeo y Julieta', slug: 'romeo-y-julieta' },
+  { name: 'Montecristo', slug: 'montecristo' },
   { name: 'Hoyo De Monterrey', slug: 'hoyo-de-monterrey' },
   { name: 'H. Upmann', slug: 'h-upmann' },
-  { name: 'Punch', slug: 'punch' },
-  { name: 'Montecristo', slug: 'montecristo' }
+  { name: 'Punch', slug: 'punch' }
 ];
 
 export const Navbar: React.FC = () => {
@@ -21,71 +21,78 @@ export const Navbar: React.FC = () => {
   const { isAgeVerified } = useAgeGate();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const [brandDropdownOpen, setBrandDropdownOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const location = useLocation();
+
+  useEffect(() => {
+    const handleScroll = () => {
+      if (window.scrollY > 20) {
+        setIsScrolled(true);
+      } else {
+        setIsScrolled(false);
+      }
+    };
+    window.addEventListener('scroll', handleScroll);
+    handleScroll();
+    return () => window.removeEventListener('scroll', handleScroll);
+  }, []);
 
   const isActive = (path: string) => location.pathname === path;
 
   return (
     <header style={{
-      position: 'sticky',
+      position: 'fixed',
       top: 0,
-      zIndex: 900,
-      backgroundColor: 'rgba(255, 255, 255, 0.85)',
-      backdropFilter: 'blur(20px) saturate(180%)',
-      borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
-      boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
+      left: 0,
+      right: 0,
+      zIndex: 990,
+      width: '100%',
+      padding: isScrolled ? '0' : '0.85rem 1.25rem',
+      transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
     }}>
-      {/* Top Banner Notice */}
       <div style={{
-        backgroundColor: '#f5f5f7',
-        color: '#1d1d1f',
-        fontSize: '0.78rem',
-        padding: '0.4rem 1rem',
-        textAlign: 'center',
-        borderBottom: '1px solid rgba(0,0,0,0.06)',
+        maxWidth: isScrolled ? '100%' : '1240px',
+        width: '100%',
+        margin: '0 auto',
+        backgroundColor: 'rgba(255, 255, 255, 0.95)',
+        backdropFilter: 'blur(20px) saturate(180%)',
+        borderRadius: isScrolled ? '0px' : '9999px',
+        border: isScrolled ? 'none' : '1px solid rgba(0, 0, 0, 0.08)',
+        borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+        boxShadow: isScrolled 
+          ? '0 4px 20px rgba(0, 0, 0, 0.05)' 
+          : '0 10px 30px rgba(0, 0, 0, 0.08), 0 2px 6px rgba(0, 0, 0, 0.03)',
+        padding: isScrolled ? '0.75rem 2rem' : '0.6rem 1.75rem',
         display: 'flex',
         alignItems: 'center',
-        justifyContent: 'center',
-        gap: '0.5rem',
-        fontWeight: 500,
-        letterSpacing: '0.01em'
+        justifyContent: 'space-between',
+        transition: 'all 0.35s cubic-bezier(0.16, 1, 0.3, 1)'
       }}>
-        <ShieldCheck size={14} style={{ color: '#b8860b' }} />
-        <span>AUTHENTIC CUBAN CIGARS · EXPRESS AUSTRALIA-WIDE DELIVERY · 18+ ADULT VERIFIED</span>
-      </div>
-
-      <div className="container" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', height: '74px' }}>
-        {/* Brand Logo */}
-        <Link to="/" style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', textDecoration: 'none' }}>
-          <img src="/logo.svg" alt="CigarsForYou Logo" style={{ height: '40px', width: 'auto' }} onError={(e) => {
-            (e.target as HTMLElement).style.display = 'none';
-          }} />
-          <div style={{ display: 'flex', flexDirection: 'column' }}>
-            <span style={{
-              fontFamily: 'var(--font-sans)',
-              fontSize: '1.5rem',
-              fontWeight: 700,
-              color: '#1d1d1f',
-              lineHeight: 1,
-              letterSpacing: '-0.03em'
-            }}>
-              Cigars<span style={{ color: '#b8860b' }}>ForYou</span>
-            </span>
-            <span style={{ fontSize: '0.625rem', textTransform: 'uppercase', letterSpacing: '0.16em', color: '#86868b', fontWeight: 600, marginTop: '2px' }}>
-              AUSTRALIA HUMIDOR
-            </span>
-          </div>
+        
+        {/* Brand Logo (Exact public/logo.svg) */}
+        <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
+          <img 
+            src="/logo.svg" 
+            alt="CigarsForYou" 
+            style={{ 
+              height: isScrolled ? '36px' : '40px', 
+              width: 'auto',
+              display: 'block',
+              transition: 'height 0.3s ease'
+            }} 
+          />
         </Link>
 
         {/* Desktop Navigation Links */}
-        <nav style={{ display: 'none', gap: '2rem', alignItems: 'center' }} className="desktop-nav">
+        <nav style={{ display: 'none', gap: '2.25rem', alignItems: 'center' }} className="desktop-nav">
           <Link 
             to="/" 
             style={{ 
-              color: isActive('/') ? '#1d1d1f' : '#515154', 
+              color: isActive('/') ? '#2f0d0e' : '#4b5563', 
               fontWeight: isActive('/') ? 600 : 500,
               fontSize: '0.925rem',
-              transition: 'color 0.15s ease'
+              transition: 'color 0.15s ease',
+              textDecoration: 'none'
             }}
           >
             Home
@@ -94,10 +101,11 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/shop" 
             style={{ 
-              color: isActive('/shop') ? '#1d1d1f' : '#515154', 
+              color: isActive('/shop') ? '#2f0d0e' : '#4b5563', 
               fontWeight: isActive('/shop') ? 600 : 500,
               fontSize: '0.925rem',
-              transition: 'color 0.15s ease'
+              transition: 'color 0.15s ease',
+              textDecoration: 'none'
             }}
           >
             Shop All Cigars
@@ -111,31 +119,34 @@ export const Navbar: React.FC = () => {
           >
             <button 
               style={{ 
-                color: '#515154', 
+                color: brandDropdownOpen || location.pathname.startsWith('/shop/') ? '#2f0d0e' : '#4b5563', 
                 fontWeight: 500, 
                 fontSize: '0.925rem',
                 display: 'flex', 
                 alignItems: 'center', 
                 gap: '0.35rem',
-                padding: '0.5rem 0'
+                padding: '0.5rem 0',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer'
               }}
             >
-              Brands <ChevronDown size={14} />
+              Brands <ChevronDown size={14} style={{ transform: brandDropdownOpen ? 'rotate(180deg)' : 'rotate(0deg)', transition: 'transform 0.2s ease' }} />
             </button>
 
             {brandDropdownOpen && (
               <div style={{
                 position: 'absolute',
                 top: '100%',
-                left: 0,
-                width: '220px',
-                backgroundColor: 'rgba(255, 255, 255, 0.95)',
-                backdropFilter: 'blur(20px)',
+                left: '-10px',
+                width: '230px',
+                backgroundColor: '#ffffff',
                 border: '1px solid rgba(0, 0, 0, 0.08)',
                 borderRadius: '16px',
-                boxShadow: '0 12px 32px rgba(0, 0, 0, 0.08)',
+                boxShadow: '0 12px 32px rgba(0, 0, 0, 0.1)',
                 padding: '0.5rem 0',
-                animation: 'fadeIn 0.15s ease'
+                animation: 'fadeIn 0.15s ease',
+                zIndex: 1000
               }}>
                 {CIGAR_BRANDS.map(brand => (
                   <Link
@@ -143,14 +154,15 @@ export const Navbar: React.FC = () => {
                     to={`/shop/${brand.slug}`}
                     style={{
                       display: 'block',
-                      padding: '0.6rem 1.2rem',
-                      color: '#1d1d1f',
+                      padding: '0.65rem 1.25rem',
+                      color: '#2f0d0e',
                       fontSize: '0.875rem',
                       fontWeight: 500,
-                      transition: 'background var(--transition-fast)'
+                      textDecoration: 'none',
+                      transition: 'background 0.15s ease'
                     }}
                     onClick={() => setBrandDropdownOpen(false)}
-                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f5f5f7'}
+                    onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#f3f4f6'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'transparent'}
                   >
                     {brand.name}
@@ -163,24 +175,50 @@ export const Navbar: React.FC = () => {
           <Link 
             to="/cigarettes" 
             style={{ 
-              color: '#86868b', 
+              color: '#6b7280', 
               fontSize: '0.925rem',
               display: 'flex',
               alignItems: 'center',
-              gap: '0.35rem',
-              fontWeight: 500
+              gap: '0.4rem',
+              fontWeight: 500,
+              textDecoration: 'none'
             }}
           >
-            Cigarettes <span className="badge badge-amber" style={{ fontSize: '0.65rem' }}>Coming Soon</span>
+            Cigarettes 
+            <span style={{
+              fontSize: '0.65rem',
+              fontWeight: 600,
+              padding: '0.15rem 0.5rem',
+              borderRadius: '999px',
+              backgroundColor: '#fef3c7',
+              color: '#d97706',
+              border: '1px solid #fde68a'
+            }}>
+              Coming Soon
+            </span>
           </Link>
         </nav>
 
-        {/* Right Actions */}
+        {/* Right Action Items */}
         <div style={{ display: 'flex', alignItems: 'center', gap: '1rem' }}>
+          
+          {/* 18+ Verification Pill */}
           {isAgeVerified && (
-            <span className="badge badge-gold desktop-age-badge">
-              18+ Verified
-            </span>
+            <div className="desktop-age-badge" style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.35rem',
+              padding: '0.35rem 0.75rem',
+              borderRadius: '999px',
+              backgroundColor: '#f3f4f6',
+              border: '1px solid #e5e7eb',
+              color: '#374151',
+              fontSize: '0.75rem',
+              fontWeight: 600
+            }}>
+              <ShieldCheck size={14} style={{ color: '#059669' }} />
+              <span>18+ Verified</span>
+            </div>
           )}
 
           {/* Cart Icon */}
@@ -188,50 +226,79 @@ export const Navbar: React.FC = () => {
             to="/cart" 
             style={{ 
               position: 'relative', 
-              color: '#1d1d1f', 
+              color: '#2f0d0e', 
               padding: '0.5rem',
               display: 'flex',
-              alignItems: 'center'
+              alignItems: 'center',
+              textDecoration: 'none'
             }}
             aria-label="Shopping Cart"
           >
-            <ShoppingBag size={22} />
+            <ShoppingBag size={21} />
             {itemCount > 0 && (
               <span style={{
                 position: 'absolute',
-                top: 0,
-                right: 0,
-                backgroundColor: '#1d1d1f',
+                top: '2px',
+                right: '2px',
+                backgroundColor: '#2f0d0e',
                 color: '#ffffff',
-                fontSize: '0.75rem',
+                fontSize: '0.7rem',
                 fontWeight: 700,
-                width: '20px',
-                height: '20px',
+                width: '18px',
+                height: '18px',
                 borderRadius: '50%',
                 display: 'flex',
                 alignItems: 'center',
-                justifyContent: 'center',
-                boxShadow: '0 2px 6px rgba(0,0,0,0.15)'
+                justifyContent: 'center'
               }}>
                 {itemCount}
               </span>
             )}
           </Link>
 
-          {/* User Account / Admin Link */}
+          {/* Sign In / Account Pill Button (Matching dark rounded pill style in dark red #2f0d0e) */}
           {currentUser ? (
             <Link 
               to="/account" 
-              className="btn btn-secondary btn-sm"
-              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0.6rem 1.3rem',
+                borderRadius: '999px',
+                backgroundColor: '#2f0d0e',
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 2px 8px rgba(47, 13, 14, 0.25)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#441416'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2f0d0e'}
             >
-              <User size={16} />
+              <User size={15} />
               <span>{userProfile?.displayName || 'My Account'}</span>
             </Link>
           ) : (
             <Link 
               to="/login" 
-              className="btn btn-primary btn-sm"
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: '0.65rem 1.4rem',
+                borderRadius: '999px',
+                backgroundColor: '#2f0d0e',
+                color: '#ffffff',
+                fontSize: '0.875rem',
+                fontWeight: 600,
+                textDecoration: 'none',
+                transition: 'all 0.15s ease',
+                boxShadow: '0 2px 10px rgba(47, 13, 14, 0.2)'
+              }}
+              onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#441416'}
+              onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#2f0d0e'}
             >
               Sign In
             </Link>
@@ -240,7 +307,7 @@ export const Navbar: React.FC = () => {
           {/* Mobile Menu Button */}
           <button 
             onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-            style={{ color: '#1d1d1f', padding: '0.5rem' }}
+            style={{ color: '#2f0d0e', padding: '0.4rem', background: 'none', border: 'none', cursor: 'pointer' }}
             className="mobile-menu-btn"
             aria-label="Toggle Navigation Menu"
           >
@@ -249,32 +316,35 @@ export const Navbar: React.FC = () => {
         </div>
       </div>
 
-      {/* Mobile Drawer */}
+      {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
         <div style={{
           backgroundColor: '#ffffff',
           borderBottom: '1px solid rgba(0, 0, 0, 0.08)',
+          borderRadius: isScrolled ? '0' : '24px',
+          margin: isScrolled ? '0' : '0.5rem 1.25rem 0 1.25rem',
           padding: '1.5rem 1.25rem',
           display: 'flex',
           flexDirection: 'column',
-          gap: '1rem'
+          gap: '1rem',
+          boxShadow: '0 10px 30px rgba(0, 0, 0, 0.1)'
         }}>
-          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1d1d1f' }}>
+          <Link to="/" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.05rem', fontWeight: 600, color: '#2f0d0e', textDecoration: 'none' }}>
             Home
           </Link>
-          <Link to="/shop" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.1rem', fontWeight: 600, color: '#1d1d1f' }}>
+          <Link to="/shop" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1.05rem', fontWeight: 600, color: '#2f0d0e', textDecoration: 'none' }}>
             Shop All Cigars
           </Link>
           
           <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', marginTop: '0.25rem' }}>
-            <span style={{ fontSize: '0.8rem', color: '#86868b', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Brands</span>
+            <span style={{ fontSize: '0.8rem', color: '#6b7280', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600 }}>Brands</span>
             <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.5rem', marginTop: '0.5rem' }}>
               {CIGAR_BRANDS.map(brand => (
                 <Link
                   key={brand.slug}
                   to={`/shop/${brand.slug}`}
                   onClick={() => setMobileMenuOpen(false)}
-                  style={{ color: '#515154', fontSize: '0.9rem' }}
+                  style={{ color: '#374151', fontSize: '0.9rem', textDecoration: 'none' }}
                 >
                   {brand.name}
                 </Link>
@@ -282,29 +352,37 @@ export const Navbar: React.FC = () => {
             </div>
           </div>
 
-          <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', color: '#515154', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            Cigarettes <span className="badge badge-amber">Coming Soon</span>
+          <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', color: '#374151', display: 'flex', alignItems: 'center', gap: '0.5rem', textDecoration: 'none' }}>
+            Cigarettes <span style={{ fontSize: '0.65rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.5rem', borderRadius: '999px' }}>Coming Soon</span>
           </Link>
           
           <div style={{ borderTop: '1px solid rgba(0, 0, 0, 0.06)', paddingTop: '0.75rem', display: 'flex', justifyContent: 'space-between' }}>
-            <Link to="/terms" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#86868b' }}>Terms</Link>
-            <Link to="/privacy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#86868b' }}>Privacy</Link>
-            <Link to="/refund-policy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#86868b' }}>Refund Policy</Link>
+            <Link to="/terms" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none' }}>Terms</Link>
+            <Link to="/privacy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none' }}>Privacy</Link>
+            <Link to="/refund-policy" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '0.85rem', color: '#6b7280', textDecoration: 'none' }}>Refund Policy</Link>
           </div>
         </div>
       )}
 
-      {/* Inline styles for media queries */}
+      {/* Scoped CSS Styles for Media Queries */}
       <style>{`
-        @media (min-width: 768px) {
+        @keyframes fadeIn {
+          from { opacity: 0; transform: translateY(-4px); }
+          to { opacity: 1; transform: translateY(0); }
+        }
+        @media (min-width: 860px) {
           .desktop-nav { display: flex !important; }
           .desktop-age-badge { display: inline-flex !important; }
           .mobile-menu-btn { display: none !important; }
         }
-        @media (max-width: 767px) {
+        @media (max-width: 859px) {
+          .desktop-nav { display: none !important; }
           .desktop-age-badge { display: none !important; }
+          .mobile-menu-btn { display: flex !important; }
         }
       `}</style>
     </header>
   );
 };
+
+

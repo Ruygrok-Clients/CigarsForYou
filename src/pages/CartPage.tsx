@@ -245,10 +245,10 @@ export const CartPage: React.FC = () => {
                   borderTop: '1px solid rgba(0, 0, 0, 0.08)',
                   fontWeight: 700,
                   fontSize: '1.25rem',
-                  color: '#1d1d1f'
+                  color: '#2f0d0e'
                 }}>
                   <span>Total</span>
-                  <span style={{ color: '#1d1d1f' }}>${totalAmount.toFixed(2)} AUD</span>
+                  <span style={{ color: '#2f0d0e' }}>${totalAmount.toFixed(2)} AUD</span>
                 </div>
               </div>
 

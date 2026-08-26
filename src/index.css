@@ -1,17 +1,51 @@
+@font-face {
+  font-family: 'Placard Next Wide';
+  src: url('./assets/Font/PlacardNextWideLt.TTF') format('truetype');
+  font-weight: 300;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Placard Next Wide';
+  src: url('./assets/Font/PlacardNextWideRg.TTF') format('truetype');
+  font-weight: 400;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Placard Next Wide';
+  src: url('./assets/Font/PlacardNextWideMed.TTF') format('truetype');
+  font-weight: 500;
+  font-style: normal;
+  font-display: swap;
+}
+
+@font-face {
+  font-family: 'Placard Next Wide';
+  src: url('./assets/Font/PlacardNextWideBd.TTF') format('truetype');
+  font-weight: 700;
+  font-style: normal;
+  font-display: swap;
+}
+
 :root {
-  /* Brand Palette: Apple Tech White & Luxury Champagne Gold */
+  /* Brand Palette: Deep Luxury Dark Red (#2f0d0e) & Champagne Gold */
   --bg-primary: #ffffff;
   --bg-surface: #ffffff;
-  --bg-surface-elevated: #f5f5f7;
-  --bg-surface-light: #e8e8ed;
+  --bg-surface-elevated: #f8f6f6;
+  --bg-surface-light: #f1ecec;
   --bg-cream: #fafafa;
   --bg-cream-alt: #f1f1f4;
   
-  --text-primary: #1d1d1f;
-  --text-secondary: #515154;
-  --text-muted: #86868b;
-  --text-dark: #1d1d1f;
+  --text-primary: #2f0d0e;
+  --text-secondary: #5c4041;
+  --text-muted: #8c7374;
+  --text-dark: #2f0d0e;
 
+  --accent-dark-red: #2f0d0e;
+  --accent-dark-red-hover: #441416;
   --accent-gold: #b8860b;
   --accent-gold-hover: #9a6f07;
   --accent-gold-muted: #c59b27;
@@ -19,12 +53,12 @@
   --accent-ruby: #dc2626;
   --accent-green: #16a34a;
 
-  --border-color: rgba(0, 0, 0, 0.1);
-  --border-color-strong: rgba(0, 0, 0, 0.2);
-  --border-subtle: rgba(0, 0, 0, 0.06);
+  --border-color: rgba(47, 13, 14, 0.12);
+  --border-color-strong: rgba(47, 13, 14, 0.22);
+  --border-subtle: rgba(47, 13, 14, 0.06);
 
-  --font-serif: 'Cormorant Garamond', Georgia, serif;
-  --font-sans: -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Plus Jakarta Sans', system-ui, sans-serif;
+  --font-serif: 'Placard Next Wide', 'Cormorant Garamond', Georgia, serif;
+  --font-sans: 'Placard Next Wide', -apple-system, BlinkMacSystemFont, 'SF Pro Display', 'SF Pro Text', 'Plus Jakarta Sans', system-ui, sans-serif;
 
   --radius-sm: 8px;
   --radius-md: 12px;
@@ -32,9 +66,9 @@
   --radius-xl: 24px;
   --radius-full: 9999px;
 
-  --shadow-sm: 0 2px 10px rgba(0, 0, 0, 0.04);
-  --shadow-md: 0 8px 30px rgba(0, 0, 0, 0.06);
-  --shadow-lg: 0 20px 40px rgba(0, 0, 0, 0.1);
+  --shadow-sm: 0 2px 10px rgba(47, 13, 14, 0.04);
+  --shadow-md: 0 8px 30px rgba(47, 13, 14, 0.06);
+  --shadow-lg: 0 20px 40px rgba(47, 13, 14, 0.12);
   --shadow-gold: 0 6px 24px rgba(184, 134, 11, 0.2);
 
   --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
@@ -44,10 +78,10 @@
 
 /* Dark Theme Overrides if explicitly enabled */
 [data-theme="dark"] {
-  --bg-primary: #170f0b;
-  --bg-surface: #241712;
-  --bg-surface-elevated: #332119;
-  --bg-surface-light: #442d22;
+  --bg-primary: #1c0909;
+  --bg-surface: #2f0d0e;
+  --bg-surface-elevated: #3d1415;
+  --bg-surface-light: #4c1a1c;
 
   --text-primary: #f8f5f0;
   --text-secondary: #cbb8a9;
@@ -162,15 +196,15 @@ img {
 }
 
 .btn-primary {
-  background: #1d1d1f;
+  background: #2f0d0e;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(0, 0, 0, 0.12);
+  box-shadow: 0 4px 14px rgba(47, 13, 14, 0.2);
 }
 
 .btn-primary:hover {
-  background: #333336;
+  background: #441416;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(0, 0, 0, 0.18);
+  box-shadow: 0 6px 20px rgba(47, 13, 14, 0.28);
   color: #ffffff;
 }
 
@@ -182,20 +216,20 @@ img {
 
 .btn-secondary:hover {
   background: var(--bg-surface-light);
-  border-color: rgba(0,0,0,0.15);
+  border-color: rgba(47, 13, 14, 0.2);
   color: var(--text-primary);
 }
 
 .btn-outline {
   background: transparent;
   color: var(--text-primary);
-  border: 1px solid rgba(0, 0, 0, 0.2);
+  border: 1px solid rgba(47, 13, 14, 0.22);
 }
 
 .btn-outline:hover {
-  background: rgba(0, 0, 0, 0.04);
-  border-color: #1d1d1f;
-  color: #1d1d1f;
+  background: rgba(47, 13, 14, 0.05);
+  border-color: #2f0d0e;
+  color: #2f0d0e;
 }
 
 .btn-gold {
@@ -314,8 +348,8 @@ img {
 .form-control:focus {
   outline: none;
   background-color: #ffffff;
-  border-color: #1d1d1f;
-  box-shadow: 0 0 0 4px rgba(0, 0, 0, 0.06);
+  border-color: #2f0d0e;
+  box-shadow: 0 0 0 4px rgba(47, 13, 14, 0.08);
 }
 
 .form-control::placeholder {
@@ -401,7 +435,7 @@ img {
   display: flex;
   align-items: center;
   gap: 0.75rem;
-  background-color: #1d1d1f;
+  background-color: #2f0d0e;
   border: 1px solid rgba(255, 255, 255, 0.15);
   color: #ffffff;
   padding: 0.9rem 1.4rem;
