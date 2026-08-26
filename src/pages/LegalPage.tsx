@@ -68,7 +68,7 @@ export const LegalPage: React.FC = () => {
             <div>
               <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginBottom: '1rem' }}>1. Information We Collect</h2>
               <p>
-                CigarsForYou collects personal information necessary to provide products, verify adult age compliance under Australian law, and process subscriptions. This includes your name, email address, physical delivery address, contact phone number, and verified Date of Birth (DOB).
+                CigarsForYou collects personal information necessary to provide products and verify adult age compliance under Australian law. This includes your name, email address, physical delivery address, contact phone number, and verified Date of Birth (DOB).
               </p>
 
               <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginTop: '2rem', marginBottom: '1rem' }}>2. Age Verification & DOB Data</h2>
@@ -115,12 +115,7 @@ export const LegalPage: React.FC = () => {
                 All orders are subject to stock availability and confirmation. CigarsForYou reserves the right to cancel or adjust orders in the event of pricing errors or supply disruptions.
               </p>
 
-              <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginTop: '2rem', marginBottom: '1rem' }}>3. Subscriptions & Automated Billing</h2>
-              <p>
-                Subscription deliveries automatically recur based on your chosen frequency (2, 4, 6, or 8 weeks). You may pause or cancel subscriptions at any time via your Customer Portal prior to your next scheduled billing date.
-              </p>
-
-              <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginTop: '2rem', marginBottom: '1rem' }}>4. Governing Law</h2>
+              <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginTop: '2rem', marginBottom: '1rem' }}>3. Governing Law</h2>
               <p>
                 These Terms are governed by and construed in accordance with the laws of Australia and the relevant State or Territory of sale.
               </p>

@@ -7,7 +7,6 @@ import {
   ShoppingBag, 
   Box, 
   Bell, 
-  RefreshCw, 
   Tag, 
   Settings, 
   Lock, 
@@ -32,7 +31,6 @@ export const AdminLayout: React.FC = () => {
     { label: 'Orders', path: '/admin/orders', icon: ShoppingBag },
     { label: 'Products & Stock', path: '/admin/products', icon: Box },
     { label: 'Stock Notifications', path: '/admin/stock-notifications', icon: Bell },
-    { label: 'Subscriptions', path: '/admin/subscriptions', icon: RefreshCw },
     { label: 'Marketing & Coupons', path: '/admin/marketing', icon: Tag },
     ...(isAdmin ? [{ label: 'Portal Settings', path: '/admin/settings', icon: Settings }] : [])
   ];

@@ -95,7 +95,7 @@ export const ShopPage: React.FC = () => {
             {selectedBrand === 'all' ? 'Cuban Cigar Catalog' : `${selectedBrand} Cigars`}
           </h1>
           <p style={{ color: 'var(--text-secondary)', fontSize: '1rem', marginTop: '0.4rem' }}>
-            Hand-rolled in Havana. Available for immediate one-off purchase or automated subscription delivery.
+            Hand-rolled in Havana. Express Australia-wide delivery with guaranteed humidor freshness.
           </p>
         </div>
 

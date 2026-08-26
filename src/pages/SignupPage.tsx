@@ -53,7 +53,7 @@ export const SignupPage: React.FC = () => {
               Create Your Account
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-              Enjoy one-click reordering and automated subscription management.
+              Enjoy fast checkout, order tracking, and exclusive connoisseur offers.
             </p>
           </div>
 

@@ -8,13 +8,11 @@ import { useToast } from '../components/Toast';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { 
   ShoppingBag, 
-  RefreshCw, 
   Bell, 
   ShieldCheck, 
   Truck, 
   Flame, 
-  ChevronLeft, 
-  Clock
+  ChevronLeft
 } from 'lucide-react';
 
 export const ProductDetailPage: React.FC = () => {
@@ -25,8 +23,6 @@ export const ProductDetailPage: React.FC = () => {
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
-  const [purchaseType, setPurchaseType] = useState<'one-off' | 'subscribe'>('one-off');
-  const [frequencyWeeks, setFrequencyWeeks] = useState<2 | 4 | 6 | 8>(4);
   const [notifyModalOpen, setNotifyModalOpen] = useState(false);
 
   useEffect(() => {
@@ -87,14 +83,8 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    const isSub = purchaseType === 'subscribe';
-    addToCart(product, quantity, isSub, isSub ? frequencyWeeks : undefined);
-    
-    if (isSub) {
-      showToast(`Added ${quantity}x ${product.name} (Subscribed every ${frequencyWeeks} wks) to cart!`);
-    } else {
-      showToast(`Added ${quantity}x ${product.name} to cart!`);
-    }
+    addToCart(product, quantity);
+    showToast(`Added ${quantity}x ${product.name} to cart!`);
   };
 
   return (
@@ -224,100 +214,8 @@ export const ProductDetailPage: React.FC = () => {
               {product.description || `The ${product.brand} ${product.name} is a world-class Cuban cigar renowned for its exquisite craftsmanship, rich flavor notes, and smooth draw. Perfect for connoisseurs and collectors alike.`}
             </p>
 
-            {/* Purchase Mode Selector */}
-            <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem', border: '1px solid var(--border-color)' }}>
-              <span style={{ fontSize: '0.825rem', textTransform: 'uppercase', letterSpacing: '0.08em', color: 'var(--text-muted)', display: 'block', marginBottom: '1rem' }}>
-                Select Purchase Method
-              </span>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                {/* Mode 1: One-Off */}
-                <label style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'space-between',
-                  padding: '1rem 1.25rem',
-                  borderRadius: 'var(--radius-md)',
-                  border: `1px solid ${purchaseType === 'one-off' ? '#c06517' : 'var(--border-subtle)'}`,
-                  backgroundColor: purchaseType === 'one-off' ? 'rgba(192, 101, 23, 0.08)' : 'transparent',
-                  cursor: 'pointer'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                    <input
-                      type="radio"
-                      name="purchaseType"
-                      checked={purchaseType === 'one-off'}
-                      onChange={() => setPurchaseType('one-off')}
-                      style={{ accentColor: '#c06517' }}
-                    />
-                    <div>
-                      <strong style={{ color: '#2f0d0e', fontSize: '1rem', display: 'block' }}>One-Off Purchase</strong>
-                      <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Single delivery to your door</span>
-                    </div>
-                  </div>
-                  <span style={{ fontWeight: 700, color: '#c06517' }}>${product.price} AUD</span>
-                </label>
-
-                {/* Mode 2: Subscribe & Save */}
-                <label style={{
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.75rem',
-                  padding: '1rem 1.25rem',
-                  borderRadius: 'var(--radius-md)',
-                  border: `1px solid ${purchaseType === 'subscribe' ? '#c06517' : 'var(--border-subtle)'}`,
-                  backgroundColor: purchaseType === 'subscribe' ? 'rgba(192, 101, 23, 0.08)' : 'transparent',
-                  cursor: 'pointer'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-                      <input
-                        type="radio"
-                        name="purchaseType"
-                        checked={purchaseType === 'subscribe'}
-                        onChange={() => setPurchaseType('subscribe')}
-                        style={{ accentColor: '#c06517' }}
-                      />
-                      <div>
-                        <strong style={{ color: '#2f0d0e', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <RefreshCw size={14} style={{ color: '#c06517' }} /> Subscribe & Auto-Deliver
-                        </strong>
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Never run out · Modify or cancel anytime</span>
-                      </div>
-                    </div>
-                    <span className="badge badge-orange" style={{ fontSize: '0.75rem' }}>Automated</span>
-                  </div>
-
-                  {purchaseType === 'subscribe' && (
-                    <div style={{
-                      marginTop: '0.5rem',
-                      paddingTop: '0.75rem',
-                      borderTop: '1px solid var(--border-subtle)',
-                      display: 'flex',
-                      alignItems: 'center',
-                      gap: '0.75rem'
-                    }} onClick={(e) => e.stopPropagation()}>
-                      <Clock size={16} style={{ color: 'var(--accent-gold)' }} />
-                      <span style={{ fontSize: '0.875rem', color: 'var(--text-secondary)' }}>Delivery Frequency:</span>
-                      <select
-                        className="form-control"
-                        style={{ width: 'auto', padding: '0.4rem 0.75rem', fontSize: '0.875rem' }}
-                        value={frequencyWeeks}
-                        onChange={(e) => setFrequencyWeeks(Number(e.target.value) as any)}
-                      >
-                        <option value={2}>Every 2 Weeks</option>
-                        <option value={4}>Every 4 Weeks (Popular)</option>
-                        <option value={6}>Every 6 Weeks</option>
-                        <option value={8}>Every 8 Weeks</option>
-                      </select>
-                    </div>
-                  )}
-                </label>
-              </div>
-            </div>
-
             {/* Quantity Selector & Action Button */}
-            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem' }}>
+            <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem', marginTop: '2rem' }}>
               {!isOutOfStock && (
                 <div style={{
                   display: 'flex',
@@ -355,10 +253,6 @@ export const ProductDetailPage: React.FC = () => {
                 {isOutOfStock ? (
                   <>
                     <Bell size={18} /> Notify Me When In Stock
-                  </>
-                ) : purchaseType === 'subscribe' ? (
-                  <>
-                    <RefreshCw size={18} /> Subscribe (${product.price * quantity} AUD / {frequencyWeeks} wks)
                   </>
                 ) : (
                   <>

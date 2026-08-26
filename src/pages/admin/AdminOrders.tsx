@@ -210,7 +210,6 @@ export const AdminOrders: React.FC = () => {
               >
                 <option value="all">All Sources</option>
                 <option value="Website">Website</option>
-                <option value="Subscription-generated">Subscription-generated</option>
                 <option value="Manual">Manual</option>
               </select>
             </div>

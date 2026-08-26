@@ -5,7 +5,7 @@ import { CIGAR_BRANDS } from './Navbar';
 const MARQUEE_ITEMS = [
   'AUSTRALIA-WIDE EXPRESS',
   '100% GENUINE CUBAN',
-  'SUBSCRIBE & SAVE',
+  'EXPRESS DISPATCH',
   'AGE VERIFIED 18+'
 ];
 
@@ -81,7 +81,7 @@ export const Footer: React.FC = () => {
               </Link>
             </div>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
-              Australia's premier online humidor experience. Bringing world-class Cuban cigars directly to connoisseurs across the nation with effortless subscription reordering.
+              Australia's premier online humidor experience. Bringing world-class Cuban cigars directly to connoisseurs across the nation.
             </p>
           </div>
 

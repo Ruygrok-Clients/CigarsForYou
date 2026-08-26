@@ -6,7 +6,6 @@ import { useAuth } from '../../context/AuthContext';
 import type { Order, Product, PortalStats } from '../../types';
 import { 
   ShoppingBag, 
-  RefreshCw, 
   Bell, 
   DollarSign, 
   AlertTriangle,
@@ -17,7 +16,6 @@ export const AdminDashboard: React.FC = () => {
   const { userProfile } = useAuth();
   const [stats, setStats] = useState<PortalStats>({
     totalOrders: 0,
-    activeSubscriptions: 0,
     totalProducts: 0,
     lowStockProductsCount: 0,
     pendingNotificationsCount: 0,
@@ -50,9 +48,6 @@ export const AdminDashboard: React.FC = () => {
 
         setRecentOrders(sortedRecent);
 
-        // Fetch Subscriptions
-        const subsSnap = await getDocs(query(collection(db, 'subscriptions'), where('status', '==', 'active')));
-        
         // Fetch Products
         const prodSnap = await getDocs(collection(db, 'products'));
         let lowStockCount = 0;
@@ -66,7 +61,6 @@ export const AdminDashboard: React.FC = () => {
 
         setStats({
           totalOrders: ordersList.length,
-          activeSubscriptions: subsSnap.size,
           totalProducts: prodSnap.size,
           lowStockProductsCount: lowStockCount,
           pendingNotificationsCount: notifSnap.size,
@@ -100,7 +94,7 @@ export const AdminDashboard: React.FC = () => {
           Welcome back, {userProfile?.displayName || 'Administrator'}
         </h1>
         <p style={{ color: '#515154', fontSize: '0.95rem', marginTop: '0.25rem' }}>
-          Here is a live summary of orders, automated subscriptions, stock status, and pending notifications.
+          Here is a live summary of orders, stock status, and pending notifications.
         </p>
       </div>
 
@@ -133,18 +127,6 @@ export const AdminDashboard: React.FC = () => {
           </div>
           <h3 style={{ fontSize: '1.8rem', color: '#ffffff' }}>{stats.totalOrders}</h3>
           <Link to="/admin/orders" style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', textDecoration: 'underline' }}>View orders &rarr;</Link>
-        </div>
-
-        {/* Card 3: Active Subscriptions */}
-        <div className="card" style={{ padding: '1.25rem' }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.75rem' }}>
-            <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', textTransform: 'uppercase', letterSpacing: '0.05em' }}>Active Subscriptions</span>
-            <div style={{ backgroundColor: 'rgba(212,175,55,0.15)', color: 'var(--accent-gold)', borderRadius: '50%', width: '32px', height: '32px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-              <RefreshCw size={16} />
-            </div>
-          </div>
-          <h3 style={{ fontSize: '1.8rem', color: '#ffffff' }}>{stats.activeSubscriptions}</h3>
-          <Link to="/admin/subscriptions" style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', textDecoration: 'underline' }}>Manage cycles &rarr;</Link>
         </div>
 
         {/* Card 4: Low/Out-of-Stock Alert */}

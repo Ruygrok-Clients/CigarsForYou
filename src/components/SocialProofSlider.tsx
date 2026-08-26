@@ -46,7 +46,7 @@ const TESTIMONIALS: Testimonial[] = [
 
 export const SocialProofSlider: React.FC = () => {
   const [currentIndex, setCurrentIndex] = useState(0);
-  const timerRef = useRef<NodeJS.Timeout | null>(null);
+  const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const activeTestimonial = TESTIMONIALS[currentIndex];
 

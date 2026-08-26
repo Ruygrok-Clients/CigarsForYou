@@ -39,12 +39,10 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
-  isSubscription?: boolean;
-  frequencyWeeks?: 2 | 4 | 6 | 8;
 }
 
 export type OrderStatus = 'Pending' | 'Verified' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
-export type OrderSource = 'Website' | 'Subscription-generated' | 'Manual';
+export type OrderSource = 'Website' | 'Manual';
 
 export interface OrderItem {
   productId: string;
@@ -52,8 +50,6 @@ export interface OrderItem {
   brand: string;
   price: number;
   quantity: number;
-  isSubscription?: boolean;
-  frequencyWeeks?: number;
 }
 
 export interface OrderStatusHistory {
@@ -78,30 +74,9 @@ export interface Order {
   paymentMethod: 'Stripe' | 'PayPal' | 'Test Card';
   deliveryAddress: Address;
   ageConfirmed: boolean;
-  isSubscriptionOrder?: boolean;
-  subscriptionId?: string;
   createdAt: string;
   statusHistory: OrderStatusHistory[];
   archived?: boolean;
-}
-
-export interface Subscription {
-  id?: string;
-  customerId: string;
-  customerEmail: string;
-  customerName: string;
-  productId: string;
-  productName: string;
-  productBrand: string;
-  quantity: number;
-  pricePerDelivery: number;
-  frequencyWeeks: 2 | 4 | 6 | 8;
-  status: 'active' | 'paused' | 'cancelled';
-  stripeSubscriptionId?: string;
-  paypalSubscriptionId?: string;
-  nextBillingDate: string;
-  createdAt: string;
-  deliveryAddress: Address;
 }
 
 export interface StockNotification {
@@ -132,7 +107,6 @@ export interface EmailSubscriber {
 
 export interface PortalStats {
   totalOrders: number;
-  activeSubscriptions: number;
   totalProducts: number;
   lowStockProductsCount: number;
   pendingNotificationsCount: number;

@@ -3,9 +3,9 @@ import type { CartItem, Coupon, Product } from '../types';
 
 interface CartContextType {
   cart: CartItem[];
-  addToCart: (product: Product, quantity?: number, isSubscription?: boolean, frequencyWeeks?: 2 | 4 | 6 | 8) => void;
-  removeFromCart: (productId: string, isSubscription?: boolean, frequencyWeeks?: number) => void;
-  updateQuantity: (productId: string, quantity: number, isSubscription?: boolean, frequencyWeeks?: number) => void;
+  addToCart: (product: Product, quantity?: number) => void;
+  removeFromCart: (productId: string) => void;
+  updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
   appliedCoupon: Coupon | null;
   applyCoupon: (coupon: Coupon | null) => void;
@@ -39,18 +39,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [cart]);
 
-  const addToCart = (
-    product: Product, 
-    quantity: number = 1, 
-    isSubscription: boolean = false, 
-    frequencyWeeks: 2 | 4 | 6 | 8 = 4
-  ) => {
+  const addToCart = (product: Product, quantity: number = 1) => {
     setCart((prev) => {
-      const existingIndex = prev.findIndex(item => 
-        item.product.id === product.id && 
-        !!item.isSubscription === !!isSubscription &&
-        (isSubscription ? item.frequencyWeeks === frequencyWeeks : true)
-      );
+      const existingIndex = prev.findIndex(item => item.product.id === product.id);
 
       if (existingIndex > -1) {
         const updated = [...prev];
@@ -63,34 +54,24 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       } else {
         return [...prev, {
           product,
-          quantity: Math.min(quantity, product.stock || 100),
-          isSubscription,
-          frequencyWeeks: isSubscription ? frequencyWeeks : undefined
+          quantity: Math.min(quantity, product.stock || 100)
         }];
       }
     });
   };
 
-  const removeFromCart = (productId: string, isSubscription?: boolean, frequencyWeeks?: number) => {
-    setCart(prev => prev.filter(item => 
-      !(item.product.id === productId && 
-        !!item.isSubscription === !!isSubscription && 
-        (isSubscription ? item.frequencyWeeks === frequencyWeeks : true))
-    ));
+  const removeFromCart = (productId: string) => {
+    setCart(prev => prev.filter(item => item.product.id !== productId));
   };
 
-  const updateQuantity = (productId: string, quantity: number, isSubscription?: boolean, frequencyWeeks?: number) => {
+  const updateQuantity = (productId: string, quantity: number) => {
     if (quantity <= 0) {
-      removeFromCart(productId, isSubscription, frequencyWeeks);
+      removeFromCart(productId);
       return;
     }
 
     setCart(prev => prev.map(item => {
-      if (
-        item.product.id === productId && 
-        !!item.isSubscription === !!isSubscription &&
-        (isSubscription ? item.frequencyWeeks === frequencyWeeks : true)
-      ) {
+      if (item.product.id === productId) {
         return {
           ...item,
           quantity: Math.min(quantity, item.product.stock || 100)

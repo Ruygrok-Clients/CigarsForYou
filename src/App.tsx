@@ -10,6 +10,7 @@ import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { AgeGateModal } from './components/AgeGateModal';
 import { LoadingScreen } from './components/LoadingScreen';
+import { ScrollToTop } from './components/ScrollToTop';
 
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
@@ -33,7 +34,6 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminProducts } from './pages/admin/AdminProducts';
 import { AdminStockNotifications } from './pages/admin/AdminStockNotifications';
-import { AdminSubscriptions } from './pages/admin/AdminSubscriptions';
 import { AdminMarketing } from './pages/admin/AdminMarketing';
 import { AdminSettings } from './pages/admin/AdminSettings';
 
@@ -72,6 +72,7 @@ export default function App() {
             <ToastProvider>
               <AdminContextProvider>
                 <BrowserRouter>
+                  <ScrollToTop />
                   <LayoutWrapper>
                     <Routes>
                       {/* Public Storefront Routes */}
@@ -99,7 +100,6 @@ export default function App() {
                           <Route path="/admin/orders" element={<AdminOrders />} />
                           <Route path="/admin/products" element={<AdminProducts />} />
                           <Route path="/admin/stock-notifications" element={<AdminStockNotifications />} />
-                          <Route path="/admin/subscriptions" element={<AdminSubscriptions />} />
                           <Route path="/admin/marketing" element={<AdminMarketing />} />
                           <Route path="/admin/settings" element={<AdminSettings />} />
                         </Route>

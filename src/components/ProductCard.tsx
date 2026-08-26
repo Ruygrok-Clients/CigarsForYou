@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Bell, RefreshCw, Flame } from 'lucide-react';
+import { ShoppingBag, Bell, Flame } from 'lucide-react';
 import type { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useToast } from './Toast';
@@ -133,7 +133,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
           </div>
 
           {/* Action Buttons */}
-          <div style={{ display: 'grid', gridTemplateColumns: isOutOfStock ? '1fr' : '1fr auto', gap: '0.5rem' }}>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem' }}>
             {isOutOfStock ? (
               <button 
                 type="button"
@@ -144,24 +144,14 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
                 <Bell size={14} /> Notify Me
               </button>
             ) : (
-              <>
-                <button
-                  type="button"
-                  className="btn btn-primary btn-sm"
-                  onClick={handleQuickAdd}
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
-                >
-                  <ShoppingBag size={14} /> Add to Cart
-                </button>
-                <Link
-                  to={`/product/${product.slug}`}
-                  className="btn btn-outline btn-sm"
-                  title="Subscribe & Save"
-                  style={{ padding: '0.4rem 0.6rem', borderRadius: '6px' }}
-                >
-                  <RefreshCw size={14} />
-                </Link>
-              </>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm btn-full"
+                onClick={handleQuickAdd}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem' }}
+              >
+                <ShoppingBag size={14} /> Add to Cart
+              </button>
             )}
           </div>
         </div>

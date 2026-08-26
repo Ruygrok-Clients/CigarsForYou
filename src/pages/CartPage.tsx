@@ -5,7 +5,6 @@ import { useToast } from '../components/Toast';
 import { 
   ShoppingBag, 
   Trash2, 
-  RefreshCw, 
   ArrowRight, 
   ShieldAlert, 
   Tag, 
@@ -79,7 +78,7 @@ export const CartPage: React.FC = () => {
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {cart.map((item) => (
               <div 
-                key={`${item.product.id}-${item.isSubscription}-${item.frequencyWeeks}`}
+                key={item.product.id || item.product.slug}
                 className="card"
                 style={{
                   display: 'flex',
@@ -124,17 +123,6 @@ export const CartPage: React.FC = () => {
                     </span>
                   </div>
 
-                  {/* Purchase Mode Tag */}
-                  <div style={{ margin: '0.4rem 0' }}>
-                    {item.isSubscription ? (
-                      <span className="badge badge-gold" style={{ fontSize: '0.725rem' }}>
-                        <RefreshCw size={12} /> Auto-Deliver Every {item.frequencyWeeks} Weeks
-                      </span>
-                    ) : (
-                      <span className="badge badge-gray" style={{ fontSize: '0.725rem' }}>One-Off Order</span>
-                    )}
-                  </div>
-
                   {/* Quantity & Delete Controls */}
                   <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem' }}>
                     <div style={{
@@ -144,7 +132,7 @@ export const CartPage: React.FC = () => {
                       borderRadius: 'var(--radius-md)'
                     }}>
                       <button 
-                        onClick={() => updateQuantity(item.product.id || item.product.slug, item.quantity - 1, item.isSubscription, item.frequencyWeeks)}
+                        onClick={() => updateQuantity(item.product.id || item.product.slug, item.quantity - 1)}
                         style={{ padding: '0.25rem 0.6rem', color: 'var(--text-primary)' }}
                       >
                         -
@@ -153,7 +141,7 @@ export const CartPage: React.FC = () => {
                         {item.quantity}
                       </span>
                       <button 
-                        onClick={() => updateQuantity(item.product.id || item.product.slug, item.quantity + 1, item.isSubscription, item.frequencyWeeks)}
+                        onClick={() => updateQuantity(item.product.id || item.product.slug, item.quantity + 1)}
                         style={{ padding: '0.25rem 0.6rem', color: 'var(--text-primary)' }}
                       >
                         +
@@ -161,7 +149,7 @@ export const CartPage: React.FC = () => {
                     </div>
 
                     <button 
-                      onClick={() => removeFromCart(item.product.id || item.product.slug, item.isSubscription, item.frequencyWeeks)}
+                      onClick={() => removeFromCart(item.product.id || item.product.slug)}
                       style={{ color: 'var(--accent-ruby)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}
                     >
                       <Trash2 size={14} /> Remove

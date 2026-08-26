@@ -5,7 +5,7 @@ import { db } from '../firebase';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import type { Order, OrderItem, Address, Subscription } from '../types';
+import type { Order, OrderItem, Address } from '../types';
 import confetti from 'canvas-confetti';
 import { 
   CreditCard, 
@@ -160,9 +160,7 @@ export const CheckoutPage: React.FC = () => {
         name: item.product.name,
         brand: item.product.brand,
         price: item.product.price,
-        quantity: item.quantity,
-        isSubscription: item.isSubscription,
-        frequencyWeeks: item.frequencyWeeks
+        quantity: item.quantity
       }));
 
       const newOrder: Order = {
@@ -176,7 +174,7 @@ export const CheckoutPage: React.FC = () => {
         totalAmount,
         currency: 'AUD',
         status: 'Verified',
-        source: cart.some(i => i.isSubscription) ? 'Subscription-generated' : 'Website',
+        source: 'Website',
         paymentMethod: paymentMethod === 'Stripe' ? 'Stripe' : 'PayPal',
         deliveryAddress: addressObj,
         ageConfirmed: true,
@@ -192,32 +190,8 @@ export const CheckoutPage: React.FC = () => {
       const docRef = await addDoc(collection(db, 'orders'), newOrder);
       newOrder.id = docRef.id;
 
-      // Handle subscription creations if present
+      // Deduct inventory stock in Firestore
       for (const item of cart) {
-        if (item.isSubscription && item.frequencyWeeks) {
-          const nextDate = new Date();
-          nextDate.setDate(nextDate.getDate() + (item.frequencyWeeks * 7));
-
-          const subObj: Subscription = {
-            customerId: currentUser?.uid || 'guest-user',
-            customerEmail: email,
-            customerName: fullName,
-            productId: item.product.id || item.product.slug,
-            productName: item.product.name,
-            productBrand: item.product.brand,
-            quantity: item.quantity,
-            pricePerDelivery: item.product.price * item.quantity,
-            frequencyWeeks: item.frequencyWeeks,
-            status: 'active',
-            nextBillingDate: nextDate.toISOString(),
-            createdAt: new Date().toISOString(),
-            deliveryAddress: addressObj
-          };
-
-          await addDoc(collection(db, 'subscriptions'), subObj);
-        }
-
-        // Deduct inventory stock in Firestore
         if (item.product.id) {
           try {
             const pRef = doc(db, 'products', item.product.id);
@@ -488,14 +462,9 @@ export const CheckoutPage: React.FC = () => {
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.5rem' }}>
                   {cart.map(item => (
-                    <div key={`${item.product.id}-${item.isSubscription}`} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
+                    <div key={item.product.id || item.product.slug} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
                       <div>
                         <span style={{ color: '#ffffff', fontWeight: 600 }}>{item.quantity}x {item.product.name}</span>
-                        {item.isSubscription && (
-                          <span style={{ display: 'block', fontSize: '0.75rem', color: 'var(--accent-gold)' }}>
-                            Subscribed every {item.frequencyWeeks} wks
-                          </span>
-                        )}
                       </div>
                       <span style={{ color: 'var(--accent-gold)' }}>${item.product.price * item.quantity} AUD</span>
                     </div>
