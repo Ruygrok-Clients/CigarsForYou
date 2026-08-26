@@ -7,11 +7,12 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { 
-  FREQUENTLY_BOUGHT_ACCESSORIES, 
-  getExtendedProductDetails 
+  getExtendedProductDetails,
+  getRecommendedCigarsForProduct,
+  getRecCigarUnitPrice,
+  getRecCigarPackName
 } from '../data/productExtraData';
 import { 
-  ShoppingBag, 
   Bell, 
   Flame, 
   ChevronRight,
@@ -31,13 +32,11 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [notifyModalOpen, setNotifyModalOpen] = useState(false);
   const [selectedPackaging, setSelectedPackaging] = useState<PackagingOption | null>(null);
-
-  // Frequently Bought Together checked state
-  const [selectedAccessories, setSelectedAccessories] = useState<Record<string, boolean>>({
-    'cutter-guillotine': true,
-    'lighter-triple-jet': true,
-    'boveda-humidity-pack': true
-  });
+  
+  // Real complementary cigars state & volume selections
+  const [recommendedCigars, setRecommendedCigars] = useState<Product[]>([]);
+  const [selectedBundleItems, setSelectedBundleItems] = useState<Record<string, boolean>>({});
+  const [selectedRecPackagings, setSelectedRecPackagings] = useState<Record<string, string>>({});
 
   // Function to check if a specific packaging option is in stock based on product stock
   const getRequiredStockForOption = (optionId: string) => {
@@ -50,6 +49,12 @@ export const ProductDetailPage: React.FC = () => {
     return stock >= getRequiredStockForOption(optionId);
   };
 
+  const getMaxQuantityForOption = (optionId: string, stock: number) => {
+    const req = getRequiredStockForOption(optionId);
+    if (stock < req) return 0;
+    return Math.floor(stock / req);
+  };
+
   useEffect(() => {
     const fetchProduct = async () => {
       if (!slug) return;
@@ -57,22 +62,21 @@ export const ProductDetailPage: React.FC = () => {
       try {
         const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
         const snap = await getDocs(q);
+        let foundProduct: Product | null = null;
         if (!snap.empty) {
           const docData = snap.docs[0];
-          const prodData = { id: docData.id, ...docData.data() } as Product;
-          setProduct(prodData);
+          foundProduct = { id: docData.id, ...docData.data() } as Product;
         } else {
           // If not found by slug, attempt fetch by ID
           const qId = query(collection(db, 'products'), where('__name__', '==', slug), limit(1));
           const snapId = await getDocs(qId);
           if (!snapId.empty) {
             const docData = snapId.docs[0];
-            const prodData = { id: docData.id, ...docData.data() } as Product;
-            setProduct(prodData);
+            foundProduct = { id: docData.id, ...docData.data() } as Product;
           } else {
             // Fallback product generator if DB is missing this slug
             const formattedName = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-            setProduct({
+            foundProduct = {
               id: slug,
               name: formattedName,
               brand: slug.toLowerCase().includes('cohiba') ? 'Cohiba' :
@@ -90,9 +94,53 @@ export const ProductDetailPage: React.FC = () => {
               origin: 'Cuban',
               active: true,
               description: `Authentic hand-rolled Cuban cigar featuring premium Vuelta Abajo aged tobacco leaves.`
-            });
+            };
           }
         }
+        setProduct(foundProduct);
+
+        // Fetch real IN-STOCK recommended cigars from DB or fallback catalog
+        try {
+          const recQuery = query(collection(db, 'products'), where('active', '==', true), limit(8));
+          const recSnap = await getDocs(recQuery);
+          let recList: Product[] = [];
+          recSnap.forEach(doc => {
+            const data = { id: doc.id, ...doc.data() } as Product;
+            if (data.slug !== slug && data.stock > 0) {
+              recList.push(data);
+            }
+          });
+
+          if (recList.length < 2) {
+            recList = getRecommendedCigarsForProduct(slug);
+          } else {
+            recList = recList.slice(0, 2);
+          }
+          setRecommendedCigars(recList);
+
+          const initialChecked: Record<string, boolean> = {};
+          const initialPacks: Record<string, string> = {};
+          recList.forEach(item => {
+            const itemKey = item.id || item.slug;
+            initialChecked[itemKey] = true;
+            initialPacks[itemKey] = 'single';
+          });
+          setSelectedBundleItems(initialChecked);
+          setSelectedRecPackagings(initialPacks);
+        } catch (err) {
+          const fallbackRecs = getRecommendedCigarsForProduct(slug);
+          setRecommendedCigars(fallbackRecs);
+          const initialChecked: Record<string, boolean> = {};
+          const initialPacks: Record<string, string> = {};
+          fallbackRecs.forEach(item => {
+            const itemKey = item.id || item.slug;
+            initialChecked[itemKey] = true;
+            initialPacks[itemKey] = 'single';
+          });
+          setSelectedBundleItems(initialChecked);
+          setSelectedRecPackagings(initialPacks);
+        }
+
       } catch (err) {
         console.error('Error fetching product detail:', err);
       } finally {
@@ -116,6 +164,23 @@ export const ProductDetailPage: React.FC = () => {
       setSelectedPackaging(bestAvailable);
     }
   }, [extraDetails, selectedPackaging, product]);
+
+  // Max quantity calculation based on product stock and selected packaging option size
+  const maxAllowedQuantity = useMemo(() => {
+    if (!product || !selectedPackaging) return 1;
+    const maxQty = getMaxQuantityForOption(selectedPackaging.id, product.stock);
+    return maxQty > 0 ? maxQty : 1;
+  }, [product, selectedPackaging]);
+
+  // Clamp current quantity if packaging selection changes or stock limits change
+  useEffect(() => {
+    if (selectedPackaging && product) {
+      const maxQty = getMaxQuantityForOption(selectedPackaging.id, product.stock);
+      if (maxQty > 0 && quantity > maxQty) {
+        setQuantity(maxQty);
+      }
+    }
+  }, [selectedPackaging, product, quantity]);
 
   if (loading) {
     return (
@@ -144,9 +209,11 @@ export const ProductDetailPage: React.FC = () => {
 
   const currentMultiplier = selectedPackaging ? selectedPackaging.priceMultiplier : 1;
   const unitPrice = Math.round(product.price * currentMultiplier);
+  const totalLinePrice = unitPrice * quantity;
 
   // Stock check for currently selected packaging option
   const selectedOptionAvailable = selectedPackaging ? isOptionAvailable(selectedPackaging.id, product.stock) : false;
+  const isMainProductOutOfStock = product.stock <= 0;
 
   const handleAddToCart = () => {
     if (!selectedOptionAvailable) {
@@ -163,7 +230,7 @@ export const ProductDetailPage: React.FC = () => {
     };
 
     addToCart(itemToAdd, quantity);
-    showToast(`Added ${quantity}x ${itemToAdd.name} to cart!`);
+    showToast(`Added ${quantity}x ${itemToAdd.name} ($${totalLinePrice.toFixed(2)} AUD) to cart!`);
   };
 
   const handleBuyNow = () => {
@@ -184,10 +251,19 @@ export const ProductDetailPage: React.FC = () => {
     navigate('/checkout');
   };
 
-  // Frequently Bought Together calculation
-  const selectedAccessoriesList = FREQUENTLY_BOUGHT_ACCESSORIES.filter(acc => selectedAccessories[acc.id]);
-  const accessoriesSubtotal = selectedAccessoriesList.reduce((sum, acc) => sum + acc.price, 0);
-  const bundleTotalPrice = unitPrice * quantity + accessoriesSubtotal;
+  // Frequently Bought Together calculation for recommended cigars
+  const checkedRecommendedCigars = recommendedCigars.filter(c => {
+    const key = c.id || c.slug;
+    return selectedBundleItems[key];
+  });
+
+  const recommendedSubtotal = checkedRecommendedCigars.reduce((sum, c) => {
+    const key = c.id || c.slug;
+    const packId = selectedRecPackagings[key] || 'single';
+    return sum + getRecCigarUnitPrice(c, packId);
+  }, 0);
+
+  const bundleTotalPrice = totalLinePrice + recommendedSubtotal;
 
   const handleAddBundleToCart = () => {
     // Add main product
@@ -200,25 +276,22 @@ export const ProductDetailPage: React.FC = () => {
     };
     addToCart(itemToAdd, quantity);
 
-    // Add selected accessories
-    selectedAccessoriesList.forEach(acc => {
-      addToCart({
-        id: acc.id,
-        name: acc.name,
-        brand: acc.brand,
-        slug: acc.id,
-        price: acc.price,
-        currency: 'AUD',
-        stock: 100,
-        imageUrl: acc.imageUrl,
-        category: 'cigars',
-        origin: 'Accessory',
-        active: true,
-        description: acc.subtitle
-      }, 1);
+    // Add selected recommended cigars with volume selection
+    checkedRecommendedCigars.forEach(cigar => {
+      const key = cigar.id || cigar.slug;
+      const packId = selectedRecPackagings[key] || 'single';
+      const packPrice = getRecCigarUnitPrice(cigar, packId);
+      const packName = getRecCigarPackName(packId);
+
+      const cigarToAdd: Product = {
+        ...cigar,
+        name: packId !== 'single' ? `${cigar.name} (${packName})` : cigar.name,
+        price: packPrice
+      };
+      addToCart(cigarToAdd, 1);
     });
 
-    showToast(`Added bundle (${1 + selectedAccessoriesList.length} items) to your cart!`);
+    showToast(`Added bundle (${1 + checkedRecommendedCigars.length} cigars) to your cart!`);
   };
 
   const brandHist = extraDetails.brandHist;
@@ -229,7 +302,7 @@ export const ProductDetailPage: React.FC = () => {
       <div style={{ borderBottom: '1px solid #f0f0f2', backgroundColor: '#ffffff', padding: '1rem 0' }}>
         <div className="container">
           <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#6e6e73' }}>
-            <Link to="/shop" style={{ color: '#6e6e73', textDecoration: 'none' }}>Peptides / Shop</Link>
+            <Link to="/shop" style={{ color: '#6e6e73', textDecoration: 'none' }}>Cigars / Shop</Link>
             <ChevronRight size={14} style={{ opacity: 0.6 }} />
             <Link to={`/shop?brand=${encodeURIComponent(product.brand)}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>
               {product.brand}
@@ -322,7 +395,7 @@ export const ProductDetailPage: React.FC = () => {
                 {product.name}
               </h1>
 
-              {/* Price */}
+              {/* Price (Dynamically increases with quantity selection) */}
               <div style={{ display: 'flex', alignItems: 'baseline', gap: '0.6rem', marginBottom: '0.75rem' }}>
                 <span style={{
                   fontSize: '2.2rem',
@@ -330,9 +403,11 @@ export const ProductDetailPage: React.FC = () => {
                   color: '#1d1d1f',
                   letterSpacing: '-0.01em'
                 }}>
-                  ${unitPrice.toFixed(2)}
+                  ${totalLinePrice.toFixed(2)}
                 </span>
-                <span style={{ color: '#86868b', fontSize: '0.9rem', fontWeight: 500 }}>AUD (Inc. GST)</span>
+                <span style={{ color: '#86868b', fontSize: '0.9rem', fontWeight: 500 }}>
+                  AUD {quantity > 1 ? `(${quantity}x @ $${unitPrice.toFixed(2)} / pack)` : '(Inc. GST)'}
+                </span>
               </div>
 
               {/* Subtitle summary */}
@@ -358,6 +433,7 @@ export const ProductDetailPage: React.FC = () => {
                     const isSelected = selectedPackaging?.id === opt.id;
                     const optPrice = Math.round(product.price * opt.priceMultiplier);
                     const optInStock = isOptionAvailable(opt.id, product.stock);
+                    const maxQtyForOpt = getMaxQuantityForOption(opt.id, product.stock);
 
                     return (
                       <button
@@ -382,9 +458,13 @@ export const ProductDetailPage: React.FC = () => {
                         <div style={{ fontSize: '0.85rem', color: isSelected ? '#c06517' : '#6e6e73', marginTop: '0.2rem', fontWeight: 600 }}>
                           ${optPrice.toFixed(2)}
                         </div>
-                        {!optInStock && (
+                        {!optInStock ? (
                           <div style={{ fontSize: '0.72rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             Out of Stock
+                          </div>
+                        ) : (
+                          <div style={{ fontSize: '0.7rem', color: '#6e6e73', marginTop: '0.2rem' }}>
+                            {maxQtyForOpt} pack{maxQtyForOpt > 1 ? 's' : ''} available
                           </div>
                         )}
                       </button>
@@ -422,94 +502,120 @@ export const ProductDetailPage: React.FC = () => {
                     <Bell size={18} /> Notify me when in stock
                   </button>
                 ) : (
-                  <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                    {/* Quantity Counter */}
-                    <div style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      border: '1px solid #d2d2d7',
-                      borderRadius: '8px',
-                      backgroundColor: '#ffffff',
-                      height: '48px'
-                    }}>
+                  <div>
+                    <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', flexWrap: 'wrap' }}>
+                      {/* Quantity Counter bounded strictly by available stock for selected packaging size */}
+                      <div style={{
+                        display: 'flex',
+                        alignItems: 'center',
+                        border: '1px solid #d2d2d7',
+                        borderRadius: '8px',
+                        backgroundColor: '#ffffff',
+                        height: '48px'
+                      }}>
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(Math.max(1, quantity - 1))}
+                          disabled={quantity <= 1}
+                          style={{
+                            padding: '0 0.9rem',
+                            color: quantity <= 1 ? '#a1a1a6' : '#1d1d1f',
+                            fontSize: '1.2rem',
+                            height: '100%',
+                            background: 'none',
+                            border: 'none',
+                            cursor: quantity <= 1 ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          -
+                        </button>
+                        <span style={{ padding: '0 0.6rem', fontWeight: 700, color: '#1d1d1f', fontSize: '1rem' }}>
+                          {quantity}
+                        </span>
+                        <button
+                          type="button"
+                          onClick={() => setQuantity(Math.min(maxAllowedQuantity, quantity + 1))}
+                          disabled={quantity >= maxAllowedQuantity}
+                          style={{
+                            padding: '0 0.9rem',
+                            color: quantity >= maxAllowedQuantity ? '#a1a1a6' : '#1d1d1f',
+                            fontSize: '1.2rem',
+                            height: '100%',
+                            background: 'none',
+                            border: 'none',
+                            cursor: quantity >= maxAllowedQuantity ? 'not-allowed' : 'pointer'
+                          }}
+                        >
+                          +
+                        </button>
+                      </div>
+
+                      {/* Primary Buy Now Filled Button */}
                       <button
                         type="button"
-                        onClick={() => setQuantity(Math.max(1, quantity - 1))}
-                        style={{ padding: '0 0.9rem', color: '#1d1d1f', fontSize: '1.2rem', height: '100%', background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={handleBuyNow}
+                        style={{
+                          backgroundColor: '#c06517',
+                          color: '#ffffff',
+                          border: 'none',
+                          borderRadius: '8px',
+                          padding: '0 1.8rem',
+                          height: '48px',
+                          fontSize: '0.95rem',
+                          fontWeight: 700,
+                          cursor: 'pointer',
+                          transition: 'background-color 0.15s ease',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          gap: '0.4rem',
+                          flex: '1 1 160px'
+                        }}
+                        onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#a2520d')}
+                        onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#c06517')}
                       >
-                        -
+                        Buy now (${totalLinePrice.toFixed(2)})
                       </button>
-                      <span style={{ padding: '0 0.6rem', fontWeight: 700, color: '#1d1d1f', fontSize: '1rem' }}>
-                        {quantity}
-                      </span>
+
+                      {/* Secondary Outlined Add to Cart Button (Icon Removed as requested) */}
                       <button
                         type="button"
-                        onClick={() => setQuantity(Math.min(product.stock || 10, quantity + 1))}
-                        style={{ padding: '0 0.9rem', color: '#1d1d1f', fontSize: '1.2rem', height: '100%', background: 'none', border: 'none', cursor: 'pointer' }}
+                        onClick={handleAddToCart}
+                        style={{
+                          backgroundColor: '#ffffff',
+                          color: '#1d1d1f',
+                          border: '1px solid #d2d2d7',
+                          borderRadius: '8px',
+                          padding: '0 1.8rem',
+                          height: '48px',
+                          fontSize: '0.95rem',
+                          fontWeight: 600,
+                          cursor: 'pointer',
+                          transition: 'all 0.15s ease',
+                          display: 'inline-flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          flex: '1 1 160px'
+                        }}
+                        onMouseOver={(e) => {
+                          e.currentTarget.style.backgroundColor = '#f5f5f7';
+                          e.currentTarget.style.borderColor = '#999999';
+                        }}
+                        onMouseOut={(e) => {
+                          e.currentTarget.style.backgroundColor = '#ffffff';
+                          e.currentTarget.style.borderColor = '#d2d2d7';
+                        }}
                       >
-                        +
+                        Add to cart (${totalLinePrice.toFixed(2)})
                       </button>
                     </div>
 
-                    {/* Primary Buy Now Filled Button */}
-                    <button
-                      type="button"
-                      onClick={handleBuyNow}
-                      style={{
-                        backgroundColor: '#c06517',
-                        color: '#ffffff',
-                        border: 'none',
-                        borderRadius: '8px',
-                        padding: '0 1.8rem',
-                        height: '48px',
-                        fontSize: '0.95rem',
-                        fontWeight: 700,
-                        cursor: 'pointer',
-                        transition: 'background-color 0.15s ease',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.4rem',
-                        flex: '1 1 160px'
-                      }}
-                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#a2520d')}
-                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#c06517')}
-                    >
-                      Buy now
-                    </button>
-
-                    {/* Secondary Outlined Add to Cart Button */}
-                    <button
-                      type="button"
-                      onClick={handleAddToCart}
-                      style={{
-                        backgroundColor: '#ffffff',
-                        color: '#1d1d1f',
-                        border: '1px solid #d2d2d7',
-                        borderRadius: '8px',
-                        padding: '0 1.8rem',
-                        height: '48px',
-                        fontSize: '0.95rem',
-                        fontWeight: 600,
-                        cursor: 'pointer',
-                        transition: 'all 0.15s ease',
-                        display: 'inline-flex',
-                        alignItems: 'center',
-                        justifyContent: 'center',
-                        gap: '0.5rem',
-                        flex: '1 1 160px'
-                      }}
-                      onMouseOver={(e) => {
-                        e.currentTarget.style.backgroundColor = '#f5f5f7';
-                        e.currentTarget.style.borderColor = '#999999';
-                      }}
-                      onMouseOut={(e) => {
-                        e.currentTarget.style.backgroundColor = '#ffffff';
-                        e.currentTarget.style.borderColor = '#d2d2d7';
-                      }}
-                    >
-                      <ShoppingBag size={18} /> Add to cart
-                    </button>
+                    {/* Stock limit notice */}
+                    {quantity >= maxAllowedQuantity && (
+                      <div style={{ fontSize: '0.78rem', color: '#c06517', marginTop: '0.5rem', fontWeight: 600 }}>
+                        Maximum available stock reached ({maxAllowedQuantity} pack{maxAllowedQuantity > 1 ? 's' : ''})
+                      </div>
+                    )}
                   </div>
                 )}
               </div>
@@ -698,129 +804,159 @@ export const ProductDetailPage: React.FC = () => {
         </div>
       </div>
 
-      {/* FREQUENTLY BOUGHT TOGETHER SECTION */}
+      {/* RECOMMENDATIONS / FREQUENTLY BOUGHT TOGETHER SECTION */}
       <div style={{ padding: '5rem 0 3rem 0', backgroundColor: '#ffffff' }}>
         <div className="container">
-          <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
-            <span style={{
-              fontSize: '0.75rem',
-              fontWeight: 800,
-              textTransform: 'uppercase',
-              letterSpacing: '0.12em',
-              color: '#c06517'
-            }}>
-              HUMIDOR BUNDLE RECOMMENDATIONS
-            </span>
-            <h2 style={{
-              fontFamily: 'var(--font-serif)',
-              fontSize: '2.2rem',
-              fontWeight: 700,
-              color: '#1d1d1f',
-              marginTop: '0.5rem'
-            }}>
-              Frequently Bought Together
-            </h2>
-            <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginTop: '0.4rem' }}>
-              Pair your {product.name} with essential, hand-picked cigar accessories for the ultimate smoking experience.
-            </p>
-          </div>
-
-          <div style={{
-            border: '1px solid #e5e5e7',
-            borderRadius: '12px',
-            padding: '2rem',
-            backgroundColor: '#fafafa',
-            boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
-          }}>
-            {/* Horizontal Product Chain */}
-            <div style={{
-              display: 'flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              gap: '1.5rem',
-              flexWrap: 'wrap',
-              marginBottom: '2.5rem'
-            }}>
-              {/* Main Product Card */}
-              <div style={{
-                backgroundColor: '#ffffff',
-                border: '2px solid #c06517',
-                borderRadius: '10px',
-                padding: '1.25rem',
-                width: '180px',
-                textAlign: 'center',
-                boxShadow: '0 4px 12px rgba(192, 101, 23, 0.08)',
-                position: 'relative'
-              }}>
-                <div style={{
-                  position: 'absolute',
-                  top: '-10px',
-                  left: '50%',
-                  transform: 'translateX(-50%)',
-                  backgroundColor: '#c06517',
-                  color: '#ffffff',
-                  fontSize: '0.65rem',
-                  fontWeight: 800,
-                  padding: '0.2rem 0.6rem',
-                  borderRadius: '12px',
-                  textTransform: 'uppercase',
-                  whiteSpace: 'nowrap'
+          {/* Main Product Out of Stock (stock <= 0): Display "Explore Other Products In Stock" */}
+          {isMainProductOutOfStock ? (
+            <div>
+              <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                <h2 style={{
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: '2.2rem',
+                  fontWeight: 700,
+                  color: '#1d1d1f'
                 }}>
-                  THIS ITEM
-                </div>
-
-                <div style={{
-                  width: '100px',
-                  height: '100px',
-                  margin: '0.5rem auto 0.8rem auto',
-                  borderRadius: '6px',
-                  backgroundColor: '#f4f4f6',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  overflow: 'hidden'
-                }}>
-                  {product.imageUrl ? (
-                    <img src={product.imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
-                  ) : (
-                    <Flame size={36} style={{ color: '#c06517' }} />
-                  )}
-                </div>
-                <div style={{ fontSize: '0.88rem', fontWeight: 700, color: '#1d1d1f', lineClamp: 2, height: '2.4em', overflow: 'hidden' }}>
-                  {product.name}
-                </div>
-                <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#c06517', marginTop: '0.4rem' }}>
-                  ${unitPrice.toFixed(2)} AUD
-                </div>
+                  Explore Other Products In Stock
+                </h2>
+                <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginTop: '0.4rem' }}>
+                  Hand-selected premium Cuban cigars currently in stock in our humidor.
+                </p>
               </div>
 
-              {/* Plus Sign */}
-              {FREQUENTLY_BOUGHT_ACCESSORIES.map((accessory) => {
-                const isChecked = selectedAccessories[accessory.id];
-
-                return (
-                  <React.Fragment key={accessory.id}>
-                    <div style={{
+              <div style={{
+                display: 'grid',
+                gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
+                gap: '2rem',
+                maxWidth: '900px',
+                margin: '0 auto'
+              }}>
+                {recommendedCigars.map((cigar) => {
+                  const cigarKey = cigar.id || cigar.slug;
+                  return (
+                    <div key={cigarKey} style={{
+                      backgroundColor: '#ffffff',
+                      border: '1px solid #e5e5e7',
+                      borderRadius: '12px',
+                      padding: '1.5rem',
+                      textAlign: 'center',
+                      boxShadow: '0 4px 16px rgba(0,0,0,0.04)',
                       display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      color: '#86868b',
-                      fontWeight: 700,
-                      fontSize: '1.4rem'
+                      flexDirection: 'column',
+                      alignItems: 'center'
                     }}>
-                      +
+                      <div style={{
+                        width: '120px',
+                        height: '120px',
+                        borderRadius: '8px',
+                        backgroundColor: '#f5f5f7',
+                        display: 'flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        marginBottom: '1rem',
+                        overflow: 'hidden'
+                      }}>
+                        {cigar.imageUrl ? (
+                          <img src={cigar.imageUrl} alt={cigar.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <Flame size={44} style={{ color: '#c06517' }} />
+                        )}
+                      </div>
+                      <div style={{ fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', color: '#c06517', letterSpacing: '0.08em', marginBottom: '0.2rem' }}>
+                        {cigar.brand}
+                      </div>
+                      <h3 style={{ fontSize: '1.1rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '0.4rem' }}>
+                        {cigar.name}
+                      </h3>
+                      <div style={{ fontSize: '1.1rem', fontWeight: 800, color: '#1d1d1f', marginBottom: '1.25rem' }}>
+                        ${cigar.price.toFixed(2)} AUD
+                      </div>
+                      <Link
+                        to={`/product/${cigar.slug}`}
+                        style={{
+                          marginTop: 'auto',
+                          backgroundColor: '#1d1d1f',
+                          color: '#ffffff',
+                          textDecoration: 'none',
+                          padding: '0.65rem 1.4rem',
+                          borderRadius: '6px',
+                          fontSize: '0.88rem',
+                          fontWeight: 700,
+                          transition: 'background-color 0.15s ease'
+                        }}
+                      >
+                        View Cigar
+                      </Link>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+          ) : (
+            /* Main Product In Stock: Display Frequently Bought Together with volume selection per cigar */
+            <div>
+              <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
+                <h2 style={{
+                  fontFamily: 'var(--font-serif)',
+                  fontSize: '2.2rem',
+                  fontWeight: 700,
+                  color: '#1d1d1f'
+                }}>
+                  Frequently Bought Together
+                </h2>
+                <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginTop: '0.4rem' }}>
+                  Pair your {product.name} with these highly rated complementary Cuban cigars.
+                </p>
+              </div>
+
+              <div style={{
+                border: '1px solid #e5e5e7',
+                borderRadius: '12px',
+                padding: '2rem',
+                backgroundColor: '#fafafa',
+                boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
+              }}>
+                {/* Horizontal Product Cards Chain (Spacious cards with volume selection) */}
+                <div style={{
+                  display: 'flex',
+                  alignItems: 'stretch',
+                  justifyContent: 'center',
+                  gap: '1.5rem',
+                  flexWrap: 'wrap',
+                  marginBottom: '2.5rem'
+                }}>
+                  {/* Main Product Card */}
+                  <div style={{
+                    backgroundColor: '#ffffff',
+                    border: '2px solid #c06517',
+                    borderRadius: '10px',
+                    padding: '1.25rem',
+                    width: '230px',
+                    textAlign: 'center',
+                    boxShadow: '0 4px 12px rgba(192, 101, 23, 0.08)',
+                    position: 'relative',
+                    display: 'flex',
+                    flexDirection: 'column',
+                    justifyContent: 'space-between'
+                  }}>
+                    <div style={{
+                      position: 'absolute',
+                      top: '-10px',
+                      left: '50%',
+                      transform: 'translateX(-50%)',
+                      backgroundColor: '#c06517',
+                      color: '#ffffff',
+                      fontSize: '0.65rem',
+                      fontWeight: 800,
+                      padding: '0.2rem 0.6rem',
+                      borderRadius: '12px',
+                      textTransform: 'uppercase',
+                      whiteSpace: 'nowrap'
+                    }}>
+                      THIS ITEM
                     </div>
 
-                    <div style={{
-                      backgroundColor: '#ffffff',
-                      border: isChecked ? '1px solid #1d1d1f' : '1px solid #e5e5e7',
-                      borderRadius: '10px',
-                      padding: '1.25rem',
-                      width: '180px',
-                      textAlign: 'center',
-                      opacity: isChecked ? 1 : 0.5,
-                      transition: 'all 0.15s ease'
-                    }}>
+                    <div>
                       <div style={{
                         width: '100px',
                         height: '100px',
@@ -832,102 +968,213 @@ export const ProductDetailPage: React.FC = () => {
                         justifyContent: 'center',
                         overflow: 'hidden'
                       }}>
-                        <img src={accessory.imageUrl} alt={accessory.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        {product.imageUrl ? (
+                          <img src={product.imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <Flame size={36} style={{ color: '#c06517' }} />
+                        )}
                       </div>
-                      <div style={{ fontSize: '0.82rem', fontWeight: 700, color: '#1d1d1f', lineClamp: 2, height: '2.4em', overflow: 'hidden' }}>
-                        {accessory.name}
+                      <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '0.25rem' }}>
+                        {product.brand} {product.name}
                       </div>
-                      <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1d1d1f', marginTop: '0.4rem' }}>
-                        ${accessory.price.toFixed(2)} AUD
+                      <div style={{ fontSize: '0.78rem', color: '#6e6e73', fontWeight: 600 }}>
+                        {selectedPackaging?.name || 'Single Stick'} ({quantity}x)
                       </div>
                     </div>
-                  </React.Fragment>
-                );
-              })}
-            </div>
 
-            {/* Checkbox Controls List & Add Bundle CTA */}
-            <div style={{
-              display: 'flex',
-              flexDirection: 'column',
-              gap: '0.85rem',
-              maxWidth: '680px',
-              margin: '0 auto',
-              paddingTop: '1.5rem',
-              borderTop: '1px solid #e5e5e7'
-            }}>
-              {/* Main Product Row */}
-              <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'default', fontSize: '0.92rem', color: '#1d1d1f' }}>
-                <input type="checkbox" checked disabled style={{ accentColor: '#c06517', width: '18px', height: '18px' }} />
-                <span>
-                  <strong>This item:</strong> {product.name} ({selectedPackaging?.name || 'Single Stick'}) — <strong style={{ color: '#c06517' }}>${unitPrice.toFixed(2)} AUD</strong>
-                </span>
-              </label>
-
-              {/* Accessories Rows */}
-              {FREQUENTLY_BOUGHT_ACCESSORIES.map((acc) => (
-                <label key={acc.id} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.92rem', color: '#1d1d1f' }}>
-                  <input
-                    type="checkbox"
-                    checked={selectedAccessories[acc.id] || false}
-                    onChange={(e) => setSelectedAccessories({
-                      ...selectedAccessories,
-                      [acc.id]: e.target.checked
-                    })}
-                    style={{ accentColor: '#c06517', width: '18px', height: '18px' }}
-                  />
-                  <span>
-                    <strong>Add:</strong> {acc.name} — <strong>${acc.price.toFixed(2)} AUD</strong>
-                  </span>
-                </label>
-              ))}
-
-              {/* Total & Action Button */}
-              <div style={{
-                marginTop: '1.5rem',
-                paddingTop: '1.5rem',
-                borderTop: '1px solid #e5e5e7',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'space-between',
-                flexWrap: 'wrap',
-                gap: '1rem'
-              }}>
-                <div>
-                  <div style={{ fontSize: '0.82rem', color: '#86868b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                    TOTAL PRICE FOR {1 + selectedAccessoriesList.length} ITEMS
+                    <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#c06517', marginTop: '0.75rem' }}>
+                      ${totalLinePrice.toFixed(2)} AUD
+                    </div>
                   </div>
-                  <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1d1d1f' }}>
-                    ${bundleTotalPrice.toFixed(2)} <span style={{ fontSize: '0.9rem', color: '#6e6e73', fontWeight: 500 }}>AUD</span>
-                  </div>
+
+                  {/* Recommended Real Cigar Cards with Pack/Volume Selector */}
+                  {recommendedCigars.map((cigar) => {
+                    const cigarKey = cigar.id || cigar.slug;
+                    const isChecked = selectedBundleItems[cigarKey];
+                    const selectedPackId = selectedRecPackagings[cigarKey] || 'single';
+                    const packPrice = getRecCigarUnitPrice(cigar, selectedPackId);
+
+                    return (
+                      <React.Fragment key={cigarKey}>
+                        <div style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'center',
+                          color: '#86868b',
+                          fontWeight: 700,
+                          fontSize: '1.4rem'
+                        }}>
+                          +
+                        </div>
+
+                        <div style={{
+                          backgroundColor: '#ffffff',
+                          border: isChecked ? '1px solid #1d1d1f' : '1px solid #e5e5e7',
+                          borderRadius: '10px',
+                          padding: '1.25rem',
+                          width: '230px',
+                          textAlign: 'center',
+                          opacity: isChecked ? 1 : 0.5,
+                          transition: 'all 0.15s ease',
+                          display: 'flex',
+                          flexDirection: 'column',
+                          justifyContent: 'space-between'
+                        }}>
+                          <div>
+                            <Link to={`/product/${cigar.slug}`} style={{ textDecoration: 'none', color: 'inherit' }}>
+                              <div style={{
+                                width: '100px',
+                                height: '100px',
+                                margin: '0.5rem auto 0.8rem auto',
+                                borderRadius: '6px',
+                                backgroundColor: '#f4f4f6',
+                                display: 'flex',
+                                alignItems: 'center',
+                                justifyContent: 'center',
+                                overflow: 'hidden'
+                              }}>
+                                {cigar.imageUrl ? (
+                                  <img src={cigar.imageUrl} alt={cigar.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                ) : (
+                                  <Flame size={36} style={{ color: '#c06517' }} />
+                                )}
+                              </div>
+                              <div style={{ fontSize: '0.92rem', fontWeight: 700, color: '#1d1d1f', marginBottom: '0.25rem' }}>
+                                {cigar.brand} {cigar.name}
+                              </div>
+                            </Link>
+
+                            {/* Packaging / Volume Selection for Recommended Cigar */}
+                            <div style={{ marginTop: '0.5rem' }}>
+                              <select
+                                value={selectedPackId}
+                                onChange={(e) => setSelectedRecPackagings({
+                                  ...selectedRecPackagings,
+                                  [cigarKey]: e.target.value
+                                })}
+                                style={{
+                                  width: '100%',
+                                  padding: '0.45rem 0.6rem',
+                                  borderRadius: '6px',
+                                  border: '1px solid #d2d2d7',
+                                  fontSize: '0.82rem',
+                                  fontWeight: 600,
+                                  backgroundColor: '#ffffff',
+                                  color: '#1d1d1f',
+                                  cursor: 'pointer'
+                                }}
+                              >
+                                <option value="single">Single Stick (${cigar.price.toFixed(2)})</option>
+                                {cigar.stock >= 10 && (
+                                  <option value="box10">Box of 10 (${Math.round(cigar.price * 9.5).toFixed(2)})</option>
+                                )}
+                                {cigar.stock >= 25 && (
+                                  <option value="box25">Cabinet of 25 (${Math.round(cigar.price * 23.5).toFixed(2)})</option>
+                                )}
+                              </select>
+                            </div>
+                          </div>
+
+                          <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1d1d1f', marginTop: '0.75rem' }}>
+                            ${packPrice.toFixed(2)} AUD
+                          </div>
+                        </div>
+                      </React.Fragment>
+                    );
+                  })}
                 </div>
 
-                <button
-                  type="button"
-                  onClick={handleAddBundleToCart}
-                  style={{
-                    backgroundColor: '#c06517',
-                    color: '#ffffff',
-                    border: 'none',
-                    borderRadius: '8px',
-                    padding: '0.9rem 2rem',
-                    fontSize: '1rem',
-                    fontWeight: 700,
-                    cursor: 'pointer',
-                    display: 'inline-flex',
+                {/* Checkbox Controls List & Add Bundle CTA */}
+                <div style={{
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.85rem',
+                  maxWidth: '720px',
+                  margin: '0 auto',
+                  paddingTop: '1.5rem',
+                  borderTop: '1px solid #e5e5e7'
+                }}>
+                  {/* Main Product Row */}
+                  <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'default', fontSize: '0.92rem', color: '#1d1d1f' }}>
+                    <input type="checkbox" checked disabled style={{ accentColor: '#c06517', width: '18px', height: '18px' }} />
+                    <span>
+                      <strong>This item:</strong> {product.brand} {product.name} ({selectedPackaging?.name || 'Single Stick'}) — <strong style={{ color: '#c06517' }}>${totalLinePrice.toFixed(2)} AUD</strong>
+                    </span>
+                  </label>
+
+                  {/* Recommended Cigars Rows */}
+                  {recommendedCigars.map((cigar) => {
+                    const cigarKey = cigar.id || cigar.slug;
+                    const selectedPackId = selectedRecPackagings[cigarKey] || 'single';
+                    const packPrice = getRecCigarUnitPrice(cigar, selectedPackId);
+                    const packName = getRecCigarPackName(selectedPackId);
+
+                    return (
+                      <label key={cigarKey} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.92rem', color: '#1d1d1f' }}>
+                        <input
+                          type="checkbox"
+                          checked={selectedBundleItems[cigarKey] || false}
+                          onChange={(e) => setSelectedBundleItems({
+                            ...selectedBundleItems,
+                            [cigarKey]: e.target.checked
+                          })}
+                          style={{ accentColor: '#c06517', width: '18px', height: '18px' }}
+                        />
+                        <span>
+                          <strong>Add:</strong> {cigar.brand} {cigar.name} ({packName}) — <strong>${packPrice.toFixed(2)} AUD</strong>
+                        </span>
+                      </label>
+                    );
+                  })}
+
+                  {/* Total & Action Button */}
+                  <div style={{
+                    marginTop: '1.5rem',
+                    paddingTop: '1.5rem',
+                    borderTop: '1px solid #e5e5e7',
+                    display: 'flex',
                     alignItems: 'center',
-                    gap: '0.5rem',
-                    boxShadow: '0 4px 14px rgba(192, 101, 23, 0.25)',
-                    transition: 'background-color 0.15s ease'
-                  }}
-                  onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#a2520d')}
-                  onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#c06517')}
-                >
-                  <ShoppingBag size={20} /> Add Selected ({1 + selectedAccessoriesList.length}) to Cart
-                </button>
+                    justifyContent: 'space-between',
+                    flexWrap: 'wrap',
+                    gap: '1rem'
+                  }}>
+                    <div>
+                      <div style={{ fontSize: '0.82rem', color: '#86868b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                        TOTAL PRICE FOR {1 + checkedRecommendedCigars.length} CIGARS
+                      </div>
+                      <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1d1d1f' }}>
+                        ${bundleTotalPrice.toFixed(2)} <span style={{ fontSize: '0.9rem', color: '#6e6e73', fontWeight: 500 }}>AUD</span>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={handleAddBundleToCart}
+                      style={{
+                        backgroundColor: '#c06517',
+                        color: '#ffffff',
+                        border: 'none',
+                        borderRadius: '8px',
+                        padding: '0.9rem 2rem',
+                        fontSize: '1rem',
+                        fontWeight: 700,
+                        cursor: 'pointer',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        gap: '0.5rem',
+                        boxShadow: '0 4px 14px rgba(192, 101, 23, 0.25)',
+                        transition: 'background-color 0.15s ease'
+                      }}
+                      onMouseOver={(e) => (e.currentTarget.style.backgroundColor = '#a2520d')}
+                      onMouseOut={(e) => (e.currentTarget.style.backgroundColor = '#c06517')}
+                    >
+                      Add Selected ({1 + checkedRecommendedCigars.length}) to Cart
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
-          </div>
+          )}
         </div>
       </div>
 

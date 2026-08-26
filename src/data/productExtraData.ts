@@ -1,15 +1,5 @@
 import type { Product, ProductSpecification, PackagingOption } from '../types';
 
-export interface AccessoryItem {
-  id: string;
-  name: string;
-  brand: string;
-  price: number;
-  imageUrl: string;
-  category: string;
-  subtitle: string;
-}
-
 export const BRAND_HISTORIES: Record<string, {
   title: string;
   foundingYear: string;
@@ -47,6 +37,20 @@ The brand's distinctive triangular logo with crossed swords and a fleur-de-lis s
     ]
   },
   Partagás: {
+    title: 'Full-Bodied Richness & Earthy Power',
+    foundingYear: '1845',
+    origin: 'Havana, Cuba',
+    factory: 'Real Fábrica de Tabacos Partagás, Havana',
+    history: `Founded in 1845 by Don Jaime Partagás y Ravelo, Partagás is one of the oldest and most legendary cigar brands in Havana. Located originally in the heart of Havana behind the Capitolio building, the grand Partagás factory became a symbol of Cuban cigar heritage.
+
+Partagás cigars are immediately recognizable by their rich, full-bodied strength and intense, earthy flavor profile. Blended from tobacco leaves selected from the Vuelta Abajo region, Partagás delivers robust notes of dark pepper, rich leather, heavy earth, and underlying natural sweetness that appeal to seasoned aficionados seeking uncompromising flavor intensity.`,
+    heritagePoints: [
+      'Founded in 1845, one of Cuba\'s oldest active cigar houses',
+      'Famous for intense, full-bodied earth and pepper character',
+      'Historic factory located in central Havana'
+    ]
+  },
+  Partagas: {
     title: 'Full-Bodied Richness & Earthy Power',
     foundingYear: '1845',
     origin: 'Havana, Cuba',
@@ -153,43 +157,117 @@ The leaves undergo careful harvesting, curing, and aging processes to develop a 
   };
 }
 
-export const FREQUENTLY_BOUGHT_ACCESSORIES: AccessoryItem[] = [
+export const RECOMMENDED_CIGARS_CATALOG: Product[] = [
   {
-    id: 'cutter-guillotine',
-    name: 'Precision Double Guillotine Cigar Cutter',
-    brand: 'CigarsForYou Craft',
-    price: 35,
-    imageUrl: 'https://images.unsplash.com/photo-1544717305-2782549b5136?auto=format&fit=crop&w=400&q=80',
-    category: 'Accessory',
-    subtitle: 'Self-sharpening dual surgical stainless steel blades up to 60 Ring Gauge.'
+    id: 'montecristo-no-2',
+    name: 'Montecristo No.2',
+    brand: 'Montecristo',
+    slug: 'montecristo-no-2',
+    price: 95,
+    currency: 'AUD',
+    stock: 100,
+    imageUrl: '',
+    category: 'cigars',
+    origin: 'Cuban',
+    active: true,
+    description: 'The king of torpedoes. Perfectly tapered with a creamy profile of espresso and spice.'
   },
   {
-    id: 'lighter-triple-jet',
-    name: 'Triple Jet Flame Torch Lighter with Punch',
-    brand: 'CigarsForYou Craft',
-    price: 49,
-    imageUrl: 'https://images.unsplash.com/photo-1512496015851-a90fb38ba796?auto=format&fit=crop&w=400&q=80',
-    category: 'Accessory',
-    subtitle: 'Windproof high-altitude torch with built-in fold-out cigar punch tool.'
+    id: 'partagas-serie-d-4',
+    name: 'Serie D No.4',
+    brand: 'Partagas',
+    slug: 'partagas-serie-d-4',
+    price: 62,
+    currency: 'AUD',
+    stock: 100,
+    imageUrl: '',
+    category: 'cigars',
+    origin: 'Cuban',
+    active: true,
+    description: 'A benchmark Robusto with deep earth, leather, and pepper notes.'
   },
   {
-    id: 'boveda-humidity-pack',
-    name: 'Boveda 69% 2-Way Humidity Control Pack (60g)',
-    brand: 'Boveda',
-    price: 12,
-    imageUrl: 'https://images.unsplash.com/photo-1517841905240-472988babdf9?auto=format&fit=crop&w=400&q=80',
-    category: 'Humidification',
-    subtitle: 'Maintains ideal 69% relative humidity in your humidor bag for up to 90 days.'
+    id: 'romeo-y-julieta-churchills',
+    name: 'Churchills',
+    brand: 'Romeo y Julieta',
+    slug: 'romeo-y-julieta-churchills',
+    price: 89,
+    currency: 'AUD',
+    stock: 100,
+    imageUrl: '',
+    category: 'cigars',
+    origin: 'Cuban',
+    active: true,
+    description: 'The signature cigar named in honor of Sir Winston Churchill.'
+  },
+  {
+    id: 'hoyo-de-monterrey-epicure-2',
+    name: 'Epicure No.2',
+    brand: 'Hoyo De Monterrey',
+    slug: 'hoyo-de-monterrey-epicure-2',
+    price: 65,
+    currency: 'AUD',
+    stock: 100,
+    imageUrl: '',
+    category: 'cigars',
+    origin: 'Cuban',
+    active: true,
+    description: 'Mild to medium-bodied elegance. Silky smooth notes of cream and sweet wood.'
+  },
+  {
+    id: 'h-upmann-half-corona',
+    name: 'Half Corona',
+    brand: 'H. Upmann',
+    slug: 'h-upmann-half-corona',
+    price: 33,
+    currency: 'AUD',
+    stock: 100,
+    imageUrl: '',
+    category: 'cigars',
+    origin: 'Cuban',
+    active: true,
+    description: 'Compact yet complex Habanos with notes of roasted coffee and leather.'
+  },
+  {
+    id: 'cohiba-robustos',
+    name: 'Robustos',
+    brand: 'Cohiba',
+    slug: 'cohiba-robustos',
+    price: 127,
+    currency: 'AUD',
+    stock: 100,
+    imageUrl: '',
+    category: 'cigars',
+    origin: 'Cuban',
+    active: true,
+    description: 'The archetype of the Robusto format. Rich tones of cocoa, cedar, and roasted nuts.'
   }
 ];
+
+export function getRecommendedCigarsForProduct(currentSlug: string): Product[] {
+  const filtered = RECOMMENDED_CIGARS_CATALOG.filter(c => c.slug !== currentSlug && c.stock > 0);
+  return filtered.slice(0, 2);
+}
+
+export function getRecCigarUnitPrice(cigar: Product, packId: string): number {
+  if (packId === 'box25') return Math.round(cigar.price * 23.5);
+  if (packId === 'box10') return Math.round(cigar.price * 9.5);
+  return Math.round(cigar.price);
+}
+
+export function getRecCigarPackName(packId: string): string {
+  if (packId === 'box25') return 'Cabinet of 25';
+  if (packId === 'box10') return 'Box of 10';
+  return 'Single Stick';
+}
 
 export function getExtendedProductDetails(product: Product) {
   const brandHist = getBrandHistory(product.brand);
 
   const defaultPackaging: PackagingOption[] = [
     { id: 'single', name: 'Single Stick', priceMultiplier: 1, stock: product.stock },
-    { id: 'box10', name: 'Box of 10', priceMultiplier: 9.5, stock: Math.floor(product.stock / 10) || 5 },
-    { id: 'box25', name: 'Cabinet of 25', priceMultiplier: 23.5, stock: Math.floor(product.stock / 25) || 2 }
+    { id: 'box10', name: 'Box of 10', priceMultiplier: 9.5, stock: Math.floor(product.stock / 10) },
+    { id: 'box25', name: 'Cabinet of 25', priceMultiplier: 23.5, stock: Math.floor(product.stock / 25) }
   ];
 
   const genericSpecs: ProductSpecification = {
