@@ -43,10 +43,10 @@ export const ProductSeparationsSection: React.FC = () => {
           </h2>
         </div>
 
-        {/* 3 Visual Category Image Cards Grid */}
+        {/* Visual Category Image Cards Grid */}
         <div className="product-sep-grid">
           {CATEGORIES.map((cat) => (
-            <div key={cat.id} className="product-sep-card">
+            <Link key={cat.id} to={cat.link} className="product-sep-card">
               <img
                 src={cat.imageSrc}
                 alt={cat.imageAlt}
@@ -56,12 +56,12 @@ export const ProductSeparationsSection: React.FC = () => {
 
               <div className="product-sep-card-content">
                 <h3 className="product-sep-card-title">{cat.title}</h3>
-                <Link to={cat.link} className="product-sep-card-btn">
+                <div className="product-sep-card-btn">
                   <span>{cat.btnText}</span>
                   <ArrowRight size={15} />
-                </Link>
+                </div>
               </div>
-            </div>
+            </Link>
           ))}
         </div>
       </div>

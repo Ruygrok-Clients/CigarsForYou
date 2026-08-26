@@ -7,7 +7,7 @@ import { ProductCard } from '../components/ProductCard';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ProductSeparationsSection } from '../components/ProductSeparationsSection';
 import { CIGAR_BRANDS } from '../components/Navbar';
-import { ShieldCheck, Clock, Sparkles, Flame, ChevronRight, Award, RefreshCw } from 'lucide-react';
+import { ShieldCheck, Clock, Truck, Flame, ChevronRight, Award, RefreshCw } from 'lucide-react';
 import bgVideo from '../assets/BG-Vid.mov';
 
 export const HomePage: React.FC = () => {
@@ -91,7 +91,7 @@ export const HomePage: React.FC = () => {
               border: '1px solid rgba(253, 230, 138, 0.4)',
               backdropFilter: 'blur(12px)'
             }}>
-              <Sparkles size={15} /> Hand-Delivering All Tobacco Products.
+              <Truck size={15} /> Hand-Delivering All Tobacco Products.
             </span>
 
             <h1 style={{ 
