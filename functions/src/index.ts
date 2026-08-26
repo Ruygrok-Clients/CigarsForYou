@@ -4,6 +4,7 @@ import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
+import Stripe from "stripe";
 
 import {
   sendNewOrderAdminNotification,
@@ -17,28 +18,203 @@ const db = admin.firestore();
 
 setGlobalOptions({ maxInstances: 10, region: "us-central1" });
 
+function getStripeInstance(): Stripe {
+  const secretKey = process.env.STRIPE_SECRET_KEY || "STRIPE_SECRET_KEY_PLACEHOLDER";
+  return new Stripe(secretKey);
+}
+
 /**
- * STRIPE WEBHOOK HANDLER (Scaffolded)
- * Listens for Stripe webhook events: invoice.paid, invoice.payment_failed,
- * customer.subscription.updated/deleted, checkout.session.completed.
+ * CALLABLE FUNCTION: Create Stripe Checkout Session
+ * Generates a hosted Stripe Checkout URL for customer order payment.
+ */
+export const createStripeCheckoutSession = onCall({ cors: true }, async (request) => {
+  const { items, customerEmail, customerName, customerPhone, deliveryAddress, originUrl, subtotal, discountAmount, totalAmount } = request.data || {};
+
+  if (!items || !Array.isArray(items) || items.length === 0) {
+    throw new HttpsError("invalid-argument", "Cart is empty or missing items.");
+  }
+  if (!customerEmail || !customerName || !deliveryAddress) {
+    throw new HttpsError("invalid-argument", "Missing required customer details or delivery address.");
+  }
+
+  const stripe = getStripeInstance();
+  const orderNumber = `CFY-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: any) => ({
+    price_data: {
+      currency: "aud",
+      product_data: {
+        name: item.product.name,
+        description: item.product.brand ? `Brand: ${item.product.brand}` : undefined,
+        images: item.product.image ? [item.product.image] : undefined,
+      },
+      unit_amount: Math.round(item.product.price * 100), // Amount in cents
+    },
+    quantity: item.quantity,
+  }));
+
+  const customerId = request.auth?.uid || "guest-user";
+  const baseUrl = originUrl || "http://localhost:5173";
+
+  // Build metadata for webhook order processing
+  const sessionMetadata: Record<string, string> = {
+    orderNumber,
+    customerId,
+    customerName,
+    customerEmail,
+    customerPhone: customerPhone || "",
+    street: deliveryAddress.street || "",
+    suburb: deliveryAddress.suburb || "",
+    state: deliveryAddress.state || "NSW",
+    postcode: deliveryAddress.postcode || "",
+    country: deliveryAddress.country || "Australia",
+    totalAmount: String(totalAmount || 0),
+    subtotal: String(subtotal || 0),
+    discountAmount: String(discountAmount || 0),
+    itemsJson: JSON.stringify(items.map((i: any) => ({
+      productId: i.product.id || i.product.slug,
+      name: i.product.name,
+      brand: i.product.brand || "",
+      price: i.product.price,
+      quantity: i.quantity
+    })))
+  };
+
+  try {
+    const session = await stripe.checkout.sessions.create({
+      payment_method_types: ["card"],
+      line_items: lineItems,
+      mode: "payment",
+      customer_email: customerEmail,
+      client_reference_id: orderNumber,
+      metadata: sessionMetadata,
+      success_url: `${baseUrl}/checkout?success=true&session_id={CHECKOUT_SESSION_ID}&order_number=${orderNumber}`,
+      cancel_url: `${baseUrl}/checkout?canceled=true`,
+    });
+
+    logger.info(`Created Stripe checkout session ${session.id} for order ${orderNumber}`);
+    return { checkoutUrl: session.url, sessionId: session.id, orderNumber };
+  } catch (err: any) {
+    logger.error("Failed to create Stripe Checkout session:", err);
+    throw new HttpsError("internal", err.message || "Failed to create Stripe checkout session");
+  }
+});
+
+/**
+ * STRIPE WEBHOOK HANDLER
+ * Listens for Stripe webhook events: checkout.session.completed, invoice.paid, etc.
  */
 export const stripeWebhook = onRequest(async (req, res) => {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "STRIPE_SECRET_KEY_PLACEHOLDER";
   const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "STRIPE_WEBHOOK_SECRET_PLACEHOLDER";
 
-  logger.info("Stripe webhook received", {
-    configuredKeyPresent: !!process.env.STRIPE_SECRET_KEY,
-    secretKeyPrefix: stripeSecretKey.substring(0, 7),
-    webhookSecretPrefix: stripeWebhookSecret.substring(0, 5)
-  });
+  const stripe = new Stripe(stripeSecretKey);
+  let event: Stripe.Event;
 
-  const event = req.body;
+  const sig = req.headers["stripe-signature"] as string | undefined;
+
+  try {
+    if (stripeWebhookSecret && stripeWebhookSecret !== "STRIPE_WEBHOOK_SECRET_PLACEHOLDER" && sig) {
+      const rawBody = (req as any).rawBody || req.body;
+      event = stripe.webhooks.constructEvent(rawBody, sig, stripeWebhookSecret);
+    } else {
+      logger.warn("Processing Stripe webhook without signature verification (STRIPE_WEBHOOK_SECRET not set or missing signature header)");
+      event = req.body;
+    }
+  } catch (err: any) {
+    logger.error(`Stripe Webhook Signature Verification Error: ${err.message}`);
+    res.status(400).send(`Webhook Error: ${err.message}`);
+    return;
+  }
+
+  logger.info("Stripe webhook received event:", { type: event?.type, id: event?.id });
 
   try {
     switch (event.type) {
       case "checkout.session.completed": {
-        const session = event.data.object;
+        const session = event.data.object as Stripe.Checkout.Session;
         logger.info("Stripe Checkout Session completed:", session.id);
+
+        const metadata = session.metadata || {};
+        const orderNumber = metadata.orderNumber || `CFY-${Math.floor(100000 + Math.random() * 900000)}`;
+
+        // Prevent duplicate order creation if webhook retries
+        const existingDoc = await db.collection("orders").where("stripeSessionId", "==", session.id).get();
+        if (!existingDoc.empty) {
+          logger.info(`Order for Stripe Session ${session.id} already exists. Skipping duplicate creation.`);
+          break;
+        }
+
+        let items = [];
+        try {
+          items = metadata.itemsJson ? JSON.parse(metadata.itemsJson) : [];
+        } catch (e) {
+          logger.error("Failed to parse itemsJson from session metadata:", e);
+        }
+
+        const deliveryAddress = {
+          id: Math.random().toString(36).substring(2, 9),
+          street: metadata.street || "",
+          suburb: metadata.suburb || "",
+          state: metadata.state || "NSW",
+          postcode: metadata.postcode || "",
+          country: metadata.country || "Australia"
+        };
+
+        const totalAmount = parseFloat(metadata.totalAmount || "0") || (session.amount_total ? session.amount_total / 100 : 0);
+        const subtotal = parseFloat(metadata.subtotal || "0") || totalAmount;
+        const discountAmount = parseFloat(metadata.discountAmount || "0");
+
+        const newOrder = {
+          orderNumber,
+          stripeSessionId: session.id,
+          customerId: metadata.customerId || "guest-user",
+          customerName: metadata.customerName || session.customer_details?.name || "Customer",
+          customerEmail: metadata.customerEmail || session.customer_details?.email || "",
+          customerPhone: metadata.customerPhone || session.customer_details?.phone || "",
+          items,
+          subtotal,
+          discountAmount,
+          totalAmount,
+          currency: "AUD",
+          status: "Verified",
+          source: "Website",
+          paymentMethod: "Stripe",
+          deliveryAddress,
+          ageConfirmed: true,
+          createdAt: new Date().toISOString(),
+          statusHistory: [
+            { status: "Pending", timestamp: new Date().toISOString() },
+            { status: "Verified", timestamp: new Date().toISOString(), updatedBy: "Stripe Webhook Auto-Verify" }
+          ],
+          archived: false
+        };
+
+        // Save order in Firestore
+        const docRef = await db.collection("orders").add(newOrder);
+        logger.info(`Successfully created order ${docRef.id} (#${orderNumber}) via Stripe webhook.`);
+
+        // Deduct inventory stock
+        for (const item of items) {
+          if (item.productId) {
+            try {
+              const pRef = db.collection("products").doc(item.productId);
+              await pRef.update({
+                stock: admin.firestore.FieldValue.increment(-item.quantity)
+              });
+            } catch (stErr) {
+              logger.error(`Error updating stock for product ${item.productId}:`, stErr);
+            }
+          }
+        }
+
+        // Trigger email notification to admin staff
+        try {
+          await sendNewOrderAdminNotification(newOrder);
+        } catch (emailErr) {
+          logger.error("Failed to send admin notification email upon Stripe webhook order creation:", emailErr);
+        }
+
         break;
       }
       case "invoice.paid": {
