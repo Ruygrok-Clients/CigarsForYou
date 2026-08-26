@@ -7,6 +7,7 @@ import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ProductSeparationsSection } from '../components/ProductSeparationsSection';
 import { FeaturedProductsShowcase } from '../components/FeaturedProductsShowcase';
 import { AboutUsSection } from '../components/AboutUsSection';
+import { TrustBannerSection } from '../components/TrustBannerSection';
 import { CIGAR_BRANDS } from '../components/Navbar';
 import { Award, ChevronRight, Truck } from 'lucide-react';
 import bgVideo from '../assets/BG-Vid.mov';
@@ -328,7 +329,7 @@ export const HomePage: React.FC = () => {
       </div>
 
       {/* Brand Grid Section */}
-      <section style={{ padding: '5rem 0', backgroundColor: '#ffffff' }}>
+      <section style={{ padding: '5rem 0 3rem 0', backgroundColor: '#ffffff' }}>
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 3rem auto' }}>
             <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: '#c06517', fontSize: '0.825rem', fontWeight: 600 }}>
@@ -367,6 +368,9 @@ export const HomePage: React.FC = () => {
           </div>
         </div>
       </section>
+
+      {/* Trust & Craftsmanship Banner Section (Underneath World-Renowned Houses) */}
+      <TrustBannerSection />
 
       {/* Stock Notification Modal */}
       {selectedNotifyProduct && (
