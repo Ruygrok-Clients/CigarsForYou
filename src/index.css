@@ -39,10 +39,10 @@
 }
 
 :root {
-  /* Primary Terracotta / Orange (#ea580c) from More About button */
-  --color-primary: #ea580c;
-  --color-primary-hover: #c2410c;
-  --color-primary-light: rgba(234, 88, 12, 0.08);
+  /* Primary Terracotta / Orange (#c06517) from brand theme */
+  --color-primary: #c06517;
+  --color-primary-hover: #a2520d;
+  --color-primary-light: rgba(192, 101, 23, 0.08);
 
   /* Dark Red (#2f0d0e) used consistently instead of black/dark brown */
   --color-dark-red: #2f0d0e;
@@ -62,7 +62,7 @@
 
   --accent-dark-brown: #2f0d0e;
   --accent-dark-brown-hover: #421315;
-  --accent-orange: #ea580c;
+  --accent-orange: #c06517;
   --accent-gold: #f59e0b;
   --accent-gold-hover: #d97706;
   --accent-emerald: #10b981;
@@ -87,8 +87,8 @@
   --shadow-sm: 0 2px 10px rgba(47, 13, 14, 0.04);
   --shadow-md: 0 8px 30px rgba(47, 13, 14, 0.07);
   --shadow-lg: 0 20px 40px rgba(47, 13, 14, 0.12);
-  --shadow-gold: 0 6px 24px rgba(234, 88, 12, 0.25);
-  --shadow-orange: 0 6px 24px rgba(234, 88, 12, 0.25);
+  --shadow-gold: 0 6px 24px rgba(192, 101, 23, 0.25);
+  --shadow-orange: 0 6px 24px rgba(192, 101, 23, 0.25);
 
   --transition-fast: 0.15s cubic-bezier(0.16, 1, 0.3, 1);
   --transition-normal: 0.25s cubic-bezier(0.16, 1, 0.3, 1);
@@ -215,15 +215,15 @@ img {
 }
 
 .btn-primary {
-  background: #ea580c;
+  background: #c06517;
   color: #ffffff;
-  box-shadow: 0 4px 14px rgba(234, 88, 12, 0.25);
+  box-shadow: 0 4px 14px rgba(192, 101, 23, 0.25);
 }
 
 .btn-primary:hover {
-  background: #c2410c;
+  background: #a2520d;
   transform: translateY(-1px);
-  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.35);
+  box-shadow: 0 6px 20px rgba(192, 101, 23, 0.35);
   color: #ffffff;
 }
 
@@ -246,9 +246,9 @@ img {
 }
 
 .btn-outline:hover {
-  background: rgba(234, 88, 12, 0.06);
-  border-color: #ea580c;
-  color: #ea580c;
+  background: rgba(192, 101, 23, 0.06);
+  border-color: #c06517;
+  color: #c06517;
 }
 
 .btn-gold {
@@ -324,9 +324,9 @@ img {
 }
 
 .badge-orange {
-  background: rgba(234, 88, 12, 0.12);
-  color: #ea580c;
-  border: 1px solid rgba(234, 88, 12, 0.25);
+  background: rgba(192, 101, 23, 0.12);
+  color: #c06517;
+  border: 1px solid rgba(192, 101, 23, 0.25);
 }
 
 .badge-amber {
@@ -686,9 +686,9 @@ img {
 }
 
 .medicart-search-bar:focus-within {
-  border-color: #ea580c;
+  border-color: #c06517;
   background: #ffffff;
-  box-shadow: 0 0 0 3px rgba(234, 88, 12, 0.12);
+  box-shadow: 0 0 0 3px rgba(192, 101, 23, 0.12);
 }
 
 .medicart-pill-btn {
@@ -710,13 +710,13 @@ img {
 }
 
 .medicart-pill-btn:hover {
-  background: #ea580c;
+  background: #c06517;
   color: #ffffff;
-  border-color: #ea580c;
+  border-color: #c06517;
 }
 
 .medicart-hero-pill-primary {
-  background-color: #ea580c;
+  background-color: #c06517;
   color: #ffffff;
   font-weight: 600;
   padding: 12px 28px;
@@ -728,14 +728,14 @@ img {
   text-decoration: none;
   border: 1px solid rgba(255, 255, 255, 0.3);
   transition: transform 0.2s ease, background-color 0.2s ease, box-shadow 0.2s ease;
-  box-shadow: 0 6px 20px rgba(234, 88, 12, 0.35);
+  box-shadow: 0 6px 20px rgba(192, 101, 23, 0.35);
 }
 
 .medicart-hero-pill-primary:hover {
-  background-color: #c2410c;
+  background-color: #a2520d;
   color: #ffffff;
   transform: translateY(-2px);
-  box-shadow: 0 8px 24px rgba(234, 88, 12, 0.45);
+  box-shadow: 0 8px 24px rgba(192, 101, 23, 0.45);
 }
 
 .medicart-hero-pill-secondary {
@@ -792,7 +792,7 @@ img {
 }
 
 .medicart-select:focus {
-  border-color: #ea580c;
+  border-color: #c06517;
 }
 
 .medicart-input {
@@ -806,7 +806,7 @@ img {
 }
 
 .medicart-input:focus {
-  border-color: #ea580c;
+  border-color: #c06517;
 }
 
 

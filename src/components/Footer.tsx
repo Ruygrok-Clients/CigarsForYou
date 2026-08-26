@@ -64,7 +64,7 @@ export const Footer: React.FC = () => {
           <div style={{ gridColumn: 'span 1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
-                Cigars<span style={{ color: '#ea580c' }}>ForYou</span>
+                Cigars<span style={{ color: '#c06517' }}>ForYou</span>
               </span>
             </div>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
@@ -111,7 +111,7 @@ export const Footer: React.FC = () => {
         {/* Health Warning Box */}
         <div style={{
           backgroundColor: '#2f0d0e',
-          border: '1px solid rgba(234, 88, 12, 0.3)',
+          border: '1px solid rgba(192, 101, 23, 0.3)',
           borderRadius: '8px',
           padding: '1.25rem 1.5rem',
           textAlign: 'center',

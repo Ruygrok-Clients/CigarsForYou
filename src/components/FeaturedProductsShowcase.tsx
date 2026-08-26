@@ -186,7 +186,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
             <span style={{
               textTransform: 'uppercase',
               letterSpacing: '0.14em',
-              color: '#ea580c',
+              color: '#c06517',
               fontSize: '0.825rem',
               fontWeight: 600
             }}>
@@ -241,7 +241,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                     fontSize: '0.72rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
-                    color: '#ea580c',
+                    color: '#c06517',
                     fontWeight: 700
                   }}>
                     Selector Wheel
@@ -271,8 +271,8 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   right: '6px',
                   transform: 'translateY(-50%)',
                   height: isMobile ? '40px' : '48px',
-                  backgroundColor: 'rgba(234, 88, 12, 0.07)',
-                  borderLeft: '4px solid #ea580c',
+                  backgroundColor: 'rgba(192, 101, 23, 0.07)',
+                  borderLeft: '4px solid #c06517',
                   borderRadius: '8px',
                   zIndex: 1,
                   pointerEvents: 'none',
@@ -281,7 +281,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   justifyContent: 'flex-end',
                   paddingRight: '12px'
                 }}>
-                  <ChevronRight size={18} style={{ color: '#ea580c', opacity: 0.9 }} />
+                  <ChevronRight size={18} style={{ color: '#c06517', opacity: 0.9 }} />
                 </div>
 
                 {/* OptionWheel Component */}
@@ -392,7 +392,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                           }}
                         />
                       ) : (
-                        <div style={{ textAlign: 'center', padding: '1.5rem', color: '#ea580c' }}>
+                        <div style={{ textAlign: 'center', padding: '1.5rem', color: '#c06517' }}>
                           <Flame size={54} style={{ opacity: 0.85, marginBottom: '0.5rem' }} />
                           <div style={{
                             fontFamily: 'var(--font-sans)',
@@ -424,7 +424,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
 
                       <div style={{
                         fontSize: '1.5rem',
-                        color: '#ea580c',
+                        color: '#c06517',
                         fontWeight: 700,
                         marginBottom: '1rem'
                       }}>
@@ -457,7 +457,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                       onClick={handleAddToCart}
                       className="btn btn-primary btn-lg"
                       style={{
-                        backgroundColor: '#ea580c',
+                        backgroundColor: '#c06517',
                         color: '#ffffff',
                         flex: 1,
                         minWidth: '180px',
@@ -507,7 +507,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                             width: activeIndex === i ? '24px' : '8px',
                             height: '8px',
                             borderRadius: '4px',
-                            backgroundColor: activeIndex === i ? '#ea580c' : 'rgba(47, 13, 14, 0.15)',
+                            backgroundColor: activeIndex === i ? '#c06517' : 'rgba(47, 13, 14, 0.15)',
                             border: 'none',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease'

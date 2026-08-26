@@ -43,7 +43,7 @@ export const AgeGateModal: React.FC = () => {
         </div>
 
         <h2 style={{ fontSize: '2.1rem', fontWeight: 700, letterSpacing: '-0.03em', color: '#2f0d0e', marginBottom: '0.75rem', fontFamily: 'var(--font-sans)' }}>
-          Cigars<span style={{ color: '#ea580c' }}>ForYou</span>
+          Cigars<span style={{ color: '#c06517' }}>ForYou</span>
         </h2>
 
         <p style={{ color: '#515154', fontSize: '0.95rem', marginBottom: '1.75rem', lineHeight: 1.55 }}>
@@ -77,17 +77,17 @@ export const AgeGateModal: React.FC = () => {
               padding: '0.9rem 1.5rem',
               fontSize: '1rem',
               fontWeight: 600,
-              backgroundColor: '#ea580c',
+              backgroundColor: '#c06517',
               color: '#ffffff',
-              boxShadow: '0 4px 16px rgba(234, 88, 12, 0.28)',
+              boxShadow: '0 4px 16px rgba(192, 101, 23, 0.28)',
               transition: 'all 0.2s cubic-bezier(0.16, 1, 0.3, 1)'
             }}
             onMouseEnter={(e) => {
-              e.currentTarget.style.backgroundColor = '#c2410c';
+              e.currentTarget.style.backgroundColor = '#a2520d';
               e.currentTarget.style.transform = 'scale(1.02)';
             }}
             onMouseLeave={(e) => {
-              e.currentTarget.style.backgroundColor = '#ea580c';
+              e.currentTarget.style.backgroundColor = '#c06517';
               e.currentTarget.style.transform = 'scale(1)';
             }}
           >

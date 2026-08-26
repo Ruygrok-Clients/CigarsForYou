@@ -69,8 +69,8 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             width: '56px',
             height: '56px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(234, 88, 12, 0.12)',
-            color: '#ea580c',
+            backgroundColor: 'rgba(192, 101, 23, 0.12)',
+            color: '#c06517',
             marginBottom: '1rem'
           }}>
             <Bell size={26} />

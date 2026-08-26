@@ -140,7 +140,7 @@ export const HomePage: React.FC = () => {
               }}>
                 Authentic Cuban Cigars, <br />
                 <span style={{
-                  color: '#ea580c',
+                  color: '#c06517',
                   textShadow: '0 2px 12px rgba(0, 0, 0, 0.5)'
                 }}>
                   Delivered To Your Door.
@@ -166,7 +166,7 @@ export const HomePage: React.FC = () => {
                 <Link 
                   to="/shop" 
                   style={{
-                    backgroundColor: '#ea580c',
+                    backgroundColor: '#c06517',
                     color: '#ffffff',
                     fontWeight: 700,
                     padding: '14px 32px',
@@ -177,11 +177,11 @@ export const HomePage: React.FC = () => {
                     gap: '8px',
                     textDecoration: 'none',
                     border: '1px solid rgba(255, 255, 255, 0.3)',
-                    boxShadow: '0 8px 25px rgba(234, 88, 12, 0.4)',
+                    boxShadow: '0 8px 25px rgba(192, 101, 23, 0.4)',
                     transition: 'all 0.2s ease'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c2410c'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ea580c'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#a2520d'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#c06517'}
                 >
                   Explore Cigar Catalog <ChevronRight size={18} />
                 </Link>
@@ -275,7 +275,7 @@ export const HomePage: React.FC = () => {
                 <button 
                   type="submit"
                   style={{
-                    backgroundColor: '#ea580c',
+                    backgroundColor: '#c06517',
                     color: '#ffffff',
                     fontWeight: 700,
                     fontSize: '0.925rem',
@@ -283,11 +283,11 @@ export const HomePage: React.FC = () => {
                     borderRadius: '6px',
                     marginLeft: 'auto',
                     transition: 'all 0.2s ease',
-                    boxShadow: '0 4px 14px rgba(234, 88, 12, 0.3)',
+                    boxShadow: '0 4px 14px rgba(192, 101, 23, 0.3)',
                     cursor: 'pointer'
                   }}
-                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#c2410c'}
-                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#ea580c'}
+                  onMouseEnter={(e) => e.currentTarget.style.backgroundColor = '#a2520d'}
+                  onMouseLeave={(e) => e.currentTarget.style.backgroundColor = '#c06517'}
                 >
                   Shop Now
                 </button>
@@ -331,7 +331,7 @@ export const HomePage: React.FC = () => {
       <section style={{ padding: '5rem 0', backgroundColor: '#ffffff' }}>
         <div className="container">
           <div style={{ textAlign: 'center', maxWidth: '600px', margin: '0 auto 3rem auto' }}>
-            <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: '#ea580c', fontSize: '0.825rem', fontWeight: 600 }}>
+            <span style={{ textTransform: 'uppercase', letterSpacing: '0.12em', color: '#c06517', fontSize: '0.825rem', fontWeight: 600 }}>
               World-Renowned Houses
             </span>
             <h2 style={{ fontSize: '2.5rem', color: '#2f0d0e', marginTop: '0.25rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
@@ -358,7 +358,7 @@ export const HomePage: React.FC = () => {
                   backgroundColor: '#ffffff',
                   boxShadow: '0 4px 16px rgba(47, 13, 14, 0.04)'
                 }}>
-                  <Award size={32} style={{ color: '#ea580c', marginBottom: '0.75rem', opacity: 0.9 }} />
+                  <Award size={32} style={{ color: '#c06517', marginBottom: '0.75rem', opacity: 0.9 }} />
                   <h3 style={{ fontSize: '1.15rem', color: '#2f0d0e', fontWeight: 600 }}>{b.name}</h3>
                   <span style={{ fontSize: '0.75rem', color: '#8c6062', marginTop: '0.25rem', display: 'block' }}>View Lineup</span>
                 </div>

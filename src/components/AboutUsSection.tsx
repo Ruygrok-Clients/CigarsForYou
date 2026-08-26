@@ -101,25 +101,25 @@ export const AboutUsSection: React.FC = () => {
                 display: 'inline-flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                backgroundColor: '#ea580c',
+                backgroundColor: '#c06517',
                 color: '#ffffff',
                 padding: '0.85rem 2.25rem',
                 borderRadius: '9999px',
                 fontSize: '1rem',
                 fontWeight: 600,
                 textDecoration: 'none',
-                boxShadow: '0 6px 20px rgba(234, 88, 12, 0.28)',
+                boxShadow: '0 6px 20px rgba(192, 101, 23, 0.28)',
                 transition: 'all 0.2s ease-in-out'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#c2410c';
+                e.currentTarget.style.backgroundColor = '#a2520d';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(234, 88, 12, 0.38)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(192, 101, 23, 0.38)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.backgroundColor = '#ea580c';
+                e.currentTarget.style.backgroundColor = '#c06517';
                 e.currentTarget.style.transform = 'translateY(0)';
-                e.currentTarget.style.boxShadow = '0 6px 20px rgba(234, 88, 12, 0.28)';
+                e.currentTarget.style.boxShadow = '0 6px 20px rgba(192, 101, 23, 0.28)';
               }}
             >
               More about
@@ -207,7 +207,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 700,
               lineHeight: 1.1
             }}>
-              10,000<span style={{ color: '#ea580c' }}>+</span>
+              10,000<span style={{ color: '#c06517' }}>+</span>
             </div>
             <div style={{
               fontSize: '0.95rem',
@@ -227,7 +227,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 700,
               lineHeight: 1.1
             }}>
-              50<span style={{ color: '#ea580c' }}>+</span>
+              50<span style={{ color: '#c06517' }}>+</span>
             </div>
             <div style={{
               fontSize: '0.95rem',
@@ -247,7 +247,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 700,
               lineHeight: 1.1
             }}>
-              98<span style={{ color: '#ea580c' }}>%</span>
+              98<span style={{ color: '#c06517' }}>%</span>
             </div>
             <div style={{
               fontSize: '0.95rem',
@@ -267,7 +267,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 700,
               lineHeight: 1.1
             }}>
-              15<span style={{ color: '#ea580c' }}>+</span>
+              15<span style={{ color: '#c06517' }}>+</span>
             </div>
             <div style={{
               fontSize: '0.95rem',

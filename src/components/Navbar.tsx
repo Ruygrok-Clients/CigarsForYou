@@ -189,7 +189,7 @@ export const Navbar: React.FC = () => {
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: '#ea580c',
+                background: '#c06517',
                 color: '#ffffff',
                 transition: 'background 0.15s ease'
               }}
@@ -243,7 +243,7 @@ export const Navbar: React.FC = () => {
                 padding: '0.4rem 0',
                 zIndex: 1000
               }}>
-                <div style={{ padding: '0.4rem 0.85rem', fontSize: '0.72rem', fontWeight: 700, color: '#ea580c', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+                <div style={{ padding: '0.4rem 0.85rem', fontSize: '0.72rem', fontWeight: 700, color: '#c06517', textTransform: 'uppercase', letterSpacing: '0.05em' }}>
                   Australian States
                 </div>
                 {AUSTRALIAN_STATES.map(st => (
@@ -318,7 +318,7 @@ export const Navbar: React.FC = () => {
                 position: 'absolute',
                 top: '-2px',
                 right: '-2px',
-                backgroundColor: '#ea580c',
+                backgroundColor: '#c06517',
                 color: '#ffffff',
                 fontSize: '0.68rem',
                 fontWeight: 700,
@@ -353,7 +353,7 @@ export const Navbar: React.FC = () => {
                 width: '32px',
                 height: '32px',
                 borderRadius: '50%',
-                backgroundColor: '#ea580c',
+                backgroundColor: '#c06517',
                 color: '#ffffff',
                 display: 'flex',
                 alignItems: 'center',
@@ -379,13 +379,13 @@ export const Navbar: React.FC = () => {
                 gap: '0.4rem',
                 padding: '0.55rem 1.25rem',
                 borderRadius: '9999px',
-                backgroundColor: '#ea580c',
+                backgroundColor: '#c06517',
                 color: '#ffffff',
                 fontSize: '0.85rem',
                 fontWeight: 600,
                 textDecoration: 'none',
                 transition: 'all 0.15s ease',
-                boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)'
+                boxShadow: '0 2px 8px rgba(192, 101, 23, 0.25)'
               }}
             >
               <UserIcon size={15} />
@@ -496,14 +496,14 @@ export const Navbar: React.FC = () => {
               width: '30px',
               height: '30px',
               borderRadius: '50%',
-              backgroundColor: '#ea580c',
+              backgroundColor: '#c06517',
               color: '#ffffff',
               display: 'flex',
               alignItems: 'center',
               justifyContent: 'center',
               flexShrink: 0,
               cursor: 'pointer',
-              boxShadow: '0 2px 8px rgba(234, 88, 12, 0.25)'
+              boxShadow: '0 2px 8px rgba(192, 101, 23, 0.25)'
             }}
             aria-label="Scroll Categories Right"
           >
@@ -533,7 +533,7 @@ export const Navbar: React.FC = () => {
                 style={{ flex: 1, border: 'none', background: 'transparent', fontSize: '0.9rem', outline: 'none' }}
               />
               <button type="submit" style={{ background: 'none', border: 'none' }}>
-                <Search size={18} style={{ color: '#ea580c' }} />
+                <Search size={18} style={{ color: '#c06517' }} />
               </button>
             </div>
           </form>

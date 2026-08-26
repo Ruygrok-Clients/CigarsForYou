@@ -41,18 +41,18 @@
   width: 44px;
   height: 44px;
   margin-bottom: 1.5rem;
-  color: #ea580c;
+  color: #c06517;
   animation: pulse-glow 3s infinite ease-in-out;
 }
 
 @keyframes pulse-glow {
   0%, 100% {
     transform: scale(1);
-    filter: drop-shadow(0 0 10px rgba(234, 88, 12, 0.3));
+    filter: drop-shadow(0 0 10px rgba(192, 101, 23, 0.3));
   }
   50% {
     transform: scale(1.05);
-    filter: drop-shadow(0 0 20px rgba(234, 88, 12, 0.6));
+    filter: drop-shadow(0 0 20px rgba(192, 101, 23, 0.6));
   }
 }
 
@@ -85,7 +85,7 @@
 .loading-screen__progress-bar-container {
   width: 220px;
   height: 2px;
-  background: rgba(234, 88, 12, 0.15);
+  background: rgba(192, 101, 23, 0.15);
   border-radius: 4px;
   margin-top: 2.5rem;
   overflow: hidden;
@@ -94,18 +94,18 @@
 
 .loading-screen__progress-bar {
   height: 100%;
-  background: linear-gradient(90deg, #ea580c, #f8f5f0, #ea580c);
+  background: linear-gradient(90deg, #c06517, #f8f5f0, #c06517);
   width: 0%;
   transition: width 0.3s ease-out;
   border-radius: 4px;
-  box-shadow: 0 0 10px rgba(234, 88, 12, 0.6);
+  box-shadow: 0 0 10px rgba(192, 101, 23, 0.6);
 }
 
 .loading-screen__decorative-ring {
   position: absolute;
   width: 550px;
   height: 550px;
-  border: 1px solid rgba(234, 88, 12, 0.08);
+  border: 1px solid rgba(192, 101, 23, 0.08);
   border-radius: 50%;
   pointer-events: none;
   animation: spin-slow 40s linear infinite;

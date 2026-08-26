@@ -76,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
           ) : (
-            <div style={{ textAlign: 'center', padding: '1rem', color: '#ea580c' }}>
+            <div style={{ textAlign: 'center', padding: '1rem', color: '#c06517' }}>
               <Flame size={44} style={{ opacity: 0.85, marginBottom: '0.4rem' }} />
               <div style={{
                 fontFamily: 'var(--font-sans)',

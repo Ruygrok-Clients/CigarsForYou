@@ -96,7 +96,7 @@ export const CigarettesComingSoonPage: React.FC = () => {
           ) : (
             <form onSubmit={handleSubmit}>
               <h3 style={{ fontSize: '1.4rem', color: '#2f0d0e', marginBottom: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                <Bell size={20} style={{ color: '#ea580c' }} /> Get Notified First At Launch
+                <Bell size={20} style={{ color: '#c06517' }} /> Get Notified First At Launch
               </h3>
               <p style={{ color: '#8c6062', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
                 Enter your email address below to receive an instant launch notification.
@@ -116,7 +116,7 @@ export const CigarettesComingSoonPage: React.FC = () => {
                   type="submit"
                   className="btn btn-primary"
                   disabled={submitting}
-                  style={{ backgroundColor: '#ea580c', color: '#ffffff', borderRadius: '6px', padding: '0.75rem 1.5rem' }}
+                  style={{ backgroundColor: '#c06517', color: '#ffffff', borderRadius: '6px', padding: '0.75rem 1.5rem' }}
                 >
                   {submitting ? 'Registering...' : 'Notify Me'}
                 </button>
