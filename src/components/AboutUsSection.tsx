@@ -328,7 +328,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 700,
               lineHeight: 1.1
             }}>
-              10,000<span style={{ color: '#c06517' }}>+</span>
+              1,000<span style={{ color: '#c06517' }}>+</span>
             </div>
             <div style={{
               fontSize: '0.95rem',
@@ -348,7 +348,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 700,
               lineHeight: 1.1
             }}>
-              50<span style={{ color: '#c06517' }}>+</span>
+              10<span style={{ color: '#c06517' }}>+</span>
             </div>
             <div style={{
               fontSize: '0.95rem',
@@ -388,7 +388,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 700,
               lineHeight: 1.1
             }}>
-              15<span style={{ color: '#c06517' }}>+</span>
+              1-3<span style={{ color: '#c06517' }}>hrs</span>
             </div>
             <div style={{
               fontSize: '0.95rem',
@@ -396,7 +396,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 500,
               marginTop: '0.5rem'
             }}>
-              Years Experience
+              Expected Delivery
             </div>
           </div>
         </div>

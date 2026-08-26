@@ -112,23 +112,23 @@ export const AboutUsPage: React.FC = () => {
             borderTop: '1px solid rgba(255, 255, 255, 0.12)'
           }}>
             <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>1,000+</div>
+              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Happy Connoisseurs</div>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>10+</div>
+              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Curated Brands</div>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>1-3hrs</div>
+              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Expected Delivery</div>
+            </div>
+
+            <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>100%</div>
               <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Genuine Habanos Provenance</div>
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>68% RH</div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Precision Vault Humidity</div>
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>1–3 Hr</div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Express Dispatch in NSW</div>
-            </div>
-
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>10,000+</div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Happy Australian Connoisseurs</div>
             </div>
           </div>
         </div>
