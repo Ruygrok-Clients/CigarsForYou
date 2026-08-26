@@ -8,6 +8,7 @@ import { ProductSeparationsSection } from '../components/ProductSeparationsSecti
 import { FeaturedProductsShowcase } from '../components/FeaturedProductsShowcase';
 import { AboutUsSection } from '../components/AboutUsSection';
 import { TrustBannerSection } from '../components/TrustBannerSection';
+import { SocialProofSlider } from '../components/SocialProofSlider';
 import { CIGAR_BRANDS } from '../components/Navbar';
 import { Award, ChevronRight, Truck } from 'lucide-react';
 import bgVideo from '../assets/BG-Vid.mov';
@@ -371,6 +372,9 @@ export const HomePage: React.FC = () => {
 
       {/* Trust & Craftsmanship Banner Section (Underneath World-Renowned Houses) */}
       <TrustBannerSection />
+
+      {/* Social Proof Testimonials Slider Section */}
+      <SocialProofSlider />
 
       {/* Stock Notification Modal */}
       {selectedNotifyProduct && (
