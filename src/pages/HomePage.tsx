@@ -80,7 +80,7 @@ export const HomePage: React.FC = () => {
     if (heroCategory === 'Cigars') params.append('category', 'cigars');
     if (heroBrand !== 'Brands') params.append('brand', heroBrand);
     if (skuInput.trim()) params.append('search', skuInput.trim());
-    
+
     const queryString = params.toString();
     navigate(queryString ? `/shop?${queryString}` : '/shop');
   };
@@ -90,7 +90,7 @@ export const HomePage: React.FC = () => {
       {/* CigarsForYou Hero Section with Background Video */}
       <section style={{ padding: '1.25rem 1.25rem 3.5rem 1.25rem', backgroundColor: '#ffffff' }}>
         <div style={{ maxWidth: '1320px', margin: '0 auto' }}>
-          
+
           {/* DESKTOP HERO (Displayed when width >= 1110px) */}
           <div className="desktop-hero">
             <div className="medicart-hero-card" style={{
@@ -100,7 +100,7 @@ export const HomePage: React.FC = () => {
               backgroundColor: '#2f0d0e',
               boxShadow: '0 20px 40px rgba(47, 13, 14, 0.25)'
             }}>
-              
+
               {/* Background Video */}
               <video
                 autoPlay
@@ -141,7 +141,7 @@ export const HomePage: React.FC = () => {
                 position: 'relative',
                 zIndex: 2
               }}>
-                
+
                 {/* Delivery Speed Badge */}
                 <div style={{ display: 'inline-flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
                   <span style={{
@@ -196,8 +196,8 @@ export const HomePage: React.FC = () => {
 
                 {/* Action Buttons */}
                 <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '1.25rem', flexWrap: 'wrap' }}>
-                  <Link 
-                    to="/shop" 
+                  <Link
+                    to="/shop"
                     style={{
                       backgroundColor: '#c06517',
                       color: '#ffffff',
@@ -219,8 +219,8 @@ export const HomePage: React.FC = () => {
                     Explore Cigar Catalog <ChevronRight size={18} />
                   </Link>
 
-                  <Link 
-                    to="/cigarettes" 
+                  <Link
+                    to="/cigarettes"
                     style={{
                       backgroundColor: 'rgba(255, 255, 255, 0.15)',
                       color: '#ffffff',
@@ -239,7 +239,7 @@ export const HomePage: React.FC = () => {
                     onMouseEnter={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.25)'}
                     onMouseLeave={(e) => e.currentTarget.style.backgroundColor = 'rgba(255, 255, 255, 0.15)'}
                   >
-                    Cigarettes 
+                    Cigarettes
                     <span style={{
                       fontSize: '0.7rem',
                       backgroundColor: 'rgba(217, 119, 6, 0.3)',
@@ -269,7 +269,7 @@ export const HomePage: React.FC = () => {
                     Select a product
                   </span>
 
-                  <select 
+                  <select
                     className="medicart-select"
                     value={heroCategory}
                     onChange={(e) => setHeroCategory(e.target.value)}
@@ -280,7 +280,7 @@ export const HomePage: React.FC = () => {
                     <option value="Cigarettes">Cigarettes</option>
                   </select>
 
-                  <select 
+                  <select
                     className="medicart-select"
                     value={heroBrand}
                     onChange={(e) => setHeroBrand(e.target.value)}
@@ -294,7 +294,7 @@ export const HomePage: React.FC = () => {
 
                   <span style={{ fontSize: '0.875rem', color: '#8c6062', fontWeight: 500 }}>or</span>
 
-                  <input 
+                  <input
                     type="text"
                     placeholder="Enter SKU"
                     className="medicart-input"
@@ -303,7 +303,7 @@ export const HomePage: React.FC = () => {
                     style={{ flex: '1 1 160px', minWidth: '140px' }}
                   />
 
-                  <button 
+                  <button
                     type="submit"
                     style={{
                       backgroundColor: '#c06517',
@@ -370,42 +370,50 @@ export const HomePage: React.FC = () => {
 
               {/* Mobile Content Wrapper */}
               <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
-                
-                {/* Headline (Bigger for Mobile) */}
+
+                {/* Headline (Scales up dynamically on increasing mobile screen size) */}
                 <h1 style={{
-                  fontSize: 'clamp(2.5rem, 7vw, 3.5rem)',
+                  fontSize: 'clamp(2.4rem, 8.2vw, 4.2rem)',
                   fontWeight: 800,
                   color: '#ffffff',
                   lineHeight: 1.12,
                   letterSpacing: '-0.025em',
                   marginBottom: '1.25rem',
-                  textShadow: '0 4px 16px rgba(0, 0, 0, 0.6)'
+                  textShadow: '0 4px 16px rgba(0, 0, 0, 0.6)',
+                  maxWidth: '750px',
+                  width: '100%',
+                  marginInline: 'auto'
                 }}>
-                  Authentic Cuban Cigars, <br />
+                  Authentic Cuban Cigars,{' '}
                   <span style={{ color: '#c06517', textShadow: '0 2px 12px rgba(0, 0, 0, 0.5)' }}>
                     Delivered To Your Door.
                   </span>
                 </h1>
 
-                {/* Subtitle with Delivery Text written directly into the paragraph */}
+                {/* Subtitle set to 80% width relative to title text */}
                 <p style={{
                   fontSize: '1.05rem',
                   color: '#f3f4f6',
                   lineHeight: 1.65,
                   marginBottom: '1.75rem',
                   fontWeight: 400,
-                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.7)'
+                  textShadow: '0 2px 10px rgba(0, 0, 0, 0.7)',
+                  width: '80%',
+                  maxWidth: '580px',
+                  marginInline: 'auto'
                 }}>
                   Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. 1-3hr Express Delivery On All Tobacco Products in NSW.
                 </p>
 
-                {/* Action Buttons (Exact Same Width and Height: 260px x 52px) */}
-                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1.75rem' }}>
-                  <Link 
-                    to="/shop" 
+                {/* Action Buttons (Dynamically shrink on small screens via 100% width, max-width & horizontal margin) */}
+                <div style={{ display: 'flex', flexDirection: 'column', alignItems: 'center', justifyContent: 'center', gap: '0.75rem', marginBottom: '1.75rem', width: '100%', padding: '0 1rem', boxSizing: 'border-box' }}>
+                  <Link
+                    to="/shop"
                     style={{
-                      width: '260px',
+                      width: '100%',
+                      maxWidth: '350px',
                       height: '52px',
+                      marginInline: 'auto',
                       backgroundColor: '#c06517',
                       color: '#ffffff',
                       fontWeight: 700,
@@ -424,11 +432,13 @@ export const HomePage: React.FC = () => {
                     Explore Cigar Catalog <ChevronRight size={18} />
                   </Link>
 
-                  <Link 
-                    to="/cigarettes" 
+                  <Link
+                    to="/cigarettes"
                     style={{
-                      width: '260px',
+                      width: '100%',
+                      maxWidth: '350px',
                       height: '52px',
+                      marginInline: 'auto',
                       backgroundColor: 'rgba(255, 255, 255, 0.15)',
                       color: '#ffffff',
                       fontWeight: 600,
@@ -444,7 +454,7 @@ export const HomePage: React.FC = () => {
                       boxSizing: 'border-box'
                     }}
                   >
-                    Cigarettes 
+                    Cigarettes
                     <span style={{
                       fontSize: '0.68rem',
                       backgroundColor: 'rgba(217, 119, 6, 0.3)',
@@ -469,17 +479,17 @@ export const HomePage: React.FC = () => {
                   textAlign: 'left'
                 }}>
                   <form onSubmit={handleHeroShopNow} style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-                    <span style={{ 
-                      fontSize: '0.95rem', 
-                      fontWeight: 800, 
-                      color: '#2f0d0e', 
+                    <span style={{
+                      fontSize: '0.95rem',
+                      fontWeight: 800,
+                      color: '#2f0d0e',
                       display: 'block',
-                      marginBottom: '0.85rem' 
+                      marginBottom: '0.85rem'
                     }}>
                       Select a product
                     </span>
 
-                    <select 
+                    <select
                       className="medicart-select"
                       value={heroCategory}
                       onChange={(e) => setHeroCategory(e.target.value)}
@@ -490,7 +500,7 @@ export const HomePage: React.FC = () => {
                       <option value="Cigarettes">Cigarettes</option>
                     </select>
 
-                    <select 
+                    <select
                       className="medicart-select"
                       value={heroBrand}
                       onChange={(e) => setHeroBrand(e.target.value)}
@@ -504,7 +514,7 @@ export const HomePage: React.FC = () => {
 
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                       <span style={{ fontSize: '0.8rem', color: '#8c6062', fontWeight: 600 }}>or</span>
-                      <input 
+                      <input
                         type="text"
                         placeholder="Enter SKU"
                         className="medicart-input"
@@ -514,7 +524,7 @@ export const HomePage: React.FC = () => {
                       />
                     </div>
 
-                    <button 
+                    <button
                       type="submit"
                       style={{
                         width: '100%',
