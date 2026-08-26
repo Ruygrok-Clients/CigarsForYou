@@ -13,7 +13,7 @@ export const AboutUsSection: React.FC = () => {
       borderTop: '1px solid rgba(46, 26, 16, 0.06)',
       borderBottom: '1px solid rgba(46, 26, 16, 0.06)'
     }}>
-      {/* Style for Subtle Truck Motion Animations */}
+      {/* Style for Subtle Truck Motion Animations & Responsive Layouts */}
       <style>{`
         @keyframes truckMove {
           0% { transform: translate(570px, 344px) rotate(-2deg); }
@@ -31,10 +31,62 @@ export const AboutUsSection: React.FC = () => {
         .speed-line-animated {
           animation: speedLineDash 1.2s linear infinite;
         }
+
+        .about-us-svg-desktop {
+          display: block;
+        }
+        .about-us-svg-mobile {
+          display: none;
+        }
+
+        /* Mobile top margin/padding reduction (<1110px) */
+        @media (max-width: 1109px) {
+          .about-us-section {
+            padding-top: 2.25rem !important;
+            padding-bottom: 3.5rem !important;
+          }
+        }
+
+        /* Stacking and mobile curve activation when smaller than 780px (<780px) */
+        @media (max-width: 779px) {
+          .about-us-section {
+            padding-top: 1.75rem !important;
+            padding-bottom: 3rem !important;
+          }
+          .about-us-svg-desktop {
+            display: none !important;
+          }
+          .about-us-svg-mobile {
+            display: block !important;
+          }
+          .about-us-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2.5rem !important;
+            margin-bottom: 3.5rem !important;
+          }
+          .about-us-text-col {
+            max-width: 100% !important;
+          }
+          .about-us-images-col {
+            max-width: 100% !important;
+            height: 380px !important;
+          }
+          .about-us-stats {
+            grid-template-columns: repeat(2, 1fr) !important;
+            gap: 1.5rem !important;
+          }
+        }
+
+        @media (max-width: 480px) {
+          .about-us-images-col {
+            height: 320px !important;
+          }
+        }
       `}</style>
 
-      {/* Dashed Background Curve SVG & Moving Delivery Truck */}
+      {/* Dashed Background Curve SVG & Moving Delivery Truck (Desktop / Tablet >= 780px) */}
       <svg
+        className="about-us-svg-desktop"
         style={{
           position: 'absolute',
           top: 0,
@@ -95,9 +147,35 @@ export const AboutUsSection: React.FC = () => {
         </g>
       </svg>
 
+      {/* Custom Mobile Dashed Background Curve SVG (< 780px - without truck) */}
+      <svg
+        className="about-us-svg-mobile"
+        style={{
+          position: 'absolute',
+          top: 0,
+          left: 0,
+          width: '100%',
+          height: '100%',
+          pointerEvents: 'none',
+          zIndex: 1
+        }}
+        viewBox="0 0 500 1000"
+        fill="none"
+        preserveAspectRatio="none"
+      >
+        <path
+          d="M -30 160 C 240 50 480 260 340 500 C 200 740 450 820 540 960"
+          stroke="#d1d5db"
+          strokeWidth="2.5"
+          strokeDasharray="7 7"
+          fill="none"
+          opacity="0.85"
+        />
+      </svg>
+
       <div className="container" style={{ position: 'relative', zIndex: 2 }}>
         {/* Main Content Grid: Left Text & Right Image Stack */}
-        <div style={{
+        <div className="about-us-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
           gap: '4rem',
@@ -105,7 +183,7 @@ export const AboutUsSection: React.FC = () => {
           marginBottom: '5rem'
         }}>
           {/* Left Column Text */}
-          <div style={{ maxWidth: '540px' }}>
+          <div className="about-us-text-col" style={{ maxWidth: '540px' }}>
             <h2 style={{
               fontFamily: 'var(--font-serif)',
               fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
@@ -170,7 +248,7 @@ export const AboutUsSection: React.FC = () => {
           </div>
 
           {/* Right Column Stacked Images */}
-          <div style={{
+          <div className="about-us-images-col" style={{
             position: 'relative',
             width: '100%',
             height: '460px',
@@ -235,7 +313,7 @@ export const AboutUsSection: React.FC = () => {
         </div>
 
         {/* Bottom 4-Column Stats Row */}
-        <div style={{
+        <div className="about-us-stats" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(180px, 1fr))',
           gap: '2rem',
