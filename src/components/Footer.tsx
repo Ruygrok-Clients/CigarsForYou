@@ -19,11 +19,44 @@ export const Footer: React.FC = () => {
       paddingTop: '3rem',
       paddingBottom: '2rem'
     }}>
-      {/* Keyframe animation for infinite marquee */}
+      {/* Keyframe animation for infinite marquee & responsive footer styles */}
       <style>{`
         @keyframes footerMarquee {
           0% { transform: translateX(0%); }
           100% { transform: translateX(-50%); }
+        }
+
+        @media (max-width: 479.98px) {
+          .footer-grid {
+            grid-template-columns: 1fr !important;
+            gap: 2rem !important;
+            text-align: left !important;
+          }
+          .footer-brand {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            text-align: left !important;
+          }
+          .footer-logo {
+            height: 95px !important;
+            max-width: 100% !important;
+          }
+          .footer-col {
+            display: flex !important;
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            text-align: left !important;
+          }
+          .footer-copyright {
+            flex-direction: column !important;
+            align-items: flex-start !important;
+            text-align: left !important;
+            gap: 0.5rem !important;
+          }
+          .footer-warning {
+            text-align: left !important;
+          }
         }
       `}</style>
 
@@ -63,19 +96,20 @@ export const Footer: React.FC = () => {
 
       <div className="container">
         {/* Footer Navigation Columns */}
-        <div style={{
+        <div className="footer-grid" style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))',
           gap: '2.5rem',
           marginBottom: '3rem'
         }}>
           {/* Brand Info with White SVG Logo */}
-          <div style={{ gridColumn: 'span 1' }}>
+          <div className="footer-brand" style={{ gridColumn: 'span 1' }}>
             <div style={{ marginBottom: '1.25rem' }}>
               <Link to="/" style={{ display: 'inline-block' }}>
                 <img
                   src="/logo-white.svg"
                   alt="CigarsForYou Logo"
+                  className="footer-logo"
                   style={{ height: '48px', width: 'auto', display: 'block' }}
                 />
               </Link>
@@ -86,7 +120,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Quick Links */}
-          <div>
+          <div className="footer-col">
             <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: 'var(--text-primary)', fontWeight: 600 }}>Quick Links</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: 0, margin: 0 }}>
               <li><Link to="/about" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>About Us</Link></li>
@@ -99,7 +133,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Premium Brands */}
-          <div>
+          <div className="footer-col">
             <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: 'var(--text-primary)', fontWeight: 600 }}>Cuban Brands</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: 0, margin: 0 }}>
               {CIGAR_BRANDS.map(brand => (
@@ -113,7 +147,7 @@ export const Footer: React.FC = () => {
           </div>
 
           {/* Compliance & Legal */}
-          <div>
+          <div className="footer-col">
             <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: 'var(--text-primary)', fontWeight: 600 }}>Compliance & Legal</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: 0, margin: 0 }}>
               <li><Link to="/terms" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Terms & Conditions</Link></li>
@@ -124,7 +158,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Health Warning Box */}
-        <div style={{
+        <div className="footer-warning" style={{
           backgroundColor: '#2f0d0e',
           border: '1px solid rgba(192, 101, 23, 0.3)',
           borderRadius: '8px',
@@ -149,7 +183,7 @@ export const Footer: React.FC = () => {
         </div>
 
         {/* Copyright */}
-        <div style={{
+        <div className="footer-copyright" style={{
           display: 'flex',
           flexDirection: 'row',
           flexWrap: 'wrap',
