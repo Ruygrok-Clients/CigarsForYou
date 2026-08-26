@@ -6,8 +6,9 @@ import type { Product } from '../types';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ProductSeparationsSection } from '../components/ProductSeparationsSection';
 import { FeaturedProductsShowcase } from '../components/FeaturedProductsShowcase';
+import { AboutUsSection } from '../components/AboutUsSection';
 import { CIGAR_BRANDS } from '../components/Navbar';
-import { ShieldCheck, Clock, Truck, Flame, ChevronRight, Award, RefreshCw } from 'lucide-react';
+import { Truck, ChevronRight, Award } from 'lucide-react';
 import bgVideo from '../assets/BG-Vid.mov';
 
 export const HomePage: React.FC = () => {
@@ -178,85 +179,8 @@ export const HomePage: React.FC = () => {
         onOpenNotifyModal={(p) => setSelectedNotifyProduct(p)}
       />
 
-      {/* Subscribe & Save Feature Section (Light Theme) */}
-      <section style={{
-        padding: '5rem 0',
-        backgroundColor: '#f9f6f3',
-        borderTop: '1px solid rgba(46, 26, 16, 0.08)',
-        borderBottom: '1px solid rgba(46, 26, 16, 0.08)'
-      }}>
-        <div className="container">
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '3rem',
-            alignItems: 'center'
-          }}>
-            <div>
-              <span className="badge badge-gold" style={{ marginBottom: '1rem' }}>
-                <RefreshCw size={14} /> Subscription Delivery
-              </span>
-              <h2 style={{ fontSize: '2.5rem', color: '#2e1a10', marginBottom: '1.25rem', fontWeight: 700, letterSpacing: '-0.025em' }}>
-                Never Run Low. <br />
-                <span style={{ color: '#b8860b' }}>Automated Humidor Restock.</span>
-              </h2>
-              <p style={{ color: '#5e4233', fontSize: '1.05rem', lineHeight: 1.7, marginBottom: '2rem' }}>
-                Select your favorite stick or curated collection, pick your schedule (every 2, 4, 6, or 8 weeks), and let CigarsForYou handle the rest. Modify, pause, or cancel anytime from your account portal.
-              </p>
-
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginBottom: '2rem' }}>
-                <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                  <div style={{ backgroundColor: 'rgba(184, 134, 11, 0.1)', color: '#b8860b', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <Clock size={18} />
-                  </div>
-                  <div>
-                    <h4 style={{ color: '#2e1a10', fontSize: '1rem', margin: 0, fontWeight: 600 }}>Flexible Delivery Cycles</h4>
-                    <p style={{ color: '#8e7362', fontSize: '0.85rem', margin: 0 }}>Choose 2, 4, 6, or 8-week recurring schedules.</p>
-                  </div>
-                </div>
-
-                <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center' }}>
-                  <div style={{ backgroundColor: 'rgba(184, 134, 11, 0.1)', color: '#b8860b', borderRadius: '50%', width: '36px', height: '36px', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0 }}>
-                    <ShieldCheck size={18} />
-                  </div>
-                  <div>
-                    <h4 style={{ color: '#2e1a10', fontSize: '1rem', margin: 0, fontWeight: 600 }}>Guaranteed Freshness</h4>
-                    <p style={{ color: '#8e7362', fontSize: '0.85rem', margin: 0 }}>Each shipment is sealed in humidity-controlled travel pouches.</p>
-                  </div>
-                </div>
-              </div>
-
-              <Link to="/shop" className="btn btn-primary btn-lg">
-                Start a Subscription <ChevronRight size={18} />
-              </Link>
-            </div>
-
-            <div style={{
-              backgroundColor: '#ffffff',
-              border: '1px solid rgba(46, 26, 16, 0.08)',
-              borderRadius: '8px',
-              padding: '2.5rem',
-              boxShadow: '0 12px 36px rgba(46, 26, 16, 0.06)',
-              textAlign: 'center'
-            }}>
-              <Flame size={48} style={{ color: '#b8860b', margin: '0 auto 1rem auto' }} />
-              <h3 style={{ fontSize: '1.75rem', color: '#2e1a10', marginBottom: '0.75rem', fontWeight: 700 }}>
-                Curated Cigar Bundles
-              </h3>
-              <p style={{ color: '#5e4233', fontSize: '0.95rem', marginBottom: '1.5rem' }}>
-                Enjoy hand-picked selections of premium robustos and churchills delivered effortlessly.
-              </p>
-              <div style={{ padding: '1rem', backgroundColor: '#f9f6f3', borderRadius: '6px', marginBottom: '1.5rem', border: '1px solid rgba(46, 26, 16, 0.06)' }}>
-                <span style={{ fontSize: '0.85rem', color: '#8e7362', display: 'block', marginBottom: '0.25rem' }}>Popular Subscription</span>
-                <span style={{ fontFamily: 'var(--font-sans)', fontSize: '1.3rem', color: '#2e1a10', fontWeight: 700 }}>Cohiba Siglo VI — Every 4 Weeks</span>
-              </div>
-              <Link to="/shop" className="btn btn-outline btn-full">
-                Browse Subscription Options
-              </Link>
-            </div>
-          </div>
-        </div>
-      </section>
+      {/* About Us Feature Section */}
+      <AboutUsSection />
 
       {/* Brand Grid Section (Light Theme) */}
       <section style={{ padding: '5rem 0', backgroundColor: '#ffffff' }}>
