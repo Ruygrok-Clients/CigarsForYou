@@ -121,8 +121,7 @@ html {
   font-size: 16px;
   scroll-behavior: smooth;
   -webkit-text-size-adjust: 100%;
-  overflow-y: overlay;
-  scrollbar-gutter: auto;
+  overflow-x: clip;
 }
 
 body {
@@ -130,8 +129,7 @@ body {
   background-color: var(--bg-primary);
   color: var(--text-primary);
   line-height: 1.6;
-  overflow-x: hidden;
-  overflow-y: overlay;
+  overflow-x: clip;
   min-height: 100vh;
   -webkit-font-smoothing: antialiased;
 }
@@ -144,6 +142,31 @@ body {
 @media (max-width: 860px) {
   .storefront-main {
     padding-top: 105px;
+  }
+}
+
+/* Sticky Sidebar for Product Catalogue Pages */
+.catalog-sidebar-sticky {
+  position: -webkit-sticky;
+  position: sticky;
+  top: 135px;
+  align-self: flex-start;
+  height: fit-content;
+  max-height: calc(100vh - 150px);
+  overflow-y: auto;
+  scrollbar-width: thin;
+  z-index: 20;
+}
+
+@media (max-width: 768px) {
+  .catalog-grid-layout {
+    grid-template-columns: 1fr !important;
+    gap: 1.5rem !important;
+  }
+  .catalog-sidebar-sticky {
+    position: relative !important;
+    top: 0 !important;
+    max-height: none !important;
   }
 }
 

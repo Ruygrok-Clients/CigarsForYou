@@ -253,7 +253,7 @@ export const ShopPage: React.FC = () => {
   return (
     <div style={{ backgroundColor: '#f9f8f6', minHeight: '100vh', padding: '2.5rem 0 6rem 0' }}>
       <div className="container" style={{ maxWidth: '1280px' }}>
-        
+
         {/* Page Top Header matching Reference Screenshot */}
         <div style={{ marginBottom: '1.5rem' }}>
           <span style={{
@@ -297,10 +297,10 @@ export const ShopPage: React.FC = () => {
         <div style={{ height: '1px', backgroundColor: '#e5e2da', width: '100%', marginBottom: '2.5rem' }} />
 
         {/* Main 2-Column Catalogue Layout */}
-        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 270px) 1fr', gap: '2.5rem' }} className="catalog-grid-layout">
-          
+        <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 270px) 1fr', gap: '2.5rem', alignItems: 'start' }} className="catalog-grid-layout">
+
           {/* Left Column: Categories Sidebar */}
-          <aside>
+          <aside className="catalog-sidebar-sticky" style={{ position: 'sticky', top: '145px', alignSelf: 'flex-start' }}>
             <div style={{
               fontSize: '0.75rem',
               fontWeight: 700,
@@ -314,8 +314,8 @@ export const ShopPage: React.FC = () => {
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               {categoriesList.map(cat => {
-                const isSelected = selectedBrand.toLowerCase().includes(cat.slug.toLowerCase()) || 
-                                   (cat.slug === 'all' && selectedBrand === 'all');
+                const isSelected = selectedBrand.toLowerCase().includes(cat.slug.toLowerCase()) ||
+                  (cat.slug === 'all' && selectedBrand === 'all');
 
                 if (isSelected) {
                   return (
@@ -506,12 +506,14 @@ export const ShopPage: React.FC = () => {
       </div>
 
       {/* Stock Notification Modal */}
-      {selectedNotifyProduct && (
-        <StockNotificationModal
-          product={selectedNotifyProduct}
-          onClose={() => setSelectedNotifyProduct(null)}
-        />
-      )}
-    </div>
+      {
+        selectedNotifyProduct && (
+          <StockNotificationModal
+            product={selectedNotifyProduct}
+            onClose={() => setSelectedNotifyProduct(null)}
+          />
+        )
+      }
+    </div >
   );
 };
