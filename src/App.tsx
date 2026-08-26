@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useState } from 'react';
 import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
@@ -9,6 +9,7 @@ import { ToastProvider } from './components/Toast';
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { AgeGateModal } from './components/AgeGateModal';
+import { LoadingScreen } from './components/LoadingScreen';
 
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
@@ -41,9 +42,19 @@ const queryClient = new QueryClient();
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
   const isAdminPath = location.pathname.startsWith('/admin');
+  const [showLoading, setShowLoading] = useState(true);
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
+      {!isAdminPath && showLoading && (
+        <LoadingScreen
+          text="CIGARS FOR YOU"
+          subtitle="FINEST HAND-ROLLED CUBAN SELECTION"
+          minimumDuration={2200}
+          isLoading={false}
+          onComplete={() => setShowLoading(false)}
+        />
+      )}
       {!isAdminPath && <Navbar />}
       <main style={{ flex: 1 }}>{children}</main>
       {!isAdminPath && <Footer />}
