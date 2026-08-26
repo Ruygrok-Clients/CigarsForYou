@@ -719,16 +719,21 @@ export const AccountPage: React.FC = () => {
             </div>
 
             {/* Interest Voting Button */}
-            <div style={{ marginBottom: '2rem' }}>
+            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center', width: '100%' }}>
               <button
                 onClick={handleVoteRewardsInterest}
-                className={`btn ${hasVotedInterest ? 'btn-secondary' : 'btn-primary'} btn-lg`}
+                className={`btn ${hasVotedInterest ? 'btn-secondary' : 'btn-primary'}`}
                 style={{
                   display: 'inline-flex',
                   alignItems: 'center',
-                  gap: '0.6rem',
-                  padding: '0.9rem 2.25rem',
-                  fontSize: '1.05rem',
+                  justifyContent: 'center',
+                  gap: '0.5rem',
+                  padding: '0.85rem clamp(0.65rem, 3vw, 2.25rem)',
+                  fontSize: 'clamp(0.8rem, 3.2vw, 1.05rem)',
+                  maxWidth: '100%',
+                  whiteSpace: 'normal',
+                  wordBreak: 'break-word',
+                  textAlign: 'center',
                   borderRadius: '6px',
                   backgroundColor: hasVotedInterest ? undefined : '#c06517',
                   color: '#ffffff'
@@ -737,11 +742,13 @@ export const AccountPage: React.FC = () => {
               >
                 {hasVotedInterest ? (
                   <>
-                    <Check size={20} /> Interest Registered — Thank You!
+                    <Check size={20} style={{ flexShrink: 0 }} />
+                    <span style={{ fontSize: 'inherit' }}>Interest Registered — Thank You!</span>
                   </>
                 ) : (
                   <>
-                    <ThumbsUp size={20} /> Vote Yes to Show Interest
+                    <ThumbsUp size={20} style={{ flexShrink: 0 }} />
+                    <span style={{ fontSize: 'inherit' }}>Vote Yes to Show Interest</span>
                   </>
                 )}
               </button>
