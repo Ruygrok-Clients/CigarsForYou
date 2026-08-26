@@ -162,7 +162,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
   };
 
   return (
-    <section style={{ padding: '4.5rem 0 5rem 0', backgroundColor: '#ffffff' }}>
+    <section style={{ padding: '1rem 0 5rem 0', backgroundColor: '#ffffff' }}>
       <div className="container">
         {/* Section Header with updated name: Featured Products */}
         <div style={{
@@ -193,7 +193,15 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
               Featured Products
             </h2>
           </div>
-          <Link to="/shop" className="btn btn-outline" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem' }}>
+          <Link to="/shop" className="btn btn-outline" style={{
+            display: 'inline-flex',
+            alignItems: 'center',
+            gap: '0.4rem',
+            color: '#2e1a10',
+            borderColor: 'rgba(46, 26, 16, 0.3)',
+            backgroundColor: '#ffffff',
+            fontWeight: 600
+          }}>
             View All Catalog ({displayProducts.length > 8 ? displayProducts.length : '60+'}) <ChevronRight size={16} />
           </Link>
         </div>
@@ -205,7 +213,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
         ) : (
           <div style={{
             backgroundColor: '#faf8f5',
-            borderRadius: '16px',
+            borderRadius: '8px',
             border: '1px solid rgba(46, 26, 16, 0.08)',
             padding: '2rem',
             boxShadow: '0 10px 40px rgba(46, 26, 16, 0.04)'
@@ -223,7 +231,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                 flexDirection: 'column',
                 justifyContent: 'center',
                 backgroundColor: '#ffffff',
-                borderRadius: '14px',
+                borderRadius: '8px',
                 border: '1px solid rgba(46, 26, 16, 0.09)',
                 position: 'relative',
                 height: '460px',
@@ -278,7 +286,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   height: '48px',
                   backgroundColor: 'rgba(184, 134, 11, 0.07)',
                   borderLeft: '4px solid #b8860b',
-                  borderRadius: '6px',
+                  borderRadius: '8px',
                   zIndex: 1,
                   pointerEvents: 'none',
                   display: 'flex',
@@ -327,7 +335,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
               {/* Right Column: Dynamic Active Selected Product Details */}
               <div style={{
                 backgroundColor: '#ffffff',
-                borderRadius: '14px',
+                borderRadius: '8px',
                 border: '1px solid rgba(46, 26, 16, 0.09)',
                 padding: '2.25rem',
                 display: 'flex',
@@ -368,7 +376,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                       </span>
                     ) : (
                       <span className="badge badge-emerald" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.25rem', backgroundColor: 'rgba(16, 185, 129, 0.1)', color: '#059669', border: '1px solid rgba(16, 185, 129, 0.3)' }}>
-                        <CheckCircle2 size={12} /> In Stock ({activeProduct.stock})
+                        <CheckCircle2 size={12} /> In Stock
                       </span>
                     )}
                   </div>
@@ -386,7 +394,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                       width: '100%',
                       aspectRatio: '4/3',
                       backgroundColor: '#f9f6f3',
-                      borderRadius: '10px',
+                      borderRadius: '8px',
                       border: '1px solid rgba(46, 26, 16, 0.08)',
                       overflow: 'hidden',
                       display: 'flex',

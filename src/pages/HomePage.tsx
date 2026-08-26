@@ -92,7 +92,7 @@ export const HomePage: React.FC = () => {
               border: '1px solid rgba(253, 230, 138, 0.4)',
               backdropFilter: 'blur(12px)'
             }}>
-              <Truck size={15} /> Hand-Delivering All Tobacco Products.
+              <Truck size={15} /> 1-3hr Delivery On All Tobacco Products.
             </span>
 
             <h1 style={{ 
