@@ -21,6 +21,25 @@ export interface UserProfile {
   createdAt: string;
 }
 
+export interface ProductSpecification {
+  vitola?: string;
+  factoryName?: string;
+  ringGauge?: number;
+  length?: string;
+  strength?: string;
+  wrapper?: string;
+  filler?: string;
+  binder?: string;
+  smokingTime?: string;
+}
+
+export interface PackagingOption {
+  id: string;
+  name: string; // e.g. "Single Stick", "Box of 10", "Cabinet of 25"
+  priceMultiplier: number; // e.g. 1, 9.5, 23.5
+  stock: number;
+}
+
 export interface Product {
   id?: string;
   name: string;
@@ -34,6 +53,12 @@ export interface Product {
   origin: string; // e.g. 'Cuban'
   active: boolean;
   description?: string;
+  extendedDescription?: string;
+  brandHistory?: string;
+  tagline?: string;
+  tastingNotes?: string[];
+  specifications?: ProductSpecification;
+  packagingOptions?: PackagingOption[];
 }
 
 export interface CartItem {

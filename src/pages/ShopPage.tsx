@@ -18,8 +18,7 @@ import {
   Sun,
   Zap,
   Shield,
-  Star,
-  Box
+  Star
 } from 'lucide-react';
 
 const FALLBACK_CIGARS: Product[] = [

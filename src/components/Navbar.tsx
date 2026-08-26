@@ -46,9 +46,27 @@ export const Navbar: React.FC = () => {
   const [locationNotice, setLocationNotice] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
   
+  const headerRef = React.useRef<HTMLElement | null>(null);
   const navigate = useNavigate();
 
   useEffect(() => {
+    const updateNavbarHeight = () => {
+      if (headerRef.current) {
+        const height = headerRef.current.offsetHeight;
+        document.documentElement.style.setProperty('--navbar-height', `${height}px`);
+      }
+    };
+
+    updateNavbarHeight();
+
+    const resizeObserver = new ResizeObserver(() => {
+      updateNavbarHeight();
+    });
+
+    if (headerRef.current) {
+      resizeObserver.observe(headerRef.current);
+    }
+
     const handleScroll = () => {
       if (window.scrollY > 20) {
         setIsScrolled(true);
@@ -56,9 +74,16 @@ export const Navbar: React.FC = () => {
         setIsScrolled(false);
       }
     };
+
     window.addEventListener('scroll', handleScroll);
+    window.addEventListener('resize', updateNavbarHeight);
     handleScroll();
-    return () => window.removeEventListener('scroll', handleScroll);
+
+    return () => {
+      resizeObserver.disconnect();
+      window.removeEventListener('scroll', handleScroll);
+      window.removeEventListener('resize', updateNavbarHeight);
+    };
   }, []);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
@@ -97,7 +122,9 @@ export const Navbar: React.FC = () => {
   };
 
   return (
-    <header style={{
+    <header 
+      ref={headerRef}
+      style={{
       position: 'fixed',
       top: 0,
       left: 0,

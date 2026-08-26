@@ -134,15 +134,9 @@ body {
   -webkit-font-smoothing: antialiased;
 }
 
-/* Storefront Main Container Padding to offset Fixed Navbar across all screensizes */
+/* Storefront Main Container Padding to offset Fixed Navbar dynamically across all screensizes */
 .storefront-main {
-  padding-top: 115px;
-}
-
-@media (max-width: 860px) {
-  .storefront-main {
-    padding-top: 105px;
-  }
+  padding-top: var(--navbar-height, 120px);
 }
 
 /* Sticky Sidebar for Product Catalogue Pages */
