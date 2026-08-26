@@ -82,18 +82,18 @@ export const AdminDashboard: React.FC = () => {
       <div style={{
         padding: '2.25rem 2rem',
         borderRadius: '8px',
-        backgroundColor: '#ffffff',
-        border: '1px solid rgba(0, 0, 0, 0.08)',
+        backgroundColor: 'var(--bg-surface)',
+        border: '1px solid var(--border-subtle)',
         marginBottom: '2rem',
         boxShadow: '0 8px 30px rgba(0, 0, 0, 0.04)'
       }}>
         <span className="badge badge-gold" style={{ marginBottom: '0.5rem' }}>
           Real-Time Operations
         </span>
-        <h1 style={{ fontSize: '2.2rem', color: '#2f0d0e', fontWeight: 700, letterSpacing: '-0.025em' }}>
+        <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)', fontWeight: 700, letterSpacing: '-0.025em' }}>
           Welcome back, {userProfile?.displayName || 'Administrator'}
         </h1>
-        <p style={{ color: '#515154', fontSize: '0.95rem', marginTop: '0.25rem' }}>
+        <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginTop: '0.25rem' }}>
           Here is a live summary of orders, stock status, and pending notifications.
         </p>
       </div>
@@ -125,7 +125,7 @@ export const AdminDashboard: React.FC = () => {
               <ShoppingBag size={16} />
             </div>
           </div>
-          <h3 style={{ fontSize: '1.8rem', color: '#ffffff' }}>{stats.totalOrders}</h3>
+          <h3 style={{ fontSize: '1.8rem', color: 'var(--text-primary)' }}>{stats.totalOrders}</h3>
           <Link to="/admin/orders" style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', textDecoration: 'underline' }}>View orders &rarr;</Link>
         </div>
 
@@ -137,7 +137,7 @@ export const AdminDashboard: React.FC = () => {
               <AlertTriangle size={16} />
             </div>
           </div>
-          <h3 style={{ fontSize: '1.8rem', color: stats.lowStockProductsCount > 0 ? '#ff9800' : '#ffffff' }}>{stats.lowStockProductsCount}</h3>
+          <h3 style={{ fontSize: '1.8rem', color: stats.lowStockProductsCount > 0 ? '#ff9800' : 'var(--text-primary)' }}>{stats.lowStockProductsCount}</h3>
           <Link to="/admin/products" style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', textDecoration: 'underline' }}>Adjust inventory &rarr;</Link>
         </div>
 
@@ -149,7 +149,7 @@ export const AdminDashboard: React.FC = () => {
               <Bell size={16} />
             </div>
           </div>
-          <h3 style={{ fontSize: '1.8rem', color: '#ffffff' }}>{stats.pendingNotificationsCount}</h3>
+          <h3 style={{ fontSize: '1.8rem', color: 'var(--text-primary)' }}>{stats.pendingNotificationsCount}</h3>
           <Link to="/admin/stock-notifications" style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', textDecoration: 'underline' }}>Export list &rarr;</Link>
         </div>
       </div>
@@ -157,7 +157,7 @@ export const AdminDashboard: React.FC = () => {
       {/* Recent Orders Table */}
       <div className="card" style={{ padding: '1.5rem' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
-          <h3 style={{ fontSize: '1.3rem', color: '#ffffff' }}>Recent Storefront Orders</h3>
+          <h3 style={{ fontSize: '1.3rem', color: 'var(--text-primary)' }}>Recent Storefront Orders</h3>
           <Link to="/admin/orders" className="btn btn-outline btn-sm">
             View All Orders <ArrowRight size={14} />
           </Link>
@@ -186,14 +186,14 @@ export const AdminDashboard: React.FC = () => {
                     <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
                       {order.orderNumber}
                     </td>
-                    <td style={{ padding: '0.75rem', color: '#ffffff' }}>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-primary)' }}>
                       {order.customerName}<br />
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{order.customerEmail}</span>
                     </td>
                     <td style={{ padding: '0.75rem' }}>
                       <span className="badge badge-gray" style={{ fontSize: '0.7rem' }}>{order.source}</span>
                     </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 600, color: '#ffffff' }}>
+                    <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       ${order.totalAmount.toFixed(2)} AUD
                     </td>
                     <td style={{ padding: '0.75rem' }}>

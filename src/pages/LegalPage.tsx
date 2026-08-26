@@ -95,7 +95,7 @@ export const LegalPage: React.FC = () => {
 
               <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginTop: '2rem', marginBottom: '1rem' }}>2. Consumable Goods & Damage in Transit</h2>
               <p>
-                Cigars are perishable luxury goods requiring humidity control. If your cigars arrive damaged, unsealed, or compromised in transit, please notify us within 48 hours of delivery at support@cigarsforyou.com.au with photographic proof for immediate replacement.
+                Cigars are perishable luxury goods requiring humidity control. If your cigars arrive damaged, unsealed, or compromised in transit, please notify us within 48 hours of delivery at hello@cigarsforyou.com.au with photographic proof for immediate replacement.
               </p>
 
               <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginTop: '2rem', marginBottom: '1rem' }}>3. Change of Mind Policy</h2>

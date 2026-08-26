@@ -164,7 +164,7 @@ export const AdminOrders: React.FC = () => {
           <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
             Customer Orders Management
           </span>
-          <h1 style={{ fontSize: '2.2rem', color: '#ffffff' }}>Orders & Deliveries</h1>
+          <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)' }}>Orders & Deliveries</h1>
         </div>
 
         {/* View Tabs */}
@@ -240,7 +240,7 @@ export const AdminOrders: React.FC = () => {
       ) : filteredOrders.length === 0 ? (
         <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
           <ShoppingBag size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem' }} />
-          <h3 style={{ fontSize: '1.5rem', color: '#ffffff' }}>No matching orders found</h3>
+          <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>No matching orders found</h3>
         </div>
       ) : (
         <div className="card" style={{ padding: '1rem' }}>
@@ -263,14 +263,14 @@ export const AdminOrders: React.FC = () => {
                     <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
                       {order.orderNumber}
                     </td>
-                    <td style={{ padding: '0.75rem', color: '#ffffff' }}>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-primary)' }}>
                       <strong>{order.customerName}</strong><br />
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{order.customerEmail}</span>
                     </td>
                     <td style={{ padding: '0.75rem', color: 'var(--text-secondary)' }}>
                       {order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
                     </td>
-                    <td style={{ padding: '0.75rem', fontWeight: 700, color: '#ffffff' }}>
+                    <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
                       ${order.totalAmount.toFixed(2)} AUD
                     </td>
                     <td style={{ padding: '0.75rem' }}>
@@ -346,7 +346,7 @@ export const AdminOrders: React.FC = () => {
           <div className="modal-content" style={{ maxWidth: '640px', position: 'relative' }}>
             <button
               onClick={() => setSelectedOrder(null)}
-              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)' }}
+              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <X size={20} />
             </button>
@@ -355,20 +355,20 @@ export const AdminOrders: React.FC = () => {
               <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
                 Ref: {selectedOrder.orderNumber}
               </span>
-              <h2 style={{ fontSize: '1.8rem', color: '#ffffff' }}>Order Detail & Audit</h2>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)' }}>Order Detail & Audit</h2>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', fontSize: '0.9rem' }}>
               {/* Customer & Address */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: 'var(--bg-primary)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: 'var(--bg-surface-elevated)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Customer Info</span>
-                  <strong style={{ color: '#ffffff' }}>{selectedOrder.customerName}</strong><br />
+                  <strong style={{ color: 'var(--text-primary)' }}>{selectedOrder.customerName}</strong><br />
                   <span style={{ color: 'var(--text-secondary)' }}>{selectedOrder.customerEmail}</span>
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Delivery Address</span>
-                  <span style={{ color: '#ffffff' }}>
+                  <span style={{ color: 'var(--text-primary)' }}>
                     {selectedOrder.deliveryAddress.street}<br />
                     {selectedOrder.deliveryAddress.suburb} {selectedOrder.deliveryAddress.state} {selectedOrder.deliveryAddress.postcode}
                   </span>
@@ -392,9 +392,9 @@ export const AdminOrders: React.FC = () => {
               {/* Line Items */}
               <div>
                 <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.5rem' }}>Order Line Items</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: 'var(--bg-primary)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: 'var(--bg-surface-elevated)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
                   {selectedOrder.items.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', color: '#ffffff' }}>
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)' }}>
                       <span>{item.quantity}x {item.brand} {item.name}</span>
                       <strong style={{ color: 'var(--accent-gold)' }}>${item.price * item.quantity} AUD</strong>
                     </div>
@@ -404,7 +404,7 @@ export const AdminOrders: React.FC = () => {
 
               {/* Totals */}
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontWeight: 700, fontSize: '1.1rem' }}>
-                <span style={{ color: '#ffffff' }}>Total Amount</span>
+                <span style={{ color: 'var(--text-primary)' }}>Total Amount</span>
                 <span style={{ color: 'var(--accent-gold)' }}>${selectedOrder.totalAmount.toFixed(2)} AUD</span>
               </div>
 

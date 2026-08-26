@@ -24,6 +24,8 @@ import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { LegalPage } from './pages/LegalPage';
 import { AgeRestrictedPage } from './pages/AgeRestrictedPage';
+import { AboutUsPage } from './pages/AboutUsPage';
+import { ContactUsPage } from './pages/ContactUsPage';
 
 // Admin Portal Imports
 import { AdminContextProvider } from './pages/admin/AdminContext';
@@ -108,6 +110,8 @@ export default function App() {
                       <Route path="/terms" element={<LegalPage />} />
                       <Route path="/privacy" element={<LegalPage />} />
                       <Route path="/refund-policy" element={<LegalPage />} />
+                      <Route path="/about" element={<AboutUsPage />} />
+                      <Route path="/contact" element={<ContactUsPage />} />
                       <Route path="/age-restricted" element={<AgeRestrictedPage />} />
 
                       {/* Hidden Admin Portal Routes */}

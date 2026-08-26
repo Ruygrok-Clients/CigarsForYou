@@ -38,7 +38,7 @@ export const AdminGuard: React.FC = () => {
       }}>
         <div className="card" style={{ maxWidth: '480px', padding: '3rem 2rem', border: '2px solid var(--accent-ruby)' }}>
           <ShieldAlert size={48} style={{ color: 'var(--accent-ruby)', margin: '0 auto 1rem auto' }} />
-          <h2 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>Access Denied</h2>
+          <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Access Denied</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
             Your account ({userProfile?.email}) is registered as a customer. Administrator or Member role is required to enter this portal.
           </p>

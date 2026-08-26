@@ -139,7 +139,7 @@ export const AboutUsSection: React.FC = () => {
             </p>
 
             <Link
-              to="/shop"
+              to="/about"
               style={{
                 display: 'inline-flex',
                 alignItems: 'center',
@@ -165,7 +165,7 @@ export const AboutUsSection: React.FC = () => {
                 e.currentTarget.style.boxShadow = '0 6px 20px rgba(192, 101, 23, 0.28)';
               }}
             >
-              More about
+              More about us
             </Link>
           </div>
 

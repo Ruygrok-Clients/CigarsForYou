@@ -202,7 +202,7 @@ export const AdminProducts: React.FC = () => {
           <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
             Catalog & Inventory Control
           </span>
-          <h1 style={{ fontSize: '2.2rem', color: '#ffffff' }}>Products & Stock</h1>
+          <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)' }}>Products & Stock</h1>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -288,7 +288,7 @@ export const AdminProducts: React.FC = () => {
                       <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--accent-gold)' }}>
                         {p.brand}
                       </td>
-                      <td style={{ padding: '0.75rem', color: '#ffffff', fontWeight: 600 }}>
+                      <td style={{ padding: '0.75rem', color: 'var(--text-primary)', fontWeight: 600 }}>
                         {p.name}
                       </td>
                       <td style={{ padding: '0.75rem' }}>
@@ -361,12 +361,12 @@ export const AdminProducts: React.FC = () => {
           <div className="modal-content" style={{ maxWidth: '580px', position: 'relative' }}>
             <button
               onClick={() => setIsEditModalOpen(false)}
-              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)' }}
+              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <X size={20} />
             </button>
 
-            <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginBottom: '1.5rem' }}>
+            <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginBottom: '1.5rem' }}>
               {editingProduct ? 'Edit Product' : 'Add New Product (Default Stock 100)'}
             </h2>
 
@@ -475,12 +475,12 @@ export const AdminProducts: React.FC = () => {
           <div className="modal-content" style={{ maxWidth: '520px', position: 'relative' }}>
             <button
               onClick={() => setIsBulkModalOpen(false)}
-              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)' }}
+              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <X size={20} />
             </button>
 
-            <h2 style={{ fontSize: '1.8rem', color: '#ffffff', marginBottom: '0.5rem' }}>
+            <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
               Bulk Product Generator
             </h2>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>

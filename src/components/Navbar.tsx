@@ -496,12 +496,12 @@ export const Navbar: React.FC = () => {
             <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(46, 26, 16, 0.18)', margin: '0 6px', flexShrink: 0 }} />
 
             {/* Informational Links */}
-            <a href="#about-us" className="medicart-pill-btn">
+            <Link to="/about" className="medicart-pill-btn">
               About Us
-            </a>
-            <a href="#footer" className="medicart-pill-btn">
+            </Link>
+            <Link to="/contact" className="medicart-pill-btn">
               Contact Us
-            </a>
+            </Link>
 
             {/* Vertical Line Separator */}
             <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(46, 26, 16, 0.18)', margin: '0 6px', flexShrink: 0 }} />
@@ -575,6 +575,12 @@ export const Navbar: React.FC = () => {
           </Link>
           <Link to="/cigarettes" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', fontWeight: 600, color: '#8e7362', textDecoration: 'none', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
             Cigarettes <span style={{ fontSize: '0.65rem', backgroundColor: '#fef3c7', color: '#d97706', padding: '0.15rem 0.5rem', borderRadius: '4px' }}>Coming Soon</span>
+          </Link>
+          <Link to="/about" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', fontWeight: 600, color: '#2f0d0e', textDecoration: 'none' }}>
+            About Us
+          </Link>
+          <Link to="/contact" onClick={() => setMobileMenuOpen(false)} style={{ fontSize: '1rem', fontWeight: 600, color: '#2f0d0e', textDecoration: 'none' }}>
+            Contact Us
           </Link>
           
           <div style={{ borderTop: '1px solid rgba(46, 26, 16, 0.08)', paddingTop: '0.75rem' }}>

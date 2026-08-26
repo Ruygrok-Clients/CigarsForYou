@@ -96,6 +96,22 @@
 }
 
 /* Theme Fallbacks */
+[data-theme="light"] {
+  --bg-primary: #ffffff;
+  --bg-surface: #ffffff;
+  --bg-surface-elevated: #faf6f5;
+  --bg-surface-light: #f5edea;
+
+  --text-primary: #18181b;
+  --text-secondary: #52525b;
+  --text-muted: #71717a;
+  --text-dark: #18181b;
+
+  --border-color: rgba(0, 0, 0, 0.12);
+  --border-color-strong: rgba(0, 0, 0, 0.24);
+  --border-subtle: rgba(0, 0, 0, 0.06);
+}
+
 [data-theme="dark"] {
   --bg-primary: #1c110b;
   --bg-surface: #2e1a10;
@@ -110,6 +126,17 @@
   --border-color-strong: rgba(212, 175, 55, 0.4);
   --border-subtle: rgba(255, 255, 255, 0.08);
 }
+
+[data-theme="dark"] .form-control {
+  background-color: var(--bg-surface-elevated);
+  color: var(--text-primary) !important;
+  border-color: var(--border-color);
+}
+
+[data-theme="dark"] .form-control::placeholder {
+  color: var(--text-muted);
+}
+
 
 * {
   box-sizing: border-box;

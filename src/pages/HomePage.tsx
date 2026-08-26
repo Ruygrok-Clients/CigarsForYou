@@ -28,13 +28,39 @@ export const HomePage: React.FC = () => {
   useEffect(() => {
     const fetchFeatured = async () => {
       try {
-        const q = query(collection(db, 'products'), limit(8));
+        const q = query(collection(db, 'products'), limit(100));
         const snap = await getDocs(q);
         const list: Product[] = [];
         snap.forEach(doc => {
           list.push({ id: doc.id, ...doc.data() } as Product);
         });
-        setFeaturedProducts(list);
+
+        // Group products by brand and interleave to create a diverse brand mix
+        const brandGroups: Record<string, Product[]> = {};
+        list.forEach(p => {
+          const b = p.brand?.trim() || 'Other';
+          if (!brandGroups[b]) brandGroups[b] = [];
+          brandGroups[b].push(p);
+        });
+
+        const brands = Object.keys(brandGroups);
+        const mixed: Product[] = [];
+        let maxItems = 0;
+        brands.forEach(b => {
+          if (brandGroups[b].length > maxItems) maxItems = brandGroups[b].length;
+        });
+
+        for (let i = 0; i < maxItems; i++) {
+          for (const b of brands) {
+            if (brandGroups[b][i]) {
+              mixed.push(brandGroups[b][i]);
+              if (mixed.length >= 10) break;
+            }
+          }
+          if (mixed.length >= 10) break;
+        }
+
+        setFeaturedProducts(mixed.length > 0 ? mixed : list.slice(0, 8));
       } catch (err) {
         console.error('Error fetching featured products:', err);
       } finally {

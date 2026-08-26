@@ -53,7 +53,7 @@ export const AdminSettings: React.FC = () => {
       <div style={{ padding: '3rem 0', textAlign: 'center' }}>
         <div className="card" style={{ maxWidth: '480px', margin: '0 auto', padding: '3rem 2rem', border: '2px solid var(--accent-ruby)' }}>
           <ShieldAlert size={48} style={{ color: 'var(--accent-ruby)', margin: '0 auto 1rem auto' }} />
-          <h2 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>Admin Access Required</h2>
+          <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Admin Access Required</h2>
           <p style={{ color: 'var(--text-secondary)' }}>
             Your account is assigned the <strong>Member</strong> role. Only Primary Administrators can manage portal users and settings.
           </p>
@@ -137,7 +137,7 @@ export const AdminSettings: React.FC = () => {
           <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
             Role-Based Access Control
           </span>
-          <h1 style={{ fontSize: '2.2rem', color: '#ffffff' }}>Portal Settings & Staff</h1>
+          <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)' }}>Portal Settings & Staff</h1>
         </div>
 
         <button
@@ -159,7 +159,7 @@ export const AdminSettings: React.FC = () => {
         </div>
         <div className="card" style={{ padding: '1.25rem' }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Staff Members</span>
-          <h3 style={{ fontSize: '2rem', color: '#ffffff' }}>{memberCount}</h3>
+          <h3 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>{memberCount}</h3>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Orders & products operational access</span>
         </div>
       </div>
@@ -183,7 +183,7 @@ export const AdminSettings: React.FC = () => {
               <tbody>
                 {portalUsers.map(u => (
                   <tr key={u.uid} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem', color: '#ffffff', fontWeight: 600 }}>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-primary)', fontWeight: 600 }}>
                       {u.displayName || 'Staff Member'}
                       {u.uid === currentUser?.uid && <span className="badge badge-gold" style={{ marginLeft: '0.5rem', fontSize: '0.65rem' }}>You</span>}
                     </td>
@@ -231,12 +231,12 @@ export const AdminSettings: React.FC = () => {
           <div className="modal-content" style={{ maxWidth: '440px', position: 'relative' }}>
             <button
               onClick={() => setIsModalOpen(false)}
-              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)' }}
+              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <X size={20} />
             </button>
 
-            <h2 style={{ fontSize: '1.6rem', color: '#ffffff', marginBottom: '1.25rem' }}>
+            <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
               {editingUser ? 'Edit User Role' : 'Add Portal User'}
             </h2>
 

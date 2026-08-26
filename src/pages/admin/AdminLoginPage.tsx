@@ -101,7 +101,7 @@ export const AdminLoginPage: React.FC = () => {
             <ShieldCheck size={32} />
           </div>
 
-          <h1 style={{ fontSize: '2rem', color: '#ffffff' }}>
+          <h1 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>
             {isSetupMode ? 'Initial Admin Setup' : 'Business Portal'}
           </h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginTop: '0.25rem' }}>

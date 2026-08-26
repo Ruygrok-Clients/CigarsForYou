@@ -114,7 +114,7 @@ export const AdminStockNotifications: React.FC = () => {
           <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
             Back in Stock Customer Requests
           </span>
-          <h1 style={{ fontSize: '2.2rem', color: '#ffffff' }}>Stock Notifications</h1>
+          <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)' }}>Stock Notifications</h1>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -180,7 +180,7 @@ export const AdminStockNotifications: React.FC = () => {
       ) : filteredNotifications.length === 0 ? (
         <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center' }}>
           <Bell size={48} style={{ color: 'var(--text-muted)', marginBottom: '1rem' }} />
-          <h3 style={{ fontSize: '1.5rem', color: '#ffffff' }}>No notification requests found</h3>
+          <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>No notification requests found</h3>
         </div>
       ) : (
         <div className="card" style={{ padding: '1rem' }}>
@@ -198,7 +198,7 @@ export const AdminStockNotifications: React.FC = () => {
               <tbody>
                 {filteredNotifications.map(n => (
                   <tr key={n.id} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem', color: '#ffffff', fontWeight: 600 }}>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-primary)', fontWeight: 600 }}>
                       <span className="badge badge-gold" style={{ fontSize: '0.65rem', marginRight: '0.4rem' }}>{n.productBrand}</span>
                       {n.productName}
                     </td>

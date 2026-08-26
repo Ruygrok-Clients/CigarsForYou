@@ -123,7 +123,7 @@ export const AdminMarketing: React.FC = () => {
           <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
             Promotions & Launch Signups
           </span>
-          <h1 style={{ fontSize: '2.2rem', color: '#ffffff' }}>Marketing & Engagement</h1>
+          <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)' }}>Coupons</h1>
         </div>
 
         <div style={{ display: 'flex', gap: '0.75rem' }}>
@@ -181,7 +181,7 @@ export const AdminMarketing: React.FC = () => {
                         <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--accent-gold)' }}>
                           {c.code}
                         </td>
-                        <td style={{ padding: '0.75rem', color: '#ffffff' }}>
+                        <td style={{ padding: '0.75rem', color: 'var(--text-primary)' }}>
                           {c.discountType === 'percentage' ? `${c.amount}% OFF` : `$${c.amount} AUD OFF`}
                         </td>
                         <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>
@@ -273,12 +273,12 @@ export const AdminMarketing: React.FC = () => {
           <div className="modal-content" style={{ maxWidth: '440px', position: 'relative' }}>
             <button
               onClick={() => setIsCouponModalOpen(false)}
-              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)' }}
+              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <X size={20} />
             </button>
 
-            <h2 style={{ fontSize: '1.6rem', color: '#ffffff', marginBottom: '1.25rem' }}>
+            <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
               Add Discount Coupon
             </h2>
 
