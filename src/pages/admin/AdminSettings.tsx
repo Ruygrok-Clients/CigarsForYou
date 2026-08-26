@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, setDoc, updateDoc, deleteDoc } from 'firebase/firestore';
-import { db } from '../../firebase';
+import { httpsCallable } from 'firebase/functions';
+import { db, functions } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
 import type { UserProfile, UserRole } from '../../types';
-import { UserPlus, Trash2, Edit3, ShieldAlert, X } from 'lucide-react';
+import { UserPlus, Trash2, Edit3, ShieldAlert, X, Mail, Send, CheckCircle } from 'lucide-react';
 
 export const AdminSettings: React.FC = () => {
   const { currentUser, isAdmin } = useAuth();
@@ -14,6 +15,7 @@ export const AdminSettings: React.FC = () => {
 
   const [portalUsers, setPortalUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
+  const [sendingTestEmail, setSendingTestEmail] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -126,6 +128,25 @@ export const AdminSettings: React.FC = () => {
     }
   };
 
+  const handleSendTestEmail = async () => {
+    if (screenLocked) return;
+    setSendingTestEmail(true);
+    try {
+      const sendTestEmailFn = httpsCallable(functions, 'sendTestAdminEmail');
+      const res: any = await sendTestEmailFn({});
+      if (res.data?.success) {
+        showToast(`Resend notification test sent successfully to staff!`);
+      } else {
+        showToast(`Notification test complete (${res.data?.reason || 'simulation mode'})`);
+      }
+    } catch (err: any) {
+      console.error('Error triggering test Resend email:', err);
+      showToast(err.message || 'Failed to dispatch test notification email', 'error');
+    } finally {
+      setSendingTestEmail(false);
+    }
+  };
+
   const adminCount = portalUsers.filter(u => u.role === 'admin').length;
   const memberCount = portalUsers.filter(u => u.role === 'member').length;
 
@@ -161,6 +182,39 @@ export const AdminSettings: React.FC = () => {
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Staff Members</span>
           <h3 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>{memberCount}</h3>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Orders & products operational access</span>
+        </div>
+      </div>
+
+      {/* Resend Email Integration Status Card */}
+      <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--accent-gold)' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+          <div>
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
+              <Mail size={20} style={{ color: 'var(--accent-gold)' }} />
+              <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', margin: 0 }}>
+                Resend Admin Email Notifications
+              </h2>
+              <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>Active</span>
+            </div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.75rem', maxWidth: '650px' }}>
+              Automated Resend notification emails are dispatched to all active admin staff (<strong>{portalUsers.length} recipients</strong>) for store events.
+            </p>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
+              <span>Sender: <strong style={{ color: 'var(--text-primary)' }}>notifications@cigarsforyou.com.au</strong></span>
+              <span>•</span>
+              <span>Triggers: <span className="badge badge-gray">New Order</span> <span className="badge badge-gray">Out of Stock Alert</span> <span className="badge badge-gray">Stock Notification Request</span></span>
+            </div>
+          </div>
+
+          <button
+            className="btn btn-secondary btn-sm"
+            disabled={sendingTestEmail || screenLocked}
+            onClick={handleSendTestEmail}
+            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+          >
+            {sendingTestEmail ? <CheckCircle size={14} className="animate-spin" /> : <Send size={14} />}
+            {sendingTestEmail ? 'Sending...' : 'Test Resend Email'}
+          </button>
         </div>
       </div>
 

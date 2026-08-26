@@ -128,13 +128,13 @@
 }
 
 [data-theme="dark"] .form-control {
-  background-color: var(--bg-surface-elevated);
-  color: var(--text-primary) !important;
+  background-color: #ffffff;
+  color: #000000 !important;
   border-color: var(--border-color);
 }
 
 [data-theme="dark"] .form-control::placeholder {
-  color: var(--text-muted);
+  color: #666666;
 }
 
 

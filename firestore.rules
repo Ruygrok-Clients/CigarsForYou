@@ -56,7 +56,8 @@ service cloud.firestore {
     // Stock Notifications collection
     match /stockNotifications/{id} {
       allow create: if true; // Public email submission for out-of-stock items
-      allow read, update, delete: if isMemberOrAdmin();
+      allow read: if isAuthenticated() || isMemberOrAdmin();
+      allow update, delete: if isMemberOrAdmin() || (isAuthenticated() && (resource.data.userId == request.auth.uid || resource.data.email == request.auth.token.email));
     }
 
     // Coupons collection

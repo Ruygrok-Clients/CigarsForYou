@@ -143,16 +143,43 @@ export const AccountPage: React.FC = () => {
         // 2. Fetch stock notifications
         const notifMap = new Map<string, StockNotification>();
         
+        const emailsToQuery = new Set<string>();
+        if (currentUser?.email) {
+          emailsToQuery.add(currentUser.email.trim());
+          emailsToQuery.add(currentUser.email.trim().toLowerCase());
+        }
         if (userProfile?.email) {
-          const q1 = query(collection(db, 'stockNotifications'), where('email', '==', userProfile.email));
-          const snap1 = await getDocs(q1);
-          snap1.forEach(d => notifMap.set(d.id, { id: d.id, ...d.data() } as StockNotification));
+          emailsToQuery.add(userProfile.email.trim());
+          emailsToQuery.add(userProfile.email.trim().toLowerCase());
+        }
+
+        for (const em of Array.from(emailsToQuery)) {
+          if (!em) continue;
+          try {
+            const q1 = query(collection(db, 'stockNotifications'), where('email', '==', em));
+            const snap1 = await getDocs(q1);
+            snap1.forEach(d => notifMap.set(d.id, { id: d.id, ...d.data() } as StockNotification));
+          } catch (err) {
+            console.warn(`Query for email ${em} failed:`, err);
+          }
         }
 
         if (currentUser?.uid) {
-          const q2 = query(collection(db, 'stockNotifications'), where('userId', '==', currentUser.uid));
-          const snap2 = await getDocs(q2);
-          snap2.forEach(d => notifMap.set(d.id, { id: d.id, ...d.data() } as StockNotification));
+          try {
+            const qUserId = query(collection(db, 'stockNotifications'), where('userId', '==', currentUser.uid));
+            const snapUserId = await getDocs(qUserId);
+            snapUserId.forEach(d => notifMap.set(d.id, { id: d.id, ...d.data() } as StockNotification));
+          } catch (err) {
+            console.warn('Query for userId failed:', err);
+          }
+
+          try {
+            const qCustId = query(collection(db, 'stockNotifications'), where('customerId', '==', currentUser.uid));
+            const snapCustId = await getDocs(qCustId);
+            snapCustId.forEach(d => notifMap.set(d.id, { id: d.id, ...d.data() } as StockNotification));
+          } catch (err) {
+            console.warn('Query for customerId failed:', err);
+          }
         }
 
         const notifList = Array.from(notifMap.values());
@@ -176,7 +203,7 @@ export const AccountPage: React.FC = () => {
     };
 
     fetchData();
-  }, [currentUser, userProfile?.email, navigate]);
+  }, [currentUser, currentUser?.email, userProfile?.email, navigate]);
 
   const handleSaveIdentity = async (e: React.FormEvent) => {
     e.preventDefault();

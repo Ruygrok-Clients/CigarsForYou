@@ -381,20 +381,38 @@ export const AdminLayout: React.FC = () => {
             {/* Screen Lock Toggle */}
             <button
               onClick={toggleScreenLock}
-              className={`btn btn-sm ${screenLocked ? 'btn-danger' : 'btn-secondary'}`}
+              className={`btn ${screenLocked ? 'btn-danger' : 'btn-secondary'}`}
               title={screenLocked ? 'Unlock Editing' : 'Lock Screen (View-Only Mode)'}
-              style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+              style={{
+                height: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                gap: '0.4rem',
+                padding: '0 0.85rem',
+                borderRadius: '10px',
+                fontSize: '0.85rem',
+                boxSizing: 'border-box'
+              }}
             >
-              {screenLocked ? <Lock size={14} /> : <Unlock size={14} />}
+              {screenLocked ? <Lock size={15} /> : <Unlock size={15} />}
               <span className="desktop-only">{screenLocked ? 'Locked' : 'Lock Portal'}</span>
             </button>
 
             {/* Quick Theme Toggle Button */}
             <button
               onClick={toggleTheme}
-              className="btn btn-secondary btn-sm"
+              className="btn btn-secondary"
               title="Toggle Light/Dark Theme"
-              style={{ padding: '0.4rem 0.6rem', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+              style={{
+                height: '40px',
+                width: '40px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                padding: 0,
+                borderRadius: '10px',
+                boxSizing: 'border-box'
+              }}
             >
               {theme === 'dark' ? <Sun size={16} /> : <Moon size={16} />}
             </button>
@@ -403,26 +421,28 @@ export const AdminLayout: React.FC = () => {
             <div 
               className="desktop-only"
               style={{
+                height: '40px',
                 display: 'flex',
                 alignItems: 'center',
                 gap: '0.65rem',
-                padding: '0.35rem 0.75rem',
-                borderRadius: '12px',
+                padding: '0 0.75rem',
+                borderRadius: '10px',
                 backgroundColor: theme === 'dark' ? 'var(--bg-surface-elevated)' : '#f5edea',
-                border: '1px solid var(--border-subtle)'
+                border: '1px solid var(--border-subtle)',
+                boxSizing: 'border-box'
               }}
             >
               {/* Small Avatar */}
               <div style={{
-                width: '32px',
-                height: '32px',
-                borderRadius: '10px',
+                width: '26px',
+                height: '26px',
+                borderRadius: '8px',
                 backgroundColor: '#facc15',
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
                 fontWeight: 700,
-                fontSize: '0.9rem',
+                fontSize: '0.8rem',
                 color: '#000000',
                 flexShrink: 0
               }}>
@@ -430,9 +450,9 @@ export const AdminLayout: React.FC = () => {
               </div>
 
               {/* Account Breakdown Text */}
-              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: '1.25' }}>
+              <div style={{ display: 'flex', flexDirection: 'column', textAlign: 'left', lineHeight: '1.2' }}>
                 <span style={{
-                  fontSize: '0.825rem',
+                  fontSize: '0.8rem',
                   fontWeight: 600,
                   color: 'var(--text-primary)',
                   whiteSpace: 'nowrap'
@@ -440,7 +460,7 @@ export const AdminLayout: React.FC = () => {
                   {userProfile?.email || 'alexander@ruygrok.co'}
                 </span>
                 <span style={{
-                  fontSize: '0.725rem',
+                  fontSize: '0.68rem',
                   color: 'var(--text-muted)',
                   whiteSpace: 'nowrap'
                 }}>

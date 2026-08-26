@@ -1,9 +1,16 @@
 import { setGlobalOptions } from "firebase-functions";
 import { onRequest, onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
+
+import {
+  sendNewOrderAdminNotification,
+  sendOutOfStockAdminAlert,
+  sendStockNotificationAdminAlert,
+  sendTestAdminNotification,
+} from "./email";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -195,24 +202,77 @@ export const processRecurringSubscriptions = onSchedule("every 24 hours", async 
 });
 
 /**
- * STOCK REPLENISHED TRIGGER STUB
- * Triggers when a product's stock is updated above 0, notifying admin/logged notifications.
+ * FIRESTORE TRIGGER 1: NEW ORDER CREATED
+ * Sends Resend notification email to all admin staff when a new order document is created.
  */
-export const notifyStockReplenished = onDocumentUpdated("products/{productId}", async (event) => {
+export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event) => {
+  const orderData = event.data?.data();
+  if (!orderData) {
+    logger.warn("Order document snapshot is empty, skipping Resend email dispatch.");
+    return;
+  }
+
+  logger.info(`New order created in Firestore: #${orderData.orderNumber || event.params.orderId}. Sending Resend email to admin staff...`);
+  try {
+    await sendNewOrderAdminNotification(orderData);
+  } catch (err) {
+    logger.error("Failed to process Resend email notification for new order:", err);
+  }
+});
+
+/**
+ * FIRESTORE TRIGGER 2: PRODUCT UPDATED (Out-of-Stock & Replenishment Alert)
+ * Triggers when a product's stock is updated.
+ * - Sends out-of-stock Resend notification to all admin staff if stock drops to <= 0.
+ * - Logs pending notifications if stock is replenished > 0.
+ */
+export const onProductStockUpdated = onDocumentUpdated("products/{productId}", async (event) => {
   const beforeData = event.data?.before.data();
   const afterData = event.data?.after.data();
 
   if (!beforeData || !afterData) return;
 
-  // Check if stock transitioned from <= 0 to > 0
-  if (beforeData.stock <= 0 && afterData.stock > 0) {
-    logger.info(`Product ${afterData.name} stock replenished to ${afterData.stock}. Checking notifications...`);
-    const notifs = await db.collection("stockNotifications")
-      .where("productId", "==", event.params.productId)
-      .where("notified", "==", false)
-      .get();
+  const productId = event.params.productId;
 
-    logger.info(`Found ${notifs.size} pending notification request(s) for ${afterData.name}.`);
+  // Case A: Product went OUT OF STOCK (stock was > 0, now <= 0)
+  if (beforeData.stock > 0 && afterData.stock <= 0) {
+    logger.info(`Product ${afterData.name} (${productId}) went out of stock. Triggering Resend email alert to admin staff...`);
+    try {
+      await sendOutOfStockAdminAlert(afterData, productId);
+    } catch (err) {
+      logger.error("Failed to process Resend out-of-stock email alert:", err);
+    }
+  }
+
+  // Case B: Product stock was REPLENISHED (stock was <= 0, now > 0)
+  if (beforeData.stock <= 0 && afterData.stock > 0) {
+    logger.info(`Product ${afterData.name} stock replenished to ${afterData.stock}. Checking customer stock notifications...`);
+    try {
+      const notifs = await db.collection("stockNotifications")
+        .where("productId", "==", productId)
+        .where("notified", "==", false)
+        .get();
+
+      logger.info(`Found ${notifs.size} pending stock notification request(s) for ${afterData.name}.`);
+    } catch (err) {
+      logger.error("Failed to query stock notifications upon replenishment:", err);
+    }
+  }
+});
+
+/**
+ * FIRESTORE TRIGGER 3: NEW STOCK NOTIFICATION REQUEST CREATED
+ * Sends Resend notification email to all admin staff when a customer requests to be notified about an out-of-stock product.
+ */
+export const onStockNotificationCreated = onDocumentCreated("stockNotifications/{notificationId}", async (event) => {
+  const notifData = event.data?.data();
+  if (!notifData) return;
+
+  logger.info(`New stock notification request created for ${notifData.productName} by ${notifData.email}. Triggering Resend email alert to admin staff...`);
+  try {
+    await sendStockNotificationAdminAlert(notifData);
+  } catch (err) {
+    logger.error("Failed to process Resend stock notification request email:", err);
   }
 });
 
@@ -235,4 +295,31 @@ export const setUserRole = onCall(async (request) => {
   await admin.auth().setCustomUserClaims(targetUid, { role });
 
   return { success: true, targetUid, role };
+});
+
+/**
+ * CALLABLE FUNCTION: Send Test Resend Admin Email
+ * Allows administrators to trigger a diagnostic email via Resend directly from the admin dashboard.
+ */
+export const sendTestAdminEmail = onCall(async (request) => {
+  const authUid = request.auth?.uid;
+  if (!authUid) {
+    throw new HttpsError("unauthenticated", "User must be authenticated to send test emails");
+  }
+
+  const callerSnap = await db.collection("users").doc(authUid).get();
+  const callerData = callerSnap.data();
+  const role = callerData?.role;
+
+  if (role !== "admin" && role !== "member") {
+    throw new HttpsError("permission-denied", "Only admin or staff members can trigger test emails");
+  }
+
+  const customEmail = request.data?.email;
+  const targetEmails = customEmail ? [customEmail] : undefined;
+
+  logger.info(`Test Resend admin email requested by ${callerData?.email || authUid}`);
+  const result = await sendTestAdminNotification(targetEmails);
+
+  return result;
 });

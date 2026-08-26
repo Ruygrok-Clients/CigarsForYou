@@ -41,6 +41,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         productBrand: product.brand,
         email: email.trim(),
         userId: currentUser?.uid || null,
+        customerId: currentUser?.uid || null,
         requestedAt: new Date().toISOString(),
         notified: false
       });
