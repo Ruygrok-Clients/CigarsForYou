@@ -265,7 +265,7 @@ export const CartPage: React.FC = () => {
                 gap: '0.5rem',
                 alignItems: 'center'
               }}>
-                <ShieldAlert size={16} style={{ color: '#b8860b', flexShrink: 0 }} />
+                <ShieldAlert size={16} style={{ color: '#dc2626', flexShrink: 0 }} />
                 <span>Government-issued 18+ photo ID is checked upon delivery.</span>
               </div>
 

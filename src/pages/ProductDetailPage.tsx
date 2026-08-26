@@ -180,7 +180,7 @@ export const ProductDetailPage: React.FC = () => {
                 alignItems: 'center',
                 gap: '0.75rem'
               }}>
-                <ShieldCheck size={22} style={{ color: 'var(--accent-gold)' }} />
+                <ShieldCheck size={22} style={{ color: 'var(--accent-emerald)' }} />
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>100% Genuine Habanos Guarantee</span>
               </div>
               <div style={{
@@ -192,7 +192,7 @@ export const ProductDetailPage: React.FC = () => {
                 alignItems: 'center',
                 gap: '0.75rem'
               }}>
-                <Truck size={22} style={{ color: 'var(--accent-gold)' }} />
+                <Truck size={22} style={{ color: 'var(--accent-blue)' }} />
                 <span style={{ fontSize: '0.8rem', color: 'var(--text-secondary)' }}>Humidity Sealed Express Delivery</span>
               </div>
             </div>
@@ -200,11 +200,11 @@ export const ProductDetailPage: React.FC = () => {
 
           {/* Right Column: Details & Purchase Options */}
           <div>
-            <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>
+            <span className="badge badge-orange" style={{ marginBottom: '0.75rem' }}>
               {product.brand}
             </span>
 
-            <h1 style={{ fontSize: '2.8rem', color: '#ffffff', marginBottom: '0.75rem' }}>
+            <h1 style={{ fontSize: '2.8rem', color: '#2f0d0e', marginBottom: '0.75rem' }}>
               {product.name}
             </h1>
 
@@ -213,7 +213,7 @@ export const ProductDetailPage: React.FC = () => {
                 fontFamily: 'var(--font-serif)',
                 fontSize: '2.5rem',
                 fontWeight: 700,
-                color: 'var(--accent-gold)'
+                color: '#ea580c'
               }}>
                 ${product.price}
               </span>
@@ -238,8 +238,8 @@ export const ProductDetailPage: React.FC = () => {
                   justifyContent: 'space-between',
                   padding: '1rem 1.25rem',
                   borderRadius: 'var(--radius-md)',
-                  border: `1px solid ${purchaseType === 'one-off' ? 'var(--accent-gold)' : 'var(--border-subtle)'}`,
-                  backgroundColor: purchaseType === 'one-off' ? 'rgba(212, 175, 55, 0.08)' : 'transparent',
+                  border: `1px solid ${purchaseType === 'one-off' ? '#ea580c' : 'var(--border-subtle)'}`,
+                  backgroundColor: purchaseType === 'one-off' ? 'rgba(234, 88, 12, 0.08)' : 'transparent',
                   cursor: 'pointer'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
@@ -248,14 +248,14 @@ export const ProductDetailPage: React.FC = () => {
                       name="purchaseType"
                       checked={purchaseType === 'one-off'}
                       onChange={() => setPurchaseType('one-off')}
-                      style={{ accentColor: 'var(--accent-gold)' }}
+                      style={{ accentColor: '#ea580c' }}
                     />
                     <div>
-                      <strong style={{ color: '#ffffff', fontSize: '1rem', display: 'block' }}>One-Off Purchase</strong>
+                      <strong style={{ color: '#2f0d0e', fontSize: '1rem', display: 'block' }}>One-Off Purchase</strong>
                       <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Single delivery to your door</span>
                     </div>
                   </div>
-                  <span style={{ fontWeight: 700, color: 'var(--accent-gold)' }}>${product.price} AUD</span>
+                  <span style={{ fontWeight: 700, color: '#ea580c' }}>${product.price} AUD</span>
                 </label>
 
                 {/* Mode 2: Subscribe & Save */}
@@ -265,8 +265,8 @@ export const ProductDetailPage: React.FC = () => {
                   gap: '0.75rem',
                   padding: '1rem 1.25rem',
                   borderRadius: 'var(--radius-md)',
-                  border: `1px solid ${purchaseType === 'subscribe' ? 'var(--accent-gold)' : 'var(--border-subtle)'}`,
-                  backgroundColor: purchaseType === 'subscribe' ? 'rgba(212, 175, 55, 0.08)' : 'transparent',
+                  border: `1px solid ${purchaseType === 'subscribe' ? '#ea580c' : 'var(--border-subtle)'}`,
+                  backgroundColor: purchaseType === 'subscribe' ? 'rgba(234, 88, 12, 0.08)' : 'transparent',
                   cursor: 'pointer'
                 }}>
                   <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}>
@@ -276,16 +276,16 @@ export const ProductDetailPage: React.FC = () => {
                         name="purchaseType"
                         checked={purchaseType === 'subscribe'}
                         onChange={() => setPurchaseType('subscribe')}
-                        style={{ accentColor: 'var(--accent-gold)' }}
+                        style={{ accentColor: '#ea580c' }}
                       />
                       <div>
-                        <strong style={{ color: '#ffffff', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
-                          <RefreshCw size={14} style={{ color: 'var(--accent-gold)' }} /> Subscribe & Auto-Deliver
+                        <strong style={{ color: '#2f0d0e', fontSize: '1rem', display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
+                          <RefreshCw size={14} style={{ color: '#ea580c' }} /> Subscribe & Auto-Deliver
                         </strong>
                         <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem' }}>Never run out · Modify or cancel anytime</span>
                       </div>
                     </div>
-                    <span className="badge badge-gold" style={{ fontSize: '0.75rem' }}>Automated</span>
+                    <span className="badge badge-orange" style={{ fontSize: '0.75rem' }}>Automated</span>
                   </div>
 
                   {purchaseType === 'subscribe' && (

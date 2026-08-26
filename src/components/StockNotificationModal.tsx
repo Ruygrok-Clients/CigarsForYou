@@ -69,8 +69,8 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             width: '56px',
             height: '56px',
             borderRadius: '50%',
-            backgroundColor: 'rgba(184, 134, 11, 0.1)',
-            color: '#b8860b',
+            backgroundColor: 'rgba(234, 88, 12, 0.12)',
+            color: '#ea580c',
             marginBottom: '1rem'
           }}>
             <Bell size={26} />
@@ -93,8 +93,8 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
               width: '48px',
               height: '48px',
               borderRadius: '50%',
-              backgroundColor: 'rgba(22, 163, 74, 0.1)',
-              color: '#16a34a',
+              backgroundColor: 'rgba(16, 185, 129, 0.12)',
+              color: '#10b981',
               marginBottom: '1rem'
             }}>
               <Check size={24} />
@@ -110,7 +110,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" style={{ color: '#2e1a10' }}>Email Address</label>
+              <label className="form-label" style={{ color: '#2f0d0e' }}>Email Address</label>
               <input
                 type="email"
                 required

@@ -49,7 +49,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
         {isOutOfStock ? (
           <span className="badge badge-red">Sold Out</span>
         ) : (
-          <span className="badge badge-gold">{product.brand}</span>
+          <span className="badge badge-orange">{product.brand}</span>
         )}
       </div>
 
@@ -76,7 +76,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
               style={{ width: '100%', height: '100%', objectFit: 'cover' }} 
             />
           ) : (
-            <div style={{ textAlign: 'center', padding: '1rem', color: 'var(--accent-gold)' }}>
+            <div style={{ textAlign: 'center', padding: '1rem', color: '#ea580c' }}>
               <Flame size={44} style={{ opacity: 0.85, marginBottom: '0.4rem' }} />
               <div style={{
                 fontFamily: 'var(--font-sans)',
@@ -125,8 +125,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
             </span>
 
             {!isOutOfStock && (
-              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#4ade80', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
-                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#4ade80', display: 'inline-block' }}></span>
+              <span style={{ fontSize: '0.75rem', fontWeight: 600, color: '#10b981', display: 'flex', alignItems: 'center', gap: '0.25rem' }}>
+                <span style={{ width: '6px', height: '6px', borderRadius: '50%', backgroundColor: '#10b981', display: 'inline-block' }}></span>
                 In Stock
               </span>
             )}

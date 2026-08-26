@@ -186,7 +186,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
             <span style={{
               textTransform: 'uppercase',
               letterSpacing: '0.14em',
-              color: '#b8860b',
+              color: '#ea580c',
               fontSize: '0.825rem',
               fontWeight: 600
             }}>
@@ -194,7 +194,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
             </span>
             <h2 style={{
               fontSize: '2.4rem',
-              color: '#2e1a10',
+              color: '#2f0d0e',
               marginTop: '0.25rem',
               fontWeight: 700,
               letterSpacing: '-0.025em'
@@ -206,8 +206,8 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
             display: 'inline-flex',
             alignItems: 'center',
             gap: '0.4rem',
-            color: '#2e1a10',
-            borderColor: 'rgba(46, 26, 16, 0.3)',
+            color: '#2f0d0e',
+            borderColor: 'rgba(47, 13, 14, 0.3)',
             backgroundColor: '#ffffff',
             fontWeight: 600
           }}>
@@ -241,12 +241,12 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                     fontSize: '0.72rem',
                     textTransform: 'uppercase',
                     letterSpacing: '0.1em',
-                    color: '#b8860b',
+                    color: '#ea580c',
                     fontWeight: 700
                   }}>
                     Selector Wheel
                   </span>
-                  <span style={{ fontSize: '0.72rem', color: '#8e7362', fontWeight: 500 }}>
+                  <span style={{ fontSize: '0.72rem', color: '#8c6062', fontWeight: 500 }}>
                     Scroll / Drag
                   </span>
                 </div>
@@ -271,8 +271,8 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   right: '6px',
                   transform: 'translateY(-50%)',
                   height: isMobile ? '40px' : '48px',
-                  backgroundColor: 'rgba(184, 134, 11, 0.07)',
-                  borderLeft: '4px solid #b8860b',
+                  backgroundColor: 'rgba(234, 88, 12, 0.07)',
+                  borderLeft: '4px solid #ea580c',
                   borderRadius: '8px',
                   zIndex: 1,
                   pointerEvents: 'none',
@@ -281,7 +281,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                   justifyContent: 'flex-end',
                   paddingRight: '12px'
                 }}>
-                  <ChevronRight size={18} style={{ color: '#b8860b', opacity: 0.8 }} />
+                  <ChevronRight size={18} style={{ color: '#ea580c', opacity: 0.9 }} />
                 </div>
 
                 {/* OptionWheel Component */}
@@ -290,8 +290,8 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                     items={wheelItems}
                     defaultSelected={activeIndex}
                     onChange={(index) => setSelectedIndex(index)}
-                    textColor="#8e7362"
-                    activeColor="#2e1a10"
+                    textColor="#8c6062"
+                    activeColor="#2f0d0e"
                     side="left"
                     fontSize={isMobile ? 1.12 : 1.45}
                     spacing={isMobile ? 1.3 : 1.4}
@@ -392,7 +392,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                           }}
                         />
                       ) : (
-                        <div style={{ textAlign: 'center', padding: '1.5rem', color: '#b8860b' }}>
+                        <div style={{ textAlign: 'center', padding: '1.5rem', color: '#ea580c' }}>
                           <Flame size={54} style={{ opacity: 0.85, marginBottom: '0.5rem' }} />
                           <div style={{
                             fontFamily: 'var(--font-sans)',
@@ -400,7 +400,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                             fontWeight: 700,
                             textTransform: 'uppercase',
                             letterSpacing: '0.12em',
-                            color: '#2e1a10'
+                            color: '#2f0d0e'
                           }}>
                             {activeProduct.brand}
                           </div>
@@ -413,7 +413,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                     <div>
                       <h3 style={{
                         fontSize: '1.85rem',
-                        color: '#2e1a10',
+                        color: '#2f0d0e',
                         fontWeight: 700,
                         lineHeight: 1.2,
                         marginBottom: '0.5rem',
@@ -424,15 +424,15 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
 
                       <div style={{
                         fontSize: '1.5rem',
-                        color: '#b8860b',
+                        color: '#ea580c',
                         fontWeight: 700,
                         marginBottom: '1rem'
                       }}>
-                        ${activeProduct.price.toFixed(2)} <span style={{ fontSize: '0.85rem', color: '#8e7362', fontWeight: 500 }}>AUD</span>
+                        ${activeProduct.price.toFixed(2)} <span style={{ fontSize: '0.85rem', color: '#8c6062', fontWeight: 500 }}>AUD</span>
                       </div>
 
                       <p style={{
-                        color: '#5e4233',
+                        color: '#5c3537',
                         fontSize: '0.95rem',
                         lineHeight: 1.6,
                         margin: 0
@@ -450,14 +450,14 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                     gap: '1rem',
                     flexWrap: 'wrap',
                     paddingTop: '1rem',
-                    borderTop: '1px solid rgba(46, 26, 16, 0.08)',
+                    borderTop: '1px solid rgba(47, 13, 14, 0.08)',
                     marginBottom: '1.25rem'
                   }}>
                     <button
                       onClick={handleAddToCart}
                       className="btn btn-primary btn-lg"
                       style={{
-                        backgroundColor: '#2e1a10',
+                        backgroundColor: '#ea580c',
                         color: '#ffffff',
                         flex: 1,
                         minWidth: '180px',
@@ -474,8 +474,8 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                       to={`/product/${activeProduct.slug || activeProduct.id}`}
                       className="btn btn-outline btn-lg"
                       style={{
-                        borderColor: 'rgba(46, 26, 16, 0.25)',
-                        color: '#2e1a10',
+                        borderColor: 'rgba(47, 13, 14, 0.25)',
+                        color: '#2f0d0e',
                         display: 'inline-flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -493,7 +493,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                     justifyContent: 'space-between',
                     gap: '0.5rem'
                   }}>
-                    <span style={{ fontSize: '0.75rem', color: '#8e7362', fontWeight: 600 }}>
+                    <span style={{ fontSize: '0.75rem', color: '#8c6062', fontWeight: 600 }}>
                       Item {activeIndex + 1} of {displayProducts.length}
                     </span>
 
@@ -507,7 +507,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                             width: activeIndex === i ? '24px' : '8px',
                             height: '8px',
                             borderRadius: '4px',
-                            backgroundColor: activeIndex === i ? '#b8860b' : 'rgba(46, 26, 16, 0.15)',
+                            backgroundColor: activeIndex === i ? '#ea580c' : 'rgba(47, 13, 14, 0.15)',
                             border: 'none',
                             cursor: 'pointer',
                             transition: 'all 0.2s ease'

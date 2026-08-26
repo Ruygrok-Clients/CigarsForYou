@@ -24,14 +24,14 @@ export const Footer: React.FC = () => {
           borderBottom: '1px solid var(--border-subtle)'
         }}>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <Truck size={26} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} />
+            <Truck size={26} style={{ color: 'var(--accent-blue)', flexShrink: 0 }} />
             <div>
               <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: 'var(--text-primary)', fontWeight: 600 }}>Australia-Wide Express</h4>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Fast humidor-sealed delivery directly to your doorstep.</p>
             </div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <ShieldCheck size={26} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} />
+            <ShieldCheck size={26} style={{ color: 'var(--accent-emerald)', flexShrink: 0 }} />
             <div>
               <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: 'var(--text-primary)', fontWeight: 600 }}>100% Genuine Cuban</h4>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Guaranteed authentic premium hand-rolled selection.</p>
@@ -45,7 +45,7 @@ export const Footer: React.FC = () => {
             </div>
           </div>
           <div style={{ display: 'flex', gap: '1rem', alignItems: 'flex-start' }}>
-            <Lock size={26} style={{ color: 'var(--accent-gold)', flexShrink: 0 }} />
+            <Lock size={26} style={{ color: 'var(--accent-ruby)', flexShrink: 0 }} />
             <div>
               <h4 style={{ fontSize: '1.05rem', marginBottom: '0.25rem', color: 'var(--text-primary)', fontWeight: 600 }}>Age Verified 18+</h4>
               <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', margin: 0 }}>Strict regulatory compliance and ID verification on delivery.</p>
@@ -64,7 +64,7 @@ export const Footer: React.FC = () => {
           <div style={{ gridColumn: 'span 1' }}>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
               <span style={{ fontFamily: 'var(--font-sans)', fontSize: '1.6rem', fontWeight: 700, color: 'var(--text-primary)', letterSpacing: '-0.03em' }}>
-                Cigars<span style={{ color: 'var(--accent-gold)' }}>ForYou</span>
+                Cigars<span style={{ color: '#ea580c' }}>ForYou</span>
               </span>
             </div>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-muted)', lineHeight: 1.6, marginBottom: '1.25rem' }}>
@@ -110,8 +110,8 @@ export const Footer: React.FC = () => {
 
         {/* Health Warning Box */}
         <div style={{
-          backgroundColor: '#24140d',
-          border: '1px solid rgba(201, 154, 78, 0.3)',
+          backgroundColor: '#2f0d0e',
+          border: '1px solid rgba(234, 88, 12, 0.3)',
           borderRadius: '8px',
           padding: '1.25rem 1.5rem',
           textAlign: 'center',

@@ -88,17 +88,17 @@ export const CigarettesComingSoonPage: React.FC = () => {
               }}>
                 <CheckCircle2 size={28} />
               </div>
-              <h3 style={{ fontSize: '1.5rem', color: '#2e1a10', marginBottom: '0.5rem', fontWeight: 700 }}>You're Registered!</h3>
+              <h3 style={{ fontSize: '1.5rem', color: '#2f0d0e', marginBottom: '0.5rem', fontWeight: 700 }}>You're Registered!</h3>
               <p style={{ color: '#515154', fontSize: '0.95rem' }}>
                 We'll email <strong>{email}</strong> the moment the cigarette catalog opens for doorstep delivery.
               </p>
             </div>
           ) : (
             <form onSubmit={handleSubmit}>
-              <h3 style={{ fontSize: '1.4rem', color: '#2e1a10', marginBottom: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
-                <Bell size={20} style={{ color: '#d97706' }} /> Get Notified First At Launch
+              <h3 style={{ fontSize: '1.4rem', color: '#2f0d0e', marginBottom: '0.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}>
+                <Bell size={20} style={{ color: '#ea580c' }} /> Get Notified First At Launch
               </h3>
-              <p style={{ color: '#86868b', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
+              <p style={{ color: '#8c6062', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
                 Enter your email address below to receive an instant launch notification.
               </p>
 
@@ -116,7 +116,7 @@ export const CigarettesComingSoonPage: React.FC = () => {
                   type="submit"
                   className="btn btn-primary"
                   disabled={submitting}
-                  style={{ backgroundColor: '#2e1a10', color: '#ffffff', borderRadius: '6px', padding: '0.75rem 1.5rem' }}
+                  style={{ backgroundColor: '#ea580c', color: '#ffffff', borderRadius: '6px', padding: '0.75rem 1.5rem' }}
                 >
                   {submitting ? 'Registering...' : 'Notify Me'}
                 </button>

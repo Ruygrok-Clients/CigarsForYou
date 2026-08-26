@@ -66,7 +66,7 @@ export const AboutUsSection: React.FC = () => {
             <h2 style={{
               fontFamily: 'var(--font-serif)',
               fontSize: 'clamp(2.4rem, 4vw, 3.2rem)',
-              color: '#2e1a10',
+              color: '#2f0d0e',
               fontWeight: 700,
               letterSpacing: '-0.02em',
               lineHeight: 1.15,
@@ -76,7 +76,7 @@ export const AboutUsSection: React.FC = () => {
             </h2>
 
             <p style={{
-              color: '#4b5563',
+              color: '#5c3537',
               fontSize: '1.05rem',
               lineHeight: 1.7,
               marginBottom: '1.25rem',
@@ -86,7 +86,7 @@ export const AboutUsSection: React.FC = () => {
             </p>
 
             <p style={{
-              color: '#4b5563',
+              color: '#5c3537',
               fontSize: '1.05rem',
               lineHeight: 1.7,
               marginBottom: '2.25rem',
@@ -112,9 +112,9 @@ export const AboutUsSection: React.FC = () => {
                 transition: 'all 0.2s ease-in-out'
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.backgroundColor = '#d97706';
+                e.currentTarget.style.backgroundColor = '#c2410c';
                 e.currentTarget.style.transform = 'translateY(-2px)';
-                e.currentTarget.style.boxShadow = '0 8px 24px rgba(217, 119, 6, 0.35)';
+                e.currentTarget.style.boxShadow = '0 8px 24px rgba(234, 88, 12, 0.38)';
               }}
               onMouseLeave={(e) => {
                 e.currentTarget.style.backgroundColor = '#ea580c';
