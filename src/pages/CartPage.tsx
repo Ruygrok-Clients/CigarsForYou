@@ -119,12 +119,12 @@ export const CartPage: React.FC = () => {
   return (
     <div style={{ padding: '3rem 0 6rem 0' }}>
       <div className="container">
-        <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div className="cart-header">
           <div>
             <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>Checkout Preparation</span>
             <h1 style={{ fontSize: '2.5rem', color: '#ffffff' }}>Your Shopping Cart</h1>
           </div>
-          <button className="btn btn-secondary btn-sm" onClick={clearCart}>
+          <button className="btn btn-secondary btn-sm cart-clear-btn" onClick={clearCart}>
             Clear Cart
           </button>
         </div>
@@ -291,13 +291,13 @@ export const CartPage: React.FC = () => {
                   display: 'flex',
                   justifyContent: 'space-between',
                   paddingTop: '0.75rem',
-                  borderTop: '1px solid rgba(0, 0, 0, 0.08)',
+                  borderTop: '1px solid var(--border-color)',
                   fontWeight: 700,
                   fontSize: '1.25rem',
-                  color: '#2f0d0e'
+                  color: '#ffffff'
                 }}>
                   <span>Total</span>
-                  <span style={{ color: '#2f0d0e' }}>${totalAmount.toFixed(2)} AUD</span>
+                  <span style={{ color: '#ffffff' }}>${totalAmount.toFixed(2)} AUD</span>
                 </div>
               </div>
 

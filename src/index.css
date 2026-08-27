@@ -989,3 +989,26 @@ body.is-scrolling::-webkit-scrollbar-thumb:hover {
   }
 }
 
+/* Cart Header Responsive Layout */
+.cart-header {
+  margin-bottom: 2rem;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 1rem;
+  width: 100%;
+}
+
+@media (max-width: 700px) {
+  .cart-header {
+    flex-direction: column;
+    align-items: flex-start;
+  }
+
+  .cart-clear-btn {
+    align-self: flex-end;
+    margin-top: 0.5rem;
+  }
+}
+
+
