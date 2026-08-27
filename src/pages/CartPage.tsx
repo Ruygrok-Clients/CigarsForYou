@@ -1,17 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
-import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
 import { useCart } from '../context/CartContext';
-import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import {
   ShoppingBag,
   Trash2,
-  Lock,
   ShieldAlert,
   Tag,
-  ChevronLeft
+  ChevronLeft,
+  ArrowRight
 } from 'lucide-react';
 import type { Coupon } from '../types';
 
@@ -22,10 +19,8 @@ const DEMO_COUPONS: Record<string, Coupon> = {
 
 export const CartPage: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, clearCart, appliedCoupon, applyCoupon, subtotal, discountAmount, shippingFee, totalAmount } = useCart();
-  const { currentUser, userProfile } = useAuth();
   const { showToast } = useToast();
   const [couponCode, setCouponCode] = useState('');
-  const [checkingOut, setCheckingOut] = useState(false);
 
   const handleApplyCoupon = (e: React.FormEvent) => {
     e.preventDefault();
@@ -41,62 +36,6 @@ export const CartPage: React.FC = () => {
   const handleRemoveCoupon = () => {
     applyCoupon(null);
     showToast('Coupon removed');
-  };
-
-  /**
-   * Directly call the createStripeCheckoutSession Cloud Function
-   * and redirect the user to Stripe's hosted checkout page.
-   * No intermediate platform checkout page.
-   */
-  const handleCheckout = async () => {
-    if (cart.length === 0) return;
-
-    setCheckingOut(true);
-
-    try {
-      // Build delivery address from logged-in user's saved profile, or leave blank for Stripe to collect
-      const savedAddress = userProfile?.address || userProfile?.addresses?.[0];
-      const deliveryAddress = {
-        id: 'cart-checkout',
-        street: savedAddress?.street || '',
-        suburb: savedAddress?.suburb || '',
-        state: savedAddress?.state || 'NSW',
-        postcode: savedAddress?.postcode || '',
-        country: 'Australia'
-      };
-
-      const customerName = userProfile?.displayName || currentUser?.displayName || 'Customer';
-      const customerEmail = currentUser?.email || userProfile?.email || '';
-      const customerPhone = userProfile?.phone || '';
-
-      const createSession = httpsCallable(functions, 'createStripeCheckoutSession');
-      const res = await createSession({
-        items: cart,
-        customerName,
-        customerEmail,
-        customerPhone,
-        deliveryAddress,
-        subtotal,
-        discountAmount,
-        shippingFee,
-        totalAmount,
-        couponCode: appliedCoupon?.code || '',
-        originUrl: window.location.origin
-      });
-
-      const data = res.data as { checkoutUrl?: string };
-      if (data?.checkoutUrl) {
-        showToast('Redirecting to Stripe secure checkout...');
-        window.location.href = data.checkoutUrl;
-      } else {
-        throw new Error('No checkout URL returned from Stripe');
-      }
-    } catch (err: any) {
-      console.error('Error launching Stripe checkout:', err);
-      showToast(err.message || 'Failed to start Stripe checkout. Please try again.', 'error');
-    } finally {
-      setCheckingOut(false);
-    }
   };
 
   if (cart.length === 0) {
@@ -318,19 +257,17 @@ export const CartPage: React.FC = () => {
                 <span>Government-issued 18+ photo ID is checked upon delivery.</span>
               </div>
 
-              {/* Pay Now — Direct Stripe Checkout */}
-              <button
-                onClick={handleCheckout}
-                disabled={checkingOut}
+              {/* Proceed to Customer Details Intermediary Step */}
+              <Link
+                to="/checkout-details"
                 className="btn btn-primary btn-lg btn-full"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none' }}
               >
-                <Lock size={18} />
-                {checkingOut ? 'Redirecting to Stripe...' : `Pay $${totalAmount.toFixed(2)} AUD — Secure Checkout`}
-              </button>
+                Proceed to Customer Details <ArrowRight size={18} />
+              </Link>
 
               <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-                You'll be securely redirected to Stripe to complete payment.
+                Enter shipping details & confirm order in the next step.
               </p>
             </div>
           </div>
