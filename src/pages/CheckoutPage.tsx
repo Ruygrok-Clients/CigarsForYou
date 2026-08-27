@@ -1,135 +1,52 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
-import { addDoc, collection, doc, updateDoc, increment } from 'firebase/firestore';
-import { httpsCallable } from 'firebase/functions';
-import { db, functions } from '../firebase';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import type { Order, OrderItem, Address } from '../types';
 import confetti from 'canvas-confetti';
-import { 
-  CreditCard, 
-  CheckCircle2, 
-  Lock, 
-  ArrowLeft,
-  MapPin
-} from 'lucide-react';
+import { CheckCircle2, XCircle, ShoppingBag } from 'lucide-react';
 
+/**
+ * CheckoutPage — Stripe Return Handler Only
+ * 
+ * This page handles the return URL from Stripe Hosted Checkout.
+ * It does NOT contain any forms or order placement logic.
+ * Orders are created exclusively by the Stripe webhook (stripeWebhook Cloud Function).
+ */
 export const CheckoutPage: React.FC = () => {
-  const { cart, subtotal, discountAmount, totalAmount, clearCart } = useCart();
-  const { currentUser, userProfile } = useAuth();
+  const { clearCart } = useCart();
+  const { currentUser } = useAuth();
   const { showToast } = useToast();
   const [searchParams] = useSearchParams();
+  const [status, setStatus] = useState<'loading' | 'success' | 'canceled' | 'empty'>('loading');
+  const [orderNumber, setOrderNumber] = useState('');
 
-  const savedAddress = userProfile?.address || userProfile?.addresses?.[0];
-
-  // Form State
-  const [fullName, setFullName] = useState(userProfile?.displayName || '');
-  const [email, setEmail] = useState(currentUser?.email || userProfile?.email || '');
-  const [phone, setPhone] = useState(userProfile?.phone || '');
-  const [street, setStreet] = useState(savedAddress?.street || '');
-  const [suburb, setSuburb] = useState(savedAddress?.suburb || '');
-  const [state, setState] = useState(savedAddress?.state || 'NSW');
-  const [postcode, setPostcode] = useState(savedAddress?.postcode || '');
-
-  useEffect(() => {
-    if (userProfile) {
-      if (userProfile.displayName && !fullName) setFullName(userProfile.displayName);
-      if ((currentUser?.email || userProfile.email) && !email) setEmail(currentUser?.email || userProfile.email);
-      if (userProfile.phone && !phone) setPhone(userProfile.phone);
-
-      const addr = userProfile.address || userProfile.addresses?.[0];
-      if (addr) {
-        if (addr.street && !street) setStreet(addr.street);
-        if (addr.suburb && !suburb) setSuburb(addr.suburb);
-        if (addr.state) setState(addr.state);
-        if (addr.postcode && !postcode) setPostcode(addr.postcode);
-      }
-    }
-  }, [userProfile]);
-  
-  // 18+ Confirmation checkbox
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
-  const [submitting, setSubmitting] = useState(false);
-  const [completedOrder, setCompletedOrder] = useState<Order | null>(null);
-
-  // Handle Stripe return URL query params (success / cancel)
   useEffect(() => {
     const isSuccess = searchParams.get('success') === 'true';
     const isCanceled = searchParams.get('canceled') === 'true';
-    const orderNum = searchParams.get('order_number') || `CFY-${Math.floor(100000 + Math.random() * 900000)}`;
+    const orderNum = searchParams.get('order_number') || '';
 
-    if (isSuccess && !completedOrder) {
+    if (isSuccess) {
+      setStatus('success');
+      setOrderNumber(orderNum);
       clearCart();
-      const mockSuccessOrder: Order = {
-        orderNumber: orderNum,
-        customerId: currentUser?.uid || 'guest-user',
-        customerName: fullName || userProfile?.displayName || 'Valued Customer',
-        customerEmail: email || currentUser?.email || 'customer@example.com',
-        items: cart.length > 0 ? cart.map(i => ({
-          productId: i.product.id || i.product.slug,
-          name: i.product.name,
-          brand: i.product.brand,
-          price: i.product.price,
-          quantity: i.quantity
-        })) : [],
-        subtotal: subtotal || 0,
-        discountAmount: discountAmount || 0,
-        totalAmount: totalAmount || 0,
-        currency: 'AUD',
-        status: 'Verified',
-        source: 'Website',
-        paymentMethod: 'Stripe',
-        deliveryAddress: {
-          id: 'strp',
-          street: street || 'Shipping Address Provided',
-          suburb: suburb || 'NSW',
-          state: state || 'NSW',
-          postcode: postcode || '2000',
-          country: 'Australia'
-        },
-        ageConfirmed: true,
-        createdAt: new Date().toISOString(),
-        statusHistory: [
-          { status: 'Verified', timestamp: new Date().toISOString(), updatedBy: 'Stripe Webhook Auto-Verify' }
-        ],
-        archived: false
-      };
-
-      setCompletedOrder(mockSuccessOrder);
       showToast('Payment successful! Your order has been placed.');
 
       try {
-        confetti({
-          particleCount: 100,
-          spread: 80,
-          origin: { y: 0.6 }
-        });
-      } catch (e) {
-        // Confetti fallback
+        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+      } catch (_) {
+        // confetti not available
       }
     } else if (isCanceled) {
-      showToast('Payment was canceled. You can try checking out again when ready.', 'info');
+      setStatus('canceled');
+      showToast('Payment was canceled. Your cart items are still saved.', 'info');
+    } else {
+      setStatus('empty');
     }
   }, [searchParams]);
 
-  if (cart.length === 0 && !completedOrder) {
-    return (
-      <div style={{ padding: '6rem 0', textAlign: 'center' }}>
-        <div className="container">
-          <h2 style={{ color: '#ffffff', marginBottom: '1rem' }}>No Items to Checkout</h2>
-          <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
-            Your cart is currently empty.
-          </p>
-          <Link to="/shop" className="btn btn-primary">Return to Shop</Link>
-        </div>
-      </div>
-    );
-  }
-
-  // Celebration view upon order success
-  if (completedOrder) {
+  // Success state — payment completed via Stripe
+  if (status === 'success') {
     return (
       <div style={{ padding: '4rem 0 6rem 0', textAlign: 'center' }}>
         <div className="container" style={{ maxWidth: '640px' }}>
@@ -149,54 +66,43 @@ export const CheckoutPage: React.FC = () => {
             </div>
 
             <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>
-              Order Confirmed & Placed
+              Order Confirmed & Paid
             </span>
 
             <h1 style={{ fontSize: '2.5rem', color: '#ffffff', marginBottom: '0.5rem' }}>
               Thank You for Your Order!
             </h1>
 
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '1.5rem' }}>
-              Order reference: <strong style={{ color: 'var(--accent-gold)' }}>{completedOrder.orderNumber}</strong>
+            {orderNumber && (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '1rem' }}>
+                Order reference: <strong style={{ color: 'var(--accent-gold)' }}>{orderNumber}</strong>
+              </p>
+            )}
+
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.5rem', maxWidth: '440px', marginInline: 'auto' }}>
+              Your payment has been processed securely via Stripe. A confirmation email will be sent to <strong>{currentUser?.email || 'your email address'}</strong>.
             </p>
 
             <div style={{
               backgroundColor: 'var(--bg-primary)',
               borderRadius: 'var(--radius-md)',
               padding: '1.25rem',
-              textAlign: 'left',
               marginBottom: '2rem',
               border: '1px solid var(--border-subtle)',
-              fontSize: '0.9rem'
+              fontSize: '0.9rem',
+              color: 'var(--text-muted)'
             }}>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Status:</span>
-                <span className="badge badge-gold">{completedOrder.status}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Delivery To:</span>
-                <span style={{ color: 'var(--text-primary)' }}>{completedOrder.deliveryAddress.street}, {completedOrder.deliveryAddress.suburb} {completedOrder.deliveryAddress.state}</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem' }}>
-                <span style={{ color: 'var(--text-muted)' }}>Payment Method:</span>
-                <span style={{ color: 'var(--text-primary)' }}>{completedOrder.paymentMethod} (Verified)</span>
-              </div>
-              <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.1rem', marginTop: '0.5rem', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)' }}>
-                <span style={{ color: 'var(--text-primary)' }}>Total Paid:</span>
-                <span style={{ color: 'var(--accent-gold)' }}>${completedOrder.totalAmount.toFixed(2)} AUD</span>
-              </div>
+              <p style={{ margin: 0 }}>
+                🚚 Your order will be dispatched via Australia Post Express. Remember to present <strong style={{ color: 'var(--text-primary)' }}>government photo ID (18+)</strong> upon delivery.
+              </p>
             </div>
 
-            <p style={{ fontSize: '0.85rem', color: 'var(--text-muted)', marginBottom: '2rem' }}>
-              A confirmation email has been sent to <strong>{completedOrder.customerEmail}</strong>. Remember to present government photo ID (18+) upon Australia Post delivery.
-            </p>
-
-            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center' }}>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
               <Link to="/account" className="btn btn-primary">
                 View Order History
               </Link>
               <Link to="/shop" className="btn btn-secondary">
-                Return to Shop
+                Continue Shopping
               </Link>
             </div>
           </div>
@@ -205,403 +111,74 @@ export const CheckoutPage: React.FC = () => {
     );
   }
 
-  const handlePlaceOrder = async (e: React.FormEvent) => {
-    e.preventDefault();
-    if (!ageConfirmed) {
-      showToast('You must confirm you are 18 years of age or older to proceed', 'error');
-      return;
-    }
-
-    if (!fullName || !email || !street || !suburb || !postcode) {
-      showToast('Please fill out all required address fields', 'error');
-      return;
-    }
-
-    setSubmitting(true);
-
-    try {
-      const addressObj: Address = {
-        id: Math.random().toString(36).substring(2, 9),
-        street,
-        suburb,
-        state,
-        postcode,
-        country: 'Australia'
-      };
-
-      // Call Cloud Function to create Stripe Checkout Session
-      try {
-        const createSession = httpsCallable(functions, 'createStripeCheckoutSession');
-        const res = await createSession({
-          items: cart,
-          customerName: fullName,
-          customerEmail: email,
-          customerPhone: phone,
-          deliveryAddress: addressObj,
-          subtotal,
-          discountAmount,
-          totalAmount,
-          originUrl: window.location.origin
-        });
-
-        const data = res.data as { checkoutUrl?: string };
-        if (data?.checkoutUrl) {
-          showToast('Redirecting to Stripe secure checkout...');
-          window.location.href = data.checkoutUrl;
-          return;
-        }
-      } catch (cloudErr) {
-        console.warn('Cloud function checkout session uninitialized or offline, attempting direct order fallback:', cloudErr);
-      }
-
-      // Fallback for local dev mode when Firebase Cloud Functions are not running locally
-      const orderNumber = `CFY-${Math.floor(100000 + Math.random() * 900000)}`;
-      const orderItems: OrderItem[] = cart.map(item => ({
-        productId: item.product.id || item.product.slug,
-        name: item.product.name,
-        brand: item.product.brand,
-        price: item.product.price,
-        quantity: item.quantity
-      }));
-
-      const newOrder: Order = {
-        orderNumber,
-        customerId: currentUser?.uid || 'guest-user',
-        customerName: fullName,
-        customerEmail: email,
-        items: orderItems,
-        subtotal,
-        discountAmount,
-        totalAmount,
-        currency: 'AUD',
-        status: 'Verified',
-        source: 'Website',
-        paymentMethod: 'Stripe',
-        deliveryAddress: addressObj,
-        ageConfirmed: true,
-        createdAt: new Date().toISOString(),
-        statusHistory: [
-          { status: 'Pending', timestamp: new Date().toISOString() },
-          { status: 'Verified', timestamp: new Date().toISOString(), updatedBy: 'System Auto-Verify' }
-        ],
-        archived: false
-      };
-
-      // Save order in Firestore
-      const docRef = await addDoc(collection(db, 'orders'), newOrder);
-      newOrder.id = docRef.id;
-
-      // Deduct inventory stock in Firestore
-      for (const item of cart) {
-        if (item.product.id) {
-          try {
-            const pRef = doc(db, 'products', item.product.id);
-            await updateDoc(pRef, {
-              stock: increment(-item.quantity)
-            });
-          } catch (stErr) {
-            console.error('Error updating product stock:', stErr);
-          }
-        }
-      }
-
-      // Fire confetti celebration
-      try {
-        confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 }
-        });
-      } catch (e) {
-        // Fallback
-      }
-
-      setCompletedOrder(newOrder);
-      clearCart();
-      showToast('Order successfully placed!');
-    } catch (err) {
-      console.error('Error placing order:', err);
-      showToast('Failed to process order. Please try again.', 'error');
-    } finally {
-      setSubmitting(false);
-    }
-  };
-
-  return (
-    <div style={{ padding: '3rem 0 6rem 0' }}>
-      <div className="container">
-        <div style={{ marginBottom: '2rem' }}>
-          <Link to="/cart" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--text-muted)', fontSize: '0.9rem' }}>
-            <ArrowLeft size={16} /> Return to Shopping Cart
-          </Link>
-          <h1 style={{ fontSize: '2.5rem', color: '#ffffff', marginTop: '0.5rem' }}>Secure Checkout</h1>
-        </div>
-
-        <form onSubmit={handlePlaceOrder}>
-          <div className="checkout-container-grid">
-            {/* Left Column: Form Details */}
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
-              {/* Step 1: Customer Contact */}
-              <div className="card" style={{ padding: '1.75rem' }}>
-                <h3 style={{ fontSize: '1.3rem', color: '#ffffff', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  1. Contact & Customer Details
-                </h3>
-
-                <div className="form-group">
-                  <label className="form-label">Full Name</label>
-                  <input
-                    type="text"
-                    required
-                    className="form-control"
-                    placeholder="e.g. John Citizen"
-                    value={fullName}
-                    onChange={(e) => setFullName(e.target.value)}
-                  />
-                </div>
-
-                <div className="checkout-form-row-2">
-                  <div className="form-group">
-                    <label className="form-label">Email Address</label>
-                    <input
-                      type="email"
-                      required
-                      className="form-control"
-                      placeholder="john@example.com.au"
-                      value={email}
-                      onChange={(e) => setEmail(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="form-group">
-                    <label className="form-label">Phone Number</label>
-                    <input
-                      type="tel"
-                      required
-                      className="form-control"
-                      placeholder="0400 000 000"
-                      value={phone}
-                      onChange={(e) => setPhone(e.target.value)}
-                    />
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 2: Shipping Address */}
-              <div className="card" style={{ padding: '1.75rem' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', flexWrap: 'wrap', gap: '0.5rem', marginBottom: '1.25rem' }}>
-                  <h3 style={{ fontSize: '1.3rem', color: '#ffffff', margin: 0, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    2. Australian Shipping Address
-                  </h3>
-                  {savedAddress && (
-                    <span className="badge badge-gold" style={{ fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <MapPin size={13} /> Auto-filled from account
-                    </span>
-                  )}
-                </div>
-
-                {userProfile?.addresses && userProfile.addresses.length > 1 && (
-                  <div className="form-group" style={{ marginBottom: '1.25rem' }}>
-                    <label className="form-label" style={{ color: 'var(--accent-gold)' }}>Select Saved Shipping Address</label>
-                    <select
-                      className="form-control"
-                      onChange={(e) => {
-                        const selected = userProfile.addresses?.find(a => a.id === e.target.value);
-                        if (selected) {
-                          setStreet(selected.street);
-                          setSuburb(selected.suburb);
-                          setState(selected.state);
-                          setPostcode(selected.postcode);
-                        }
-                      }}
-                    >
-                      {userProfile.addresses.map(a => (
-                        <option key={a.id} value={a.id}>
-                          {a.street}, {a.suburb} {a.state} {a.postcode} {a.isDefault ? '(Primary Default)' : ''}
-                        </option>
-                      ))}
-                    </select>
-                  </div>
-                )}
-
-                <div className="form-group">
-                  <label className="form-label">Street Address</label>
-                  <input
-                    type="text"
-                    required
-                    className="form-control"
-                    placeholder="123 George Street"
-                    value={street}
-                    onChange={(e) => setStreet(e.target.value)}
-                  />
-                </div>
-
-                <div className="checkout-address-fields">
-                  <div className="form-group">
-                    <label className="form-label">Suburb / City</label>
-                    <input
-                      type="text"
-                      required
-                      className="form-control"
-                      placeholder="Sydney"
-                      value={suburb}
-                      onChange={(e) => setSuburb(e.target.value)}
-                    />
-                  </div>
-
-                  <div className="checkout-state-postcode-container">
-                    <div className="form-group">
-                      <label className="form-label">State</label>
-                      <select
-                        className="form-control"
-                        value={state}
-                        onChange={(e) => setState(e.target.value)}
-                      >
-                        <option value="NSW">NSW</option>
-                        <option value="VIC">VIC</option>
-                        <option value="QLD">QLD</option>
-                        <option value="SA">SA</option>
-                        <option value="WA">WA</option>
-                        <option value="TAS">TAS</option>
-                        <option value="ACT">ACT</option>
-                        <option value="NT">NT</option>
-                      </select>
-                    </div>
-
-                    <div className="form-group">
-                      <label className="form-label">Postcode</label>
-                      <input
-                        type="text"
-                        required
-                        className="form-control"
-                        placeholder="2000"
-                        value={postcode}
-                        onChange={(e) => setPostcode(e.target.value)}
-                      />
-                    </div>
-                  </div>
-                </div>
-              </div>
-
-              {/* Step 3: Payment Method */}
-              <div className="card" style={{ padding: '1.75rem' }}>
-                <h3 style={{ fontSize: '1.3rem', color: '#ffffff', marginBottom: '1rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                  3. Payment Method
-                </h3>
-
-                <div style={{
-                  padding: '1.5rem',
-                  backgroundColor: 'var(--bg-primary)',
-                  borderRadius: 'var(--radius-md)',
-                  border: '1px solid var(--border-subtle)',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.85rem'
-                }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', color: '#ffffff', fontWeight: 600, fontSize: '1rem', flexWrap: 'wrap' }}>
-                    <CreditCard size={20} style={{ color: 'var(--accent-gold)' }} />
-                    <span>Secure Checkout via Stripe</span>
-                    <span className="badge badge-gold" style={{ marginLeft: 'auto', fontSize: '0.75rem', display: 'inline-flex', alignItems: 'center' }}>
-                      <Lock size={12} style={{ marginRight: '4px' }} /> 256-Bit Encrypted
-                    </span>
-                  </div>
-                  <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    After reviewing your details, clicking <strong>Pay & Place Order</strong> will securely redirect you to Stripe Hosted Checkout to complete your payment.
-                  </p>
-                </div>
-              </div>
+  // Canceled state — user backed out of Stripe Checkout
+  if (status === 'canceled') {
+    return (
+      <div style={{ padding: '4rem 0 6rem 0', textAlign: 'center' }}>
+        <div className="container" style={{ maxWidth: '640px' }}>
+          <div className="card" style={{ padding: '3rem 2rem' }}>
+            <div style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              justifyContent: 'center',
+              width: '72px',
+              height: '72px',
+              borderRadius: '50%',
+              backgroundColor: 'rgba(220, 38, 38, 0.15)',
+              color: '#dc2626',
+              marginBottom: '1.5rem'
+            }}>
+              <XCircle size={40} />
             </div>
 
-            {/* Right Column: Summary & Confirmation */}
-            <div>
-              <div className="card" style={{ padding: '1.75rem', position: 'sticky', top: '100px' }}>
-                <h3 style={{ fontSize: '1.4rem', color: '#ffffff', marginBottom: '1.25rem' }}>Items Review</h3>
+            <h1 style={{ fontSize: '2rem', color: '#ffffff', marginBottom: '0.5rem' }}>
+              Payment Canceled
+            </h1>
 
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', marginBottom: '1.5rem' }}>
-                  {cart.map(item => (
-                    <div key={item.product.id || item.product.slug} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem' }}>
-                      <div>
-                        <span style={{ color: '#ffffff', fontWeight: 600 }}>{item.quantity}x {item.product.name}</span>
-                      </div>
-                      <span style={{ color: 'var(--accent-gold)' }}>${item.product.price * item.quantity} AUD</span>
-                    </div>
-                  ))}
-                </div>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '2rem', maxWidth: '440px', marginInline: 'auto' }}>
+              No worries — your cart items are still saved. You can return to your cart and try again when you're ready.
+            </p>
 
-                <div style={{
-                  borderTop: '1px solid var(--border-subtle)',
-                  paddingTop: '1rem',
-                  display: 'flex',
-                  flexDirection: 'column',
-                  gap: '0.5rem',
-                  fontSize: '0.95rem'
-                }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)} AUD</span>
-                  </div>
-                  {discountAmount > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
-                      <span>Discount</span>
-                      <span>-${discountAmount.toFixed(2)} AUD</span>
-                    </div>
-                  )}
-                  <div style={{
-                    display: 'flex',
-                    justifyContent: 'space-between',
-                    fontWeight: 700,
-                    fontSize: '1.3rem',
-                    color: '#ffffff',
-                    marginTop: '0.5rem',
-                    paddingTop: '0.5rem',
-                    borderTop: '1px solid var(--border-subtle)'
-                  }}>
-                    <span>Total Due</span>
-                    <span style={{ color: 'var(--accent-gold)' }}>${totalAmount.toFixed(2)} AUD</span>
-                  </div>
-                </div>
-
-                <button
-                  type="submit"
-                  className="btn btn-primary btn-lg btn-full"
-                  disabled={submitting}
-                  style={{ marginTop: '1.75rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
-                >
-                  <Lock size={18} /> {submitting ? 'Processing Order...' : `Pay & Place Order ($${totalAmount.toFixed(2)})`}
-                </button>
-
-                {/* Mandatory Age Confirmation Checkbox */}
-                <div style={{
-                  marginTop: '1.25rem',
-                  padding: '1.1rem',
-                  border: '1.5px solid var(--accent-gold)',
-                  borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'rgba(212, 175, 55, 0.05)'
-                }}>
-                  <label style={{
-                    display: 'flex',
-                    alignItems: 'flex-start',
-                    gap: '0.75rem',
-                    cursor: 'pointer',
-                    fontSize: '0.88rem',
-                    color: '#ffffff',
-                    lineHeight: 1.45
-                  }}>
-                    <input
-                      type="checkbox"
-                      required
-                      checked={ageConfirmed}
-                      onChange={(e) => setAgeConfirmed(e.target.checked)}
-                      style={{ width: '18px', height: '18px', accentColor: 'var(--accent-gold)', marginTop: '2px', flexShrink: 0 }}
-                    />
-                    <span>
-                      <strong>I confirm I am 18 years of age or older</strong> and that this order of tobacco products is for my own personal consumption. I understand that government-issued photo ID is checked upon delivery.
-                    </span>
-                  </label>
-                </div>
-              </div>
+            <div style={{ display: 'flex', gap: '1rem', justifyContent: 'center', flexWrap: 'wrap' }}>
+              <Link to="/cart" className="btn btn-primary">
+                Return to Cart
+              </Link>
+              <Link to="/shop" className="btn btn-secondary">
+                Continue Shopping
+              </Link>
             </div>
           </div>
-        </form>
+        </div>
+      </div>
+    );
+  }
+
+  // Default / empty state — no Stripe params, redirect to cart
+  return (
+    <div style={{ padding: '6rem 0', textAlign: 'center' }}>
+      <div className="container">
+        <div style={{
+          display: 'inline-flex',
+          alignItems: 'center',
+          justifyContent: 'center',
+          width: '80px',
+          height: '80px',
+          borderRadius: '50%',
+          backgroundColor: 'var(--bg-card)',
+          color: 'var(--text-muted)',
+          marginBottom: '1.5rem'
+        }}>
+          <ShoppingBag size={40} />
+        </div>
+
+        <h2 style={{ color: '#ffffff', marginBottom: '1rem' }}>Nothing to See Here</h2>
+        <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
+          Head to your cart to proceed with checkout.
+        </p>
+
+        <Link to="/cart" className="btn btn-primary">
+          Go to Cart
+        </Link>
       </div>
     </div>
   );

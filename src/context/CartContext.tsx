@@ -11,6 +11,7 @@ interface CartContextType {
   applyCoupon: (coupon: Coupon | null) => void;
   subtotal: number;
   discountAmount: number;
+  shippingFee: number;
   totalAmount: number;
   itemCount: number;
 }
@@ -91,6 +92,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+  const shippingFee = cart.length > 0 ? 25 : 0;
 
   let discountAmount = 0;
   if (appliedCoupon && appliedCoupon.active) {
@@ -102,7 +104,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }
   discountAmount = Math.min(discountAmount, subtotal);
 
-  const totalAmount = Math.max(0, subtotal - discountAmount);
+  const totalAmount = Math.max(0, subtotal - discountAmount + shippingFee);
   const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
   return (
@@ -116,6 +118,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       applyCoupon,
       subtotal,
       discountAmount,
+      shippingFee,
       totalAmount,
       itemCount
     }}>

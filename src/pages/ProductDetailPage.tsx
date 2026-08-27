@@ -248,7 +248,7 @@ export const ProductDetailPage: React.FC = () => {
     };
 
     addToCart(itemToAdd, quantity);
-    navigate('/checkout');
+    navigate('/cart');
   };
 
   // Frequently Bought Together calculation for recommended cigars

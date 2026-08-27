@@ -27,8 +27,8 @@ function getStripeInstance(): Stripe {
  * CALLABLE FUNCTION: Create Stripe Checkout Session
  * Generates a hosted Stripe Checkout URL for customer order payment.
  */
-export const createStripeCheckoutSession = onCall({ cors: true }, async (request) => {
-  const { items, customerEmail, customerName, customerPhone, deliveryAddress, originUrl, subtotal, discountAmount, totalAmount } = request.data || {};
+export const createStripeCheckoutSession = onCall({ cors: true, secrets: ["STRIPE_SECRET_KEY"] }, async (request) => {
+  const { items, customerEmail, customerName, customerPhone, deliveryAddress, originUrl, subtotal, discountAmount, shippingFee, totalAmount, couponCode } = request.data || {};
 
   if (!items || !Array.isArray(items) || items.length === 0) {
     throw new HttpsError("invalid-argument", "Cart is empty or missing items.");
@@ -53,6 +53,38 @@ export const createStripeCheckoutSession = onCall({ cors: true }, async (request
     quantity: item.quantity,
   }));
 
+  // Add Flat Universal Australia Express Shipping Fee ($25 AUD default)
+  const actualShippingFee = typeof shippingFee === "number" ? shippingFee : 25;
+  if (actualShippingFee > 0) {
+    lineItems.push({
+      price_data: {
+        currency: "aud",
+        product_data: {
+          name: "Australia Flat Rate Express Delivery",
+          description: "Universal flat-rate express delivery service with 18+ ID verification upon delivery",
+        },
+        unit_amount: Math.round(actualShippingFee * 100),
+      },
+      quantity: 1,
+    });
+  }
+
+  // Handle portal-managed coupon discount dynamically
+  let stripeDiscounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined = undefined;
+  if (discountAmount && discountAmount > 0) {
+    try {
+      const createdCoupon = await stripe.coupons.create({
+        amount_off: Math.round(discountAmount * 100),
+        currency: "aud",
+        duration: "once",
+        name: couponCode ? `Coupon Discount (${couponCode})` : "Portal Special Discount",
+      });
+      stripeDiscounts = [{ coupon: createdCoupon.id }];
+    } catch (cErr) {
+      logger.error("Failed to create temporary Stripe coupon for discount:", cErr);
+    }
+  }
+
   const customerId = request.auth?.uid || "guest-user";
   const baseUrl = originUrl || "http://localhost:5173";
 
@@ -71,6 +103,8 @@ export const createStripeCheckoutSession = onCall({ cors: true }, async (request
     totalAmount: String(totalAmount || 0),
     subtotal: String(subtotal || 0),
     discountAmount: String(discountAmount || 0),
+    shippingFee: String(actualShippingFee),
+    couponCode: couponCode || "",
     itemsJson: JSON.stringify(items.map((i: any) => ({
       productId: i.product.id || i.product.slug,
       name: i.product.name,
@@ -84,6 +118,7 @@ export const createStripeCheckoutSession = onCall({ cors: true }, async (request
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
+      discounts: stripeDiscounts,
       mode: "payment",
       customer_email: customerEmail,
       client_reference_id: orderNumber,
@@ -104,7 +139,7 @@ export const createStripeCheckoutSession = onCall({ cors: true }, async (request
  * STRIPE WEBHOOK HANDLER
  * Listens for Stripe webhook events: checkout.session.completed, invoice.paid, etc.
  */
-export const stripeWebhook = onRequest(async (req, res) => {
+export const stripeWebhook = onRequest({ secrets: ["STRIPE_SECRET_KEY", "STRIPE_WEBHOOK_SECRET"] }, async (req, res) => {
   const stripeSecretKey = process.env.STRIPE_SECRET_KEY || "STRIPE_SECRET_KEY_PLACEHOLDER";
   const stripeWebhookSecret = process.env.STRIPE_WEBHOOK_SECRET || "STRIPE_WEBHOOK_SECRET_PLACEHOLDER";
 
