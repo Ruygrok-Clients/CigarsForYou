@@ -1,5 +1,5 @@
-import React, { useState, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import React, { useState, useEffect, useMemo, useRef } from 'react';
+import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
 import { 
   ShoppingBag, 
   ChevronDown, 
@@ -8,10 +8,13 @@ import {
   ArrowRight,
   ArrowLeft,
   User as UserIcon,
-  Truck
+  Truck,
+  Flame,
+  X
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { CIGAR_CATALOG } from '../data/cigarCatalog';
 
 export const CIGAR_BRANDS = [
   { name: 'Cohiba', slug: 'cohiba' },
@@ -39,6 +42,7 @@ export const Navbar: React.FC = () => {
   const { currentUser, userProfile } = useAuth();
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [searchQuery, setSearchQuery] = useState('');
+  const [isSearchFocused, setIsSearchFocused] = useState(false);
   const [selectedLocation, setSelectedLocation] = useState('NSW');
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
   const [locationNotice, setLocationNotice] = useState<string | null>(null);
@@ -47,7 +51,42 @@ export const Navbar: React.FC = () => {
   const lastScrollY = React.useRef(0);
   
   const headerRef = React.useRef<HTMLElement | null>(null);
+  const searchBoxRef = useRef<HTMLDivElement | null>(null);
+  const mobileSearchBoxRef = useRef<HTMLDivElement | null>(null);
   const navigate = useNavigate();
+  const location = useLocation();
+  const [searchParams] = useSearchParams();
+
+  // Sync navbar search query with URL when on /shop page
+  useEffect(() => {
+    if (location.pathname === '/shop') {
+      const q = searchParams.get('search') || '';
+      setSearchQuery(q);
+    }
+  }, [location.pathname, searchParams]);
+
+  // Click outside to close live search popup
+  useEffect(() => {
+    const handleClickOutside = (e: MouseEvent) => {
+      if (
+        searchBoxRef.current && !searchBoxRef.current.contains(e.target as Node) &&
+        mobileSearchBoxRef.current && !mobileSearchBoxRef.current.contains(e.target as Node)
+      ) {
+        setIsSearchFocused(false);
+      }
+    };
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const searchResults = useMemo(() => {
+    if (!searchQuery.trim()) return [];
+    const qWords = searchQuery.toLowerCase().trim().split(/\s+/);
+    return CIGAR_CATALOG.filter(p => {
+      const text = `${p.brand} ${p.name} ${p.description || ''} ${p.origin || ''}`.toLowerCase();
+      return qWords.every(word => text.includes(word));
+    });
+  }, [searchQuery]);
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -110,6 +149,7 @@ export const Navbar: React.FC = () => {
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
+    setIsSearchFocused(false);
     if (selectedCategory === 'Cigarettes') {
       navigate('/cigarettes');
       return;
@@ -208,71 +248,193 @@ export const Navbar: React.FC = () => {
             </Link>
 
             {/* Center Search Capsule (Desktop) */}
-            <form 
-              onSubmit={handleSearchSubmit} 
-              style={{ flex: 1, maxWidth: '580px', display: 'flex' }}
-            >
-              <div className="medicart-search-bar" style={{ width: '100%' }}>
-                {/* Category Select Dropdown */}
-                <select
-                  value={selectedCategory}
-                  onChange={(e) => setSelectedCategory(e.target.value)}
-                  style={{
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '0.875rem',
-                    fontWeight: 600,
-                    color: '#2e1a10',
-                    outline: 'none',
-                    cursor: 'pointer',
-                    paddingRight: '0.5rem'
-                  }}
-                >
-                  <option value="All Categories">All Categories</option>
-                  <option value="Cigars">Cigars</option>
-                  <option value="Cigarettes">Cigarettes</option>
-                </select>
+            <div ref={searchBoxRef} style={{ flex: 1, maxWidth: '580px', position: 'relative' }}>
+              <form 
+                onSubmit={handleSearchSubmit} 
+                style={{ width: '100%', display: 'flex' }}
+              >
+                <div className="medicart-search-bar" style={{ width: '100%' }}>
+                  {/* Category Select Dropdown */}
+                  <select
+                    value={selectedCategory}
+                    onChange={(e) => setSelectedCategory(e.target.value)}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      fontSize: '0.875rem',
+                      fontWeight: 600,
+                      color: '#2e1a10',
+                      outline: 'none',
+                      cursor: 'pointer',
+                      paddingRight: '0.5rem'
+                    }}
+                  >
+                    <option value="All Categories">All Categories</option>
+                    <option value="Cigars">Cigars</option>
+                    <option value="Cigarettes">Cigarettes</option>
+                  </select>
 
-                <div style={{ width: '1px', height: '18px', backgroundColor: 'rgba(46, 26, 16, 0.15)', margin: '0 10px' }} />
+                  <div style={{ width: '1px', height: '18px', backgroundColor: 'rgba(46, 26, 16, 0.15)', margin: '0 10px' }} />
 
-                {/* Search Input */}
-                <input
-                  type="text"
-                  placeholder="Search cigars, humidors, cigarettes..."
-                  value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
-                  style={{
-                    flex: 1,
-                    border: 'none',
-                    background: 'transparent',
-                    fontSize: '0.875rem',
-                    color: '#2e1a10',
-                    outline: 'none'
-                  }}
-                />
+                  {/* Search Input */}
+                  <input
+                    type="text"
+                    placeholder="Search cigars, humidors, cigarettes..."
+                    value={searchQuery}
+                    onFocus={() => setIsSearchFocused(true)}
+                    onChange={(e) => {
+                      setSearchQuery(e.target.value);
+                      setIsSearchFocused(true);
+                    }}
+                    style={{
+                      flex: 1,
+                      border: 'none',
+                      background: 'transparent',
+                      fontSize: '0.875rem',
+                      color: '#2e1a10',
+                      outline: 'none'
+                    }}
+                  />
 
-                {/* Search Button */}
-                <button
-                  type="submit"
-                  aria-label="Search"
-                  style={{
-                    width: '32px',
-                    height: '32px',
-                    borderRadius: '50%',
+                  {/* Search Button */}
+                  <button
+                    type="submit"
+                    aria-label="Search"
+                    style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      background: '#c06517',
+                      color: '#ffffff',
+                      transition: 'background 0.15s ease',
+                      border: 'none',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    <Search size={16} style={{ color: '#ffffff' }} />
+                  </button>
+                </div>
+              </form>
+
+              {/* Desktop Live Search Results Dropdown */}
+              {isSearchFocused && searchQuery.trim().length > 0 && (
+                <div style={{
+                  position: 'absolute',
+                  top: 'calc(100% + 8px)',
+                  left: 0,
+                  right: 0,
+                  backgroundColor: '#ffffff',
+                  borderRadius: '14px',
+                  border: '1px solid rgba(46, 26, 16, 0.12)',
+                  boxShadow: '0 12px 36px rgba(0, 0, 0, 0.15)',
+                  zIndex: 1050,
+                  overflow: 'hidden'
+                }}>
+                  <div style={{
+                    padding: '0.65rem 1rem',
+                    backgroundColor: '#faf8f5',
+                    borderBottom: '1px solid rgba(46, 26, 16, 0.08)',
+                    fontSize: '0.75rem',
+                    fontWeight: 700,
+                    color: '#c06517',
+                    textTransform: 'uppercase',
+                    letterSpacing: '0.05em',
                     display: 'flex',
                     alignItems: 'center',
-                    justifyContent: 'center',
-                    background: '#c06517',
-                    color: '#ffffff',
-                    transition: 'background 0.15s ease',
-                    border: 'none',
-                    cursor: 'pointer'
-                  }}
-                >
-                  <Search size={16} style={{ color: '#ffffff' }} />
-                </button>
-              </div>
-            </form>
+                    justifyContent: 'space-between'
+                  }}>
+                    <span>{searchResults.length} matching cigar{searchResults.length === 1 ? '' : 's'}</span>
+                    <button 
+                      type="button" 
+                      onClick={() => setIsSearchFocused(false)}
+                      style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#71717a' }}
+                    >
+                      <X size={14} />
+                    </button>
+                  </div>
+
+                  {searchResults.length === 0 ? (
+                    <div style={{ padding: '1.25rem 1rem', textAlign: 'center', color: '#71717a', fontSize: '0.85rem' }}>
+                      No cigars found matching "{searchQuery}"
+                    </div>
+                  ) : (
+                    <div style={{ maxHeight: '340px', overflowY: 'auto' }}>
+                      {searchResults.slice(0, 6).map(item => (
+                        <div
+                          key={item.id || item.slug}
+                          onClick={() => {
+                            setIsSearchFocused(false);
+                            navigate(`/product/${item.slug}`);
+                          }}
+                          style={{
+                            padding: '0.75rem 1rem',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'space-between',
+                            gap: '1rem',
+                            borderBottom: '1px solid rgba(0,0,0,0.04)',
+                            cursor: 'pointer',
+                            transition: 'background-color 0.15s ease'
+                          }}
+                          onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = '#fcfaf7')}
+                          onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = 'transparent')}
+                        >
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
+                            <div style={{
+                              width: '36px',
+                              height: '36px',
+                              borderRadius: '8px',
+                              backgroundColor: '#f2efe9',
+                              display: 'flex',
+                              alignItems: 'center',
+                              justifyContent: 'center',
+                              color: '#c06517',
+                              flexShrink: 0
+                            }}>
+                              <Flame size={18} />
+                            </div>
+                            <div>
+                              <div style={{ fontSize: '0.7rem', fontWeight: 700, color: '#c06517', textTransform: 'uppercase' }}>
+                                {item.brand}
+                              </div>
+                              <div style={{ fontSize: '0.875rem', fontWeight: 600, color: '#1a1a1a' }}>
+                                {item.name}
+                              </div>
+                            </div>
+                          </div>
+                          <div style={{ fontSize: '0.875rem', fontWeight: 700, color: '#2f0d0e' }}>
+                            ${item.price} AUD
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+
+                  <div style={{ padding: '0.65rem 1rem', backgroundColor: '#faf8f5', borderTop: '1px solid rgba(46, 26, 16, 0.08)', textAlign: 'center' }}>
+                    <button
+                      type="button"
+                      onClick={(e) => {
+                        setIsSearchFocused(false);
+                        handleSearchSubmit(e);
+                      }}
+                      style={{
+                        border: 'none',
+                        background: 'transparent',
+                        color: '#c06517',
+                        fontWeight: 700,
+                        fontSize: '0.825rem',
+                        cursor: 'pointer'
+                      }}
+                    >
+                      View all results on Shop Page &rarr;
+                    </button>
+                  </div>
+                </div>
+              )}
+            </div>
 
             {/* Right Section: Australian Location, Cart, User Profile / Sign In */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
@@ -762,7 +924,7 @@ export const Navbar: React.FC = () => {
           </div>
 
           {/* Mobile Search Bar Row */}
-          <div style={{ padding: '0 0.85rem 0.6rem 0.85rem' }}>
+          <div ref={mobileSearchBoxRef} style={{ padding: '0 0.85rem 0.6rem 0.85rem', position: 'relative' }}>
             <form onSubmit={handleSearchSubmit} style={{ display: 'flex', width: '100%' }}>
               <div className="medicart-search-bar" style={{ width: '100%', padding: '0.35rem 0.75rem' }}>
                 <select
@@ -790,7 +952,11 @@ export const Navbar: React.FC = () => {
                   type="text"
                   placeholder="Search cigars, humidors..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onFocus={() => setIsSearchFocused(true)}
+                  onChange={(e) => {
+                    setSearchQuery(e.target.value);
+                    setIsSearchFocused(true);
+                  }}
                   style={{
                     flex: 1,
                     border: 'none',
@@ -821,6 +987,119 @@ export const Navbar: React.FC = () => {
                 </button>
               </div>
             </form>
+
+            {/* Mobile Live Search Results Dropdown */}
+            {isSearchFocused && searchQuery.trim().length > 0 && (
+              <div style={{
+                position: 'absolute',
+                top: 'calc(100% + 4px)',
+                left: '0.85rem',
+                right: '0.85rem',
+                backgroundColor: '#ffffff',
+                borderRadius: '12px',
+                border: '1px solid rgba(46, 26, 16, 0.12)',
+                boxShadow: '0 12px 30px rgba(0, 0, 0, 0.18)',
+                zIndex: 1050,
+                overflow: 'hidden'
+              }}>
+                <div style={{
+                  padding: '0.55rem 0.85rem',
+                  backgroundColor: '#faf8f5',
+                  borderBottom: '1px solid rgba(46, 26, 16, 0.08)',
+                  fontSize: '0.725rem',
+                  fontWeight: 700,
+                  color: '#c06517',
+                  textTransform: 'uppercase',
+                  letterSpacing: '0.05em',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'space-between'
+                }}>
+                  <span>{searchResults.length} matching cigar{searchResults.length === 1 ? '' : 's'}</span>
+                  <button 
+                    type="button" 
+                    onClick={() => setIsSearchFocused(false)}
+                    style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#71717a' }}
+                  >
+                    <X size={14} />
+                  </button>
+                </div>
+
+                {searchResults.length === 0 ? (
+                  <div style={{ padding: '1rem 0.85rem', textAlign: 'center', color: '#71717a', fontSize: '0.825rem' }}>
+                    No cigars found matching "{searchQuery}"
+                  </div>
+                ) : (
+                  <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
+                    {searchResults.slice(0, 5).map(item => (
+                      <div
+                        key={item.id || item.slug}
+                        onClick={() => {
+                          setIsSearchFocused(false);
+                          navigate(`/product/${item.slug}`);
+                        }}
+                        style={{
+                          padding: '0.65rem 0.85rem',
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          gap: '0.75rem',
+                          borderBottom: '1px solid rgba(0,0,0,0.04)',
+                          cursor: 'pointer'
+                        }}
+                      >
+                        <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
+                          <div style={{
+                            width: '32px',
+                            height: '32px',
+                            borderRadius: '6px',
+                            backgroundColor: '#f2efe9',
+                            display: 'flex',
+                            alignItems: 'center',
+                            justifyContent: 'center',
+                            color: '#c06517',
+                            flexShrink: 0
+                          }}>
+                            <Flame size={16} />
+                          </div>
+                          <div>
+                            <div style={{ fontSize: '0.65rem', fontWeight: 700, color: '#c06517', textTransform: 'uppercase' }}>
+                              {item.brand}
+                            </div>
+                            <div style={{ fontSize: '0.825rem', fontWeight: 600, color: '#1a1a1a' }}>
+                              {item.name}
+                            </div>
+                          </div>
+                        </div>
+                        <div style={{ fontSize: '0.825rem', fontWeight: 700, color: '#2f0d0e' }}>
+                          ${item.price}
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
+                <div style={{ padding: '0.55rem 0.85rem', backgroundColor: '#faf8f5', borderTop: '1px solid rgba(46, 26, 16, 0.08)', textAlign: 'center' }}>
+                  <button
+                    type="button"
+                    onClick={(e) => {
+                      setIsSearchFocused(false);
+                      handleSearchSubmit(e);
+                    }}
+                    style={{
+                      border: 'none',
+                      background: 'transparent',
+                      color: '#c06517',
+                      fontWeight: 700,
+                      fontSize: '0.8rem',
+                      cursor: 'pointer'
+                    }}
+                  >
+                    View all results on Shop Page &rarr;
+                  </button>
+                </div>
+              </div>
+            )}
           </div>
 
           {/* Mobile Category Pills Ribbon */}

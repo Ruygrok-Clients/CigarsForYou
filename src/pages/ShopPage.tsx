@@ -1,11 +1,12 @@
 import React, { useState, useEffect, useMemo } from 'react';
-import { useParams } from 'react-router-dom';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { collection, getDocs, query } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { Product } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { CIGAR_BRANDS } from '../components/Navbar';
+import { CIGAR_CATALOG } from '../data/cigarCatalog';
 import {
   Search,
   SlidersHorizontal,
@@ -21,144 +22,24 @@ import {
   Star
 } from 'lucide-react';
 
-const FALLBACK_CIGARS: Product[] = [
-  {
-    id: 'cohiba-robustos',
-    name: 'Robustos',
-    brand: 'Cohiba',
-    slug: 'cohiba-robustos',
-    price: 127,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'The archetype of the Robusto format. Rich tones of cocoa, cedar, and roasted nuts.'
-  },
-  {
-    id: 'partagas-serie-d-4',
-    name: 'Serie D No.4',
-    brand: 'Partagas',
-    slug: 'partagas-serie-d-4',
-    price: 62,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'A benchmark Robusto with deep earth, leather, and pepper notes.'
-  },
-  {
-    id: 'romeo-y-julieta-churchills',
-    name: 'Churchills',
-    brand: 'Romeo y Julieta',
-    slug: 'romeo-y-julieta-churchills',
-    price: 89,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'The signature cigar named in honor of Sir Winston Churchill.'
-  },
-  {
-    id: 'montecristo-no-2',
-    name: 'Montecristo No.2',
-    brand: 'Montecristo',
-    slug: 'montecristo-no-2',
-    price: 95,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'The king of torpedoes. Perfectly tapered with a creamy profile of espresso and spice.'
-  },
-  {
-    id: 'hoyo-de-monterrey-epicure-2',
-    name: 'Epicure No.2',
-    brand: 'Hoyo De Monterrey',
-    slug: 'hoyo-de-monterrey-epicure-2',
-    price: 65,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'Mild to medium-bodied elegance. Silky smooth notes of cream and sweet wood.'
-  },
-  {
-    id: 'h-upmann-half-corona',
-    name: 'Half Corona',
-    brand: 'H. Upmann',
-    slug: 'h-upmann-half-corona',
-    price: 33,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'Compact yet intensely flavorful. Excellent 20-minute smoke packed with toasted nuts.'
-  },
-  {
-    id: 'cohiba-siglo-vi',
-    name: 'Siglo VI',
-    brand: 'Cohiba',
-    slug: 'cohiba-siglo-vi',
-    price: 189,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'The crown jewel of the Linea 1492 with generous ring gauge.'
-  },
-  {
-    id: 'trinidad-vigia',
-    name: 'Vigia',
-    brand: 'Trinidad',
-    slug: 'trinidad-vigia',
-    price: 110,
-    currency: 'AUD',
-    stock: 75,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'A heavy ring gauge short smoke offering aromatic wood, honey, and spice.'
-  },
-  {
-    id: 'bolivar-royal-coronas',
-    name: 'Royal Coronas',
-    brand: 'Bolivar',
-    slug: 'bolivar-royal-coronas',
-    price: 78,
-    currency: 'AUD',
-    stock: 50,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'Full-bodied robusto delivering intense earth, leather, and dark chocolate notes.'
-  }
-];
+const FALLBACK_CIGARS: Product[] = CIGAR_CATALOG;
 
 export const ShopPage: React.FC = () => {
   const { brandSlug } = useParams<{ brandSlug?: string }>();
+  const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedBrand, setSelectedBrand] = useState<string>(brandSlug || 'all');
-  const [searchQuery, setSearchQuery] = useState('');
+  const [searchQuery, setSearchQuery] = useState(searchParams.get('search') || '');
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'name'>('featured');
   const [selectedNotifyProduct, setSelectedNotifyProduct] = useState<Product | null>(null);
+
+  // Sync searchQuery when URL search parameter changes
+  useEffect(() => {
+    const urlQuery = searchParams.get('search') || '';
+    setSearchQuery(urlQuery);
+  }, [searchParams]);
 
   // Sync selectedBrand with URL parameter
   useEffect(() => {
@@ -198,6 +79,27 @@ export const ShopPage: React.FC = () => {
     return products.length > 0 ? products : FALLBACK_CIGARS;
   }, [products]);
 
+  const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const val = e.target.value;
+    setSearchQuery(val);
+    const newParams = new URLSearchParams(searchParams);
+    if (val.trim()) {
+      newParams.set('search', val.trim());
+    } else {
+      newParams.delete('search');
+    }
+    setSearchParams(newParams, { replace: true });
+  };
+
+  const handleResetFilters = () => {
+    setSelectedBrand('all');
+    setSearchQuery('');
+    setInStockOnly(false);
+    const newParams = new URLSearchParams(searchParams);
+    newParams.delete('search');
+    setSearchParams(newParams, { replace: true });
+  };
+
   // Sidebar Category Definition with Dynamic Counts
   const categoriesList = useMemo(() => {
     const getCountForBrand = (bName: string) => {
@@ -232,12 +134,12 @@ export const ShopPage: React.FC = () => {
       // Stock filter
       if (inStockOnly && p.stock <= 0) return false;
 
-      // Search query
+      // Search query filter (multi-word match across brand, name, description, origin)
       if (searchQuery.trim()) {
-        const q = searchQuery.toLowerCase();
-        const matchName = p.name.toLowerCase().includes(q);
-        const matchBrand = p.brand.toLowerCase().includes(q);
-        if (!matchName && !matchBrand) return false;
+        const qWords = searchQuery.toLowerCase().trim().split(/\s+/);
+        const searchableText = `${p.brand} ${p.name} ${p.description || ''} ${p.origin || ''} ${p.category || ''}`.toLowerCase();
+        const matchesAll = qWords.every(word => searchableText.includes(word));
+        if (!matchesAll) return false;
       }
 
       return true;
@@ -412,7 +314,7 @@ export const ShopPage: React.FC = () => {
                   }}
                   placeholder="Search cigars..."
                   value={searchQuery}
-                  onChange={(e) => setSearchQuery(e.target.value)}
+                  onChange={handleSearchInputChange}
                 />
               </div>
 
@@ -478,7 +380,7 @@ export const ShopPage: React.FC = () => {
                 </p>
                 <button
                   className="btn btn-outline"
-                  onClick={() => { setSelectedBrand('all'); setSearchQuery(''); setInStockOnly(false); }}
+                  onClick={handleResetFilters}
                   style={{ borderRadius: '8px', borderColor: '#c06517', color: '#c06517' }}
                 >
                   Reset All Filters

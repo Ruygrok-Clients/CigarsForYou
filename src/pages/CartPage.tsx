@@ -2,13 +2,13 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
-import { 
-  ShoppingBag, 
-  Trash2, 
-  ArrowRight, 
-  ShieldAlert, 
-  Tag, 
-  ChevronLeft 
+import {
+  ShoppingBag,
+  Trash2,
+  ArrowRight,
+  ShieldAlert,
+  Tag,
+  ChevronLeft
 } from 'lucide-react';
 import type { Coupon } from '../types';
 
@@ -77,7 +77,7 @@ export const CartPage: React.FC = () => {
           {/* Cart Items List */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
             {cart.map((item) => (
-              <div 
+              <div
                 key={item.product.id || item.product.slug}
                 className="card"
                 style={{
@@ -131,7 +131,7 @@ export const CartPage: React.FC = () => {
                       border: '1px solid var(--border-subtle)',
                       borderRadius: 'var(--radius-md)'
                     }}>
-                      <button 
+                      <button
                         onClick={() => updateQuantity(item.product.id || item.product.slug, item.quantity - 1)}
                         style={{ padding: '0.25rem 0.6rem', color: 'var(--text-primary)' }}
                       >
@@ -140,7 +140,7 @@ export const CartPage: React.FC = () => {
                       <span style={{ padding: '0 0.5rem', fontSize: '0.9rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                         {item.quantity}
                       </span>
-                      <button 
+                      <button
                         onClick={() => updateQuantity(item.product.id || item.product.slug, item.quantity + 1)}
                         style={{ padding: '0.25rem 0.6rem', color: 'var(--text-primary)' }}
                       >
@@ -148,7 +148,7 @@ export const CartPage: React.FC = () => {
                       </button>
                     </div>
 
-                    <button 
+                    <button
                       onClick={() => removeFromCart(item.product.id || item.product.slug)}
                       style={{ color: 'var(--accent-ruby)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}
                     >
@@ -220,11 +220,6 @@ export const CartPage: React.FC = () => {
                     <span>-${discountAmount.toFixed(2)} AUD</span>
                   </div>
                 )}
-
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-                  <span>Express Australia Delivery</span>
-                  <span>Free (Over $200)</span>
-                </div>
 
                 <div style={{
                   display: 'flex',
