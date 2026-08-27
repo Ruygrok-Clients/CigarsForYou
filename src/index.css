@@ -459,6 +459,11 @@ body.is-scrolling::-webkit-scrollbar-thumb:hover {
   color: #666666;
 }
 
+select.form-control option {
+  background-color: #ffffff;
+  color: #000000;
+}
+
 /* Chrome / Safari / Edge autofill styles for input fields */
 .form-control:-webkit-autofill,
 .form-control:-webkit-autofill:hover,

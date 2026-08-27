@@ -89,12 +89,17 @@ export interface OrderStatusHistory {
 export interface Order {
   id?: string;
   orderNumber: string;
+  stripeSessionId?: string;
+  stripePaymentIntentId?: string;
   customerId: string;
   customerName: string;
   customerEmail: string;
+  customerPhone?: string;
   items: OrderItem[];
   subtotal: number;
   discountAmount: number;
+  shippingFee?: number;
+  couponCode?: string;
   totalAmount: number;
   currency: 'AUD';
   status: OrderStatus;
@@ -103,6 +108,7 @@ export interface Order {
   deliveryAddress: Address;
   ageConfirmed: boolean;
   createdAt: string;
+  paidAt?: string;
   statusHistory: OrderStatusHistory[];
   archived?: boolean;
 }
@@ -120,11 +126,15 @@ export interface StockNotification {
 
 export interface Coupon {
   code: string;
-  discountType: 'percentage' | 'fixed';
+  discountType: 'percentage' | 'fixed' | 'free_shipping';
   amount: number;
   active: boolean;
   timesClaimed: number;
   minOrderAmount?: number;
+  minSpend?: number;
+  expiresAt?: string;
+  usageLimit?: number;
+  usedCount?: number;
 }
 
 export interface EmailSubscriber {

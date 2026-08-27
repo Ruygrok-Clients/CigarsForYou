@@ -1,17 +1,20 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
+import { httpsCallable } from 'firebase/functions';
+import { functions } from '../firebase';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import confetti from 'canvas-confetti';
-import { CheckCircle2, XCircle, ShoppingBag } from 'lucide-react';
+import { CheckCircle2, XCircle, ShoppingBag, Loader2, Package, CreditCard } from 'lucide-react';
+import type { Order } from '../types';
 
 /**
- * CheckoutPage — Stripe Return Handler Only
+ * CheckoutPage — Stripe Return Handler
  * 
  * This page handles the return URL from Stripe Hosted Checkout.
- * It does NOT contain any forms or order placement logic.
- * Orders are created exclusively by the Stripe webhook (stripeWebhook Cloud Function).
+ * It calls the verifyStripeOrder Cloud Function to guarantee that the order document is
+ * written into Firestore (with duplicate prevention), and displays the completed order summary.
  */
 export const CheckoutPage: React.FC = () => {
   const { clearCart } = useCart();
@@ -20,22 +23,50 @@ export const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const [status, setStatus] = useState<'loading' | 'success' | 'canceled' | 'empty'>('loading');
   const [orderNumber, setOrderNumber] = useState('');
+  const [orderDetails, setOrderDetails] = useState<Order | null>(null);
+  const [verifying, setVerifying] = useState(false);
 
   useEffect(() => {
     const isSuccess = searchParams.get('success') === 'true';
     const isCanceled = searchParams.get('canceled') === 'true';
+    const sessionId = searchParams.get('session_id') || '';
     const orderNum = searchParams.get('order_number') || '';
 
     if (isSuccess) {
-      setStatus('success');
       setOrderNumber(orderNum);
       clearCart();
-      showToast('Payment successful! Your order has been placed.');
 
-      try {
-        confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-      } catch (_) {
-        // confetti not available
+      if (sessionId) {
+        setVerifying(true);
+        setStatus('loading');
+        const verifyOrder = httpsCallable(functions, 'verifyStripeOrder');
+        verifyOrder({ sessionId })
+          .then((res: any) => {
+            const data = res.data;
+            if (data?.order) {
+              setOrderDetails(data.order);
+              if (data.order.orderNumber) setOrderNumber(data.order.orderNumber);
+            }
+            setStatus('success');
+            showToast('Payment confirmed! Your order has been placed in Firestore.');
+            try {
+              confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+            } catch (_) {}
+          })
+          .catch((err) => {
+            console.error('Error verifying Stripe order:', err);
+            setStatus('success');
+            showToast('Payment completed. Order details processed.', 'info');
+          })
+          .finally(() => {
+            setVerifying(false);
+          });
+      } else {
+        setStatus('success');
+        showToast('Payment successful! Your order has been placed.');
+        try {
+          confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
+        } catch (_) {}
       }
     } else if (isCanceled) {
       setStatus('canceled');
@@ -45,12 +76,28 @@ export const CheckoutPage: React.FC = () => {
     }
   }, [searchParams]);
 
+  if (verifying || (status === 'loading' && searchParams.get('success') === 'true')) {
+    return (
+      <div style={{ padding: '6rem 0', textAlign: 'center' }}>
+        <div className="container" style={{ maxWidth: '500px' }}>
+          <div className="card" style={{ padding: '3rem 2rem' }}>
+            <Loader2 className="animate-spin" size={48} style={{ color: 'var(--accent-gold)', margin: '0 auto 1.5rem' }} />
+            <h2 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>Verifying Stripe Payment</h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
+              Finalizing your payment and writing order details into Firestore...
+            </p>
+          </div>
+        </div>
+      </div>
+    );
+  }
+
   // Success state — payment completed via Stripe
   if (status === 'success') {
     return (
-      <div style={{ padding: '4rem 0 6rem 0', textAlign: 'center' }}>
-        <div className="container" style={{ maxWidth: '640px' }}>
-          <div className="card" style={{ padding: '3rem 2rem', border: '1px solid var(--accent-gold)' }}>
+      <div style={{ padding: '4rem 0 6rem 0' }}>
+        <div className="container" style={{ maxWidth: '720px' }}>
+          <div className="card" style={{ padding: '3rem 2rem', border: '1px solid var(--accent-gold)', textAlign: 'center' }}>
             <div style={{
               display: 'inline-flex',
               alignItems: 'center',
@@ -65,8 +112,8 @@ export const CheckoutPage: React.FC = () => {
               <CheckCircle2 size={40} />
             </div>
 
-            <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>
-              Order Confirmed & Paid
+            <span className="badge badge-gold" style={{ marginBottom: '0.75rem', display: 'inline-block' }}>
+              Order Confirmed & Paid via Stripe
             </span>
 
             <h1 style={{ fontSize: '2.5rem', color: '#ffffff', marginBottom: '0.5rem' }}>
@@ -74,14 +121,88 @@ export const CheckoutPage: React.FC = () => {
             </h1>
 
             {orderNumber && (
-              <p style={{ color: 'var(--text-secondary)', fontSize: '1.05rem', marginBottom: '1rem' }}>
+              <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', marginBottom: '1rem' }}>
                 Order reference: <strong style={{ color: 'var(--accent-gold)' }}>{orderNumber}</strong>
               </p>
             )}
 
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '1.5rem', maxWidth: '440px', marginInline: 'auto' }}>
-              Your payment has been processed securely via Stripe. A confirmation email will be sent to <strong>{currentUser?.email || 'your email address'}</strong>.
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem', marginBottom: '2rem', maxWidth: '520px', marginInline: 'auto' }}>
+              Your payment has been processed securely via Stripe and recorded in Firestore. A confirmation email has been dispatched to <strong>{orderDetails?.customerEmail || currentUser?.email || 'your email address'}</strong>.
             </p>
+
+            {/* Order Details Breakdown Card */}
+            {orderDetails && (
+              <div style={{
+                backgroundColor: 'var(--bg-primary)',
+                borderRadius: 'var(--radius-md)',
+                padding: '1.5rem',
+                marginBottom: '2rem',
+                border: '1px solid var(--border-subtle)',
+                textAlign: 'left'
+              }}>
+                <h3 style={{ fontSize: '1.1rem', color: '#ffffff', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                  <Package size={18} style={{ color: 'var(--accent-gold)' }} /> Order Breakdown
+                </h3>
+
+                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block' }}>Customer</span>
+                    <strong style={{ color: '#ffffff' }}>{orderDetails.customerName}</strong>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{orderDetails.customerEmail}</div>
+                    {orderDetails.customerPhone && <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{orderDetails.customerPhone}</div>}
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block' }}>Delivery Address</span>
+                    <strong style={{ color: '#ffffff' }}>{orderDetails.deliveryAddress.street}</strong>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                      {orderDetails.deliveryAddress.suburb}, {orderDetails.deliveryAddress.state} {orderDetails.deliveryAddress.postcode}
+                    </div>
+                  </div>
+                  <div>
+                    <span style={{ color: 'var(--text-muted)', display: 'block' }}>Payment Method</span>
+                    <strong style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                      <CreditCard size={14} style={{ color: 'var(--accent-gold)' }} /> Stripe Verified
+                    </strong>
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Paid in AUD</div>
+                  </div>
+                </div>
+
+                <div style={{ borderTop: '1px dashed var(--border-subtle)', paddingTop: '1rem' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Purchased Items:</span>
+                  {orderDetails.items?.map((item: any, idx: number) => (
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.4rem' }}>
+                      <span style={{ color: '#ffffff' }}>
+                        {item.quantity}x {item.name} {item.brand ? `(${item.brand})` : ''}
+                      </span>
+                      <span style={{ color: 'var(--text-secondary)' }}>
+                        ${(item.price * item.quantity).toFixed(2)} AUD
+                      </span>
+                    </div>
+                  ))}
+
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '0.75rem', paddingTop: '0.75rem', fontSize: '0.9rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', color: 'var(--text-muted)' }}>
+                      <span>Subtotal</span>
+                      <span>${orderDetails.subtotal?.toFixed(2)} AUD</span>
+                    </div>
+                    {(orderDetails.discountAmount ?? 0) > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.25rem', color: '#4caf50' }}>
+                        <span>Discount ({orderDetails.couponCode || 'Coupon'})</span>
+                        <span>-${orderDetails.discountAmount?.toFixed(2)} AUD</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: '0.5rem', color: 'var(--text-muted)' }}>
+                      <span>Express Shipping</span>
+                      <span>${(orderDetails.shippingFee ?? 25).toFixed(2)} AUD</span>
+                    </div>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 700, fontSize: '1.05rem', color: 'var(--accent-gold)' }}>
+                      <span>Total Paid</span>
+                      <span>${orderDetails.totalAmount?.toFixed(2)} AUD</span>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <div style={{
               backgroundColor: 'var(--bg-primary)',
@@ -90,7 +211,8 @@ export const CheckoutPage: React.FC = () => {
               marginBottom: '2rem',
               border: '1px solid var(--border-subtle)',
               fontSize: '0.9rem',
-              color: 'var(--text-muted)'
+              color: 'var(--text-muted)',
+              textAlign: 'center'
             }}>
               <p style={{ margin: 0 }}>
                 🚚 Your order will be dispatched via Australia Post Express. Remember to present <strong style={{ color: 'var(--text-primary)' }}>government photo ID (18+)</strong> upon delivery.

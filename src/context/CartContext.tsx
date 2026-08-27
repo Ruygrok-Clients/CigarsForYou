@@ -7,16 +7,20 @@ interface CartContextType {
   removeFromCart: (productId: string) => void;
   updateQuantity: (productId: string, quantity: number) => void;
   clearCart: () => void;
-  appliedCoupon: Coupon | null;
+  appliedCoupons: Coupon[];
+  appliedCoupon: Coupon | null; // backward compatibility
   applyCoupon: (coupon: Coupon | null) => void;
+  removeCoupon: (code: string) => void;
   subtotal: number;
   discountAmount: number;
   shippingFee: number;
   totalAmount: number;
   itemCount: number;
+  isFreeShipping: boolean;
 }
 
 const CART_KEY = 'cfy_cart_items_v1';
+const COUPON_KEY = 'cfy_applied_coupons_v2';
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -30,7 +34,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   });
 
-  const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
+  const [appliedCoupons, setAppliedCoupons] = useState<Coupon[]>(() => {
+    try {
+      const saved = localStorage.getItem(COUPON_KEY);
+      if (saved) {
+        const parsed = JSON.parse(saved);
+        if (Array.isArray(parsed)) return parsed;
+        if (parsed && typeof parsed === 'object') return [parsed];
+      }
+      return [];
+    } catch {
+      return [];
+    }
+  });
 
   useEffect(() => {
     try {
@@ -39,6 +55,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       console.error('Failed to save cart to localStorage', e);
     }
   }, [cart]);
+
+  useEffect(() => {
+    try {
+      if (appliedCoupons.length > 0) {
+        localStorage.setItem(COUPON_KEY, JSON.stringify(appliedCoupons));
+      } else {
+        localStorage.removeItem(COUPON_KEY);
+      }
+    } catch (e) {
+      console.error('Failed to save coupons to localStorage', e);
+    }
+  }, [appliedCoupons]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
     setCart((prev) => {
@@ -84,26 +112,45 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const clearCart = () => {
     setCart([]);
-    setAppliedCoupon(null);
+    setAppliedCoupons([]);
   };
 
   const applyCoupon = (coupon: Coupon | null) => {
-    setAppliedCoupon(coupon);
+    if (!coupon) return;
+    setAppliedCoupons(prev => {
+      const cleanCode = coupon.code.trim().toUpperCase();
+      if (prev.some(c => c.code.toUpperCase() === cleanCode)) return prev;
+      return [...prev, coupon];
+    });
+  };
+
+  const removeCoupon = (code: string) => {
+    const cleanCode = code.trim().toUpperCase();
+    setAppliedCoupons(prev => prev.filter(c => c.code.toUpperCase() !== cleanCode));
   };
 
   const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
-  const shippingFee = cart.length > 0 ? 25 : 0;
+  const isFreeShipping = appliedCoupons.some(c => c.discountType === 'free_shipping');
+  const baseShippingFee = cart.length > 0 ? 25 : 0;
+  const shippingFee = (cart.length > 0 && !isFreeShipping) ? baseShippingFee : 0;
 
-  let discountAmount = 0;
-  if (appliedCoupon && appliedCoupon.active) {
-    if (appliedCoupon.discountType === 'percentage') {
-      discountAmount = (subtotal * appliedCoupon.amount) / 100;
-    } else {
-      discountAmount = appliedCoupon.amount;
+  // Calculate sum of item discounts (excluding free_shipping which makes shippingFee = 0)
+  let rawItemDiscount = 0;
+  for (const c of appliedCoupons) {
+    if (!c.active && c.active !== undefined) continue;
+    if (c.discountType === 'free_shipping') continue;
+
+    const minRequired = c.minSpend ?? c.minOrderAmount ?? 0;
+    if (subtotal >= minRequired) {
+      if (c.discountType === 'percentage') {
+        rawItemDiscount += (subtotal * c.amount) / 100;
+      } else if (c.discountType === 'fixed') {
+        rawItemDiscount += c.amount;
+      }
     }
   }
-  discountAmount = Math.min(discountAmount, subtotal);
 
+  const discountAmount = Math.min(rawItemDiscount, subtotal);
   const totalAmount = Math.max(0, subtotal - discountAmount + shippingFee);
   const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -114,13 +161,16 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removeFromCart,
       updateQuantity,
       clearCart,
-      appliedCoupon,
+      appliedCoupons,
+      appliedCoupon: appliedCoupons[0] || null,
       applyCoupon,
+      removeCoupon,
       subtotal,
       discountAmount,
       shippingFee,
       totalAmount,
-      itemCount
+      itemCount,
+      isFreeShipping
     }}>
       {children}
     </CartContext.Provider>

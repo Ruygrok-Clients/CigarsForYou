@@ -136,6 +136,203 @@ export const createStripeCheckoutSession = onCall({ cors: true, secrets: ["STRIP
 });
 
 /**
+ * Processes a completed Stripe Checkout Session, writes the new order into Firestore,
+ * updates inventory, increments coupon usage, and sends email notification.
+ * Designed to be idempotent (safe against retries or dual execution from webhook + client return).
+ */
+export async function processSuccessfulStripeSession(session: Stripe.Checkout.Session) {
+  if (!session || !session.id) {
+    throw new Error("Invalid Stripe session object");
+  }
+
+  // 1. Check if order already exists for this Stripe session
+  const existingBySession = await db.collection("orders").where("stripeSessionId", "==", session.id).get();
+  if (!existingBySession.empty) {
+    const existingDoc = existingBySession.docs[0];
+    logger.info(`Order for Stripe Session ${session.id} already exists in Firestore (ID: ${existingDoc.id}).`);
+    const data = existingDoc.data() || {};
+    return { created: false, orderId: existingDoc.id, order: { id: existingDoc.id, ...data } as any };
+  }
+
+  const metadata = session.metadata || {};
+  const orderNumber = metadata.orderNumber || session.client_reference_id || `CFY-${Math.floor(100000 + Math.random() * 900000)}`;
+
+  // Also check if order exists by orderNumber
+  const existingByNum = await db.collection("orders").where("orderNumber", "==", orderNumber).get();
+  if (!existingByNum.empty) {
+    const existingDoc = existingByNum.docs[0];
+    logger.info(`Order #${orderNumber} already exists in Firestore (ID: ${existingDoc.id}). Updating stripeSessionId...`);
+    if (!existingDoc.data().stripeSessionId) {
+      await existingDoc.ref.update({
+        stripeSessionId: session.id,
+        stripePaymentIntentId: typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || ""
+      });
+    }
+    const data = existingDoc.data() || {};
+    return { created: false, orderId: existingDoc.id, order: { id: existingDoc.id, ...data } as any };
+  }
+
+  // 2. Parse items, amounts, address, and coupon info
+  let items = [];
+  try {
+    items = metadata.itemsJson ? JSON.parse(metadata.itemsJson) : [];
+  } catch (e) {
+    logger.error("Failed to parse itemsJson from session metadata:", e);
+  }
+
+  const deliveryAddress = {
+    id: Math.random().toString(36).substring(2, 9),
+    street: metadata.street || "",
+    suburb: metadata.suburb || "",
+    state: metadata.state || "NSW",
+    postcode: metadata.postcode || "",
+    country: metadata.country || "Australia"
+  };
+
+  const totalAmount = parseFloat(metadata.totalAmount || "0") || (session.amount_total ? session.amount_total / 100 : 0);
+  const subtotal = parseFloat(metadata.subtotal || "0") || totalAmount;
+  const discountAmount = parseFloat(metadata.discountAmount || "0");
+  const shippingFee = parseFloat(metadata.shippingFee || "25");
+  const couponCode = metadata.couponCode || "";
+  const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || "";
+
+  const nowIso = new Date().toISOString();
+
+  const newOrder = {
+    orderNumber,
+    stripeSessionId: session.id,
+    stripePaymentIntentId: paymentIntentId,
+    customerId: metadata.customerId || "guest-user",
+    customerName: metadata.customerName || session.customer_details?.name || "Customer",
+    customerEmail: metadata.customerEmail || session.customer_details?.email || "",
+    customerPhone: metadata.customerPhone || session.customer_details?.phone || "",
+    items,
+    subtotal,
+    discountAmount,
+    shippingFee,
+    couponCode,
+    totalAmount,
+    currency: "AUD",
+    status: "Verified",
+    source: "Website",
+    paymentMethod: "Stripe",
+    deliveryAddress,
+    ageConfirmed: true,
+    createdAt: nowIso,
+    paidAt: nowIso,
+    statusHistory: [
+      { status: "Pending", timestamp: nowIso },
+      { status: "Verified", timestamp: nowIso, updatedBy: "Stripe Checkout Paid" }
+    ],
+    archived: false
+  };
+
+  // 3. Save order document into Firestore
+  const docRef = await db.collection("orders").add(newOrder);
+  logger.info(`Successfully created order ${docRef.id} (#${orderNumber}) in Firestore via Stripe Checkout completion.`);
+
+  // 4. Increment coupon usage counter if applied
+  if (couponCode) {
+    const codes = couponCode.split(",").map((c: string) => c.trim().toUpperCase()).filter(Boolean);
+    for (const cleanCode of codes) {
+      try {
+        const couponRef = db.collection("coupons").doc(cleanCode);
+        const couponSnap = await couponRef.get();
+        if (couponSnap.exists) {
+          await couponRef.update({
+            timesClaimed: admin.firestore.FieldValue.increment(1),
+            usedCount: admin.firestore.FieldValue.increment(1)
+          });
+          logger.info(`Incremented usage counter for coupon document ${cleanCode}`);
+        }
+      } catch (cErr) {
+        logger.error(`Error updating usage count for coupon ${cleanCode}:`, cErr);
+      }
+    }
+  }
+
+  // 5. Deduct inventory stock for purchased items
+  for (const item of items) {
+    const pId = item.productId;
+    if (pId) {
+      try {
+        const pRef = db.collection("products").doc(pId);
+        const pSnap = await pRef.get();
+        if (pSnap.exists) {
+          await pRef.update({
+            stock: admin.firestore.FieldValue.increment(-item.quantity)
+          });
+          logger.info(`Successfully deducted ${item.quantity} stock for product document ${pId}`);
+        } else {
+          // Fallback: match by slug or product name if doc ID wasn't direct match
+          const queryBySlug = await db.collection("products").where("slug", "==", pId).get();
+          if (!queryBySlug.empty) {
+            await queryBySlug.docs[0].ref.update({
+              stock: admin.firestore.FieldValue.increment(-item.quantity)
+            });
+            logger.info(`Successfully deducted ${item.quantity} stock for product with slug ${pId}`);
+          } else if (item.name) {
+            const queryByName = await db.collection("products").where("name", "==", item.name).get();
+            if (!queryByName.empty) {
+              await queryByName.docs[0].ref.update({
+                stock: admin.firestore.FieldValue.increment(-item.quantity)
+              });
+              logger.info(`Successfully deducted ${item.quantity} stock for product with name "${item.name}"`);
+            }
+          }
+        }
+      } catch (stErr) {
+        logger.error(`Error updating stock for product ${pId}:`, stErr);
+      }
+    }
+  }
+
+  // 6. Trigger admin notification email
+  try {
+    await sendNewOrderAdminNotification(newOrder);
+  } catch (emailErr) {
+    logger.error("Failed to send admin notification email upon Stripe order creation:", emailErr);
+  }
+
+  return { created: true, orderId: docRef.id, order: { id: docRef.id, ...newOrder } as any };
+}
+
+/**
+ * CALLABLE FUNCTION: Verify Stripe Order & Write to Firestore
+ * Called by frontend when customer returns to checkout page with success=true&session_id=...
+ */
+export const verifyStripeOrder = onCall({ secrets: ["STRIPE_SECRET_KEY"] }, async (request) => {
+  const { sessionId } = request.data || {};
+  if (!sessionId) {
+    throw new HttpsError("invalid-argument", "Missing Stripe session ID");
+  }
+
+  const stripe = getStripeInstance();
+  try {
+    const session = await stripe.checkout.sessions.retrieve(sessionId);
+    if (!session) {
+      throw new HttpsError("not-found", "Stripe session not found");
+    }
+
+    if (session.payment_status !== "paid" && session.status !== "complete") {
+      throw new HttpsError("failed-precondition", `Stripe session payment status is '${session.payment_status}'`);
+    }
+
+    const result = await processSuccessfulStripeSession(session);
+    return {
+      success: true,
+      orderNumber: (result.order as any).orderNumber,
+      orderId: result.orderId,
+      order: result.order
+    };
+  } catch (err: any) {
+    logger.error(`Error verifying Stripe order for session ${sessionId}:`, err);
+    if (err instanceof HttpsError) throw err;
+    throw new HttpsError("internal", err.message || "Failed to verify Stripe order");
+  }
+});
+
+/**
  * STRIPE WEBHOOK HANDLER
  * Listens for Stripe webhook events: checkout.session.completed, invoice.paid, etc.
  */
@@ -168,88 +365,8 @@ export const stripeWebhook = onRequest({ secrets: ["STRIPE_SECRET_KEY", "STRIPE_
     switch (event.type) {
       case "checkout.session.completed": {
         const session = event.data.object as Stripe.Checkout.Session;
-        logger.info("Stripe Checkout Session completed:", session.id);
-
-        const metadata = session.metadata || {};
-        const orderNumber = metadata.orderNumber || `CFY-${Math.floor(100000 + Math.random() * 900000)}`;
-
-        // Prevent duplicate order creation if webhook retries
-        const existingDoc = await db.collection("orders").where("stripeSessionId", "==", session.id).get();
-        if (!existingDoc.empty) {
-          logger.info(`Order for Stripe Session ${session.id} already exists. Skipping duplicate creation.`);
-          break;
-        }
-
-        let items = [];
-        try {
-          items = metadata.itemsJson ? JSON.parse(metadata.itemsJson) : [];
-        } catch (e) {
-          logger.error("Failed to parse itemsJson from session metadata:", e);
-        }
-
-        const deliveryAddress = {
-          id: Math.random().toString(36).substring(2, 9),
-          street: metadata.street || "",
-          suburb: metadata.suburb || "",
-          state: metadata.state || "NSW",
-          postcode: metadata.postcode || "",
-          country: metadata.country || "Australia"
-        };
-
-        const totalAmount = parseFloat(metadata.totalAmount || "0") || (session.amount_total ? session.amount_total / 100 : 0);
-        const subtotal = parseFloat(metadata.subtotal || "0") || totalAmount;
-        const discountAmount = parseFloat(metadata.discountAmount || "0");
-
-        const newOrder = {
-          orderNumber,
-          stripeSessionId: session.id,
-          customerId: metadata.customerId || "guest-user",
-          customerName: metadata.customerName || session.customer_details?.name || "Customer",
-          customerEmail: metadata.customerEmail || session.customer_details?.email || "",
-          customerPhone: metadata.customerPhone || session.customer_details?.phone || "",
-          items,
-          subtotal,
-          discountAmount,
-          totalAmount,
-          currency: "AUD",
-          status: "Verified",
-          source: "Website",
-          paymentMethod: "Stripe",
-          deliveryAddress,
-          ageConfirmed: true,
-          createdAt: new Date().toISOString(),
-          statusHistory: [
-            { status: "Pending", timestamp: new Date().toISOString() },
-            { status: "Verified", timestamp: new Date().toISOString(), updatedBy: "Stripe Webhook Auto-Verify" }
-          ],
-          archived: false
-        };
-
-        // Save order in Firestore
-        const docRef = await db.collection("orders").add(newOrder);
-        logger.info(`Successfully created order ${docRef.id} (#${orderNumber}) via Stripe webhook.`);
-
-        // Deduct inventory stock
-        for (const item of items) {
-          if (item.productId) {
-            try {
-              const pRef = db.collection("products").doc(item.productId);
-              await pRef.update({
-                stock: admin.firestore.FieldValue.increment(-item.quantity)
-              });
-            } catch (stErr) {
-              logger.error(`Error updating stock for product ${item.productId}:`, stErr);
-            }
-          }
-        }
-
-        // Trigger email notification to admin staff
-        try {
-          await sendNewOrderAdminNotification(newOrder);
-        } catch (emailErr) {
-          logger.error("Failed to send admin notification email upon Stripe webhook order creation:", emailErr);
-        }
-
+        logger.info("Stripe Checkout Session completed event received:", session.id);
+        await processSuccessfulStripeSession(session);
         break;
       }
       case "invoice.paid": {

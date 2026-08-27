@@ -365,6 +365,7 @@ export const AdminOrders: React.FC = () => {
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Customer Info</span>
                   <strong style={{ color: 'var(--text-primary)' }}>{selectedOrder.customerName}</strong><br />
                   <span style={{ color: 'var(--text-secondary)' }}>{selectedOrder.customerEmail}</span>
+                  {selectedOrder.customerPhone && <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>📞 {selectedOrder.customerPhone}</div>}
                 </div>
                 <div>
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Delivery Address</span>
@@ -384,8 +385,13 @@ export const AdminOrders: React.FC = () => {
                   </span>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Payment Method</span>
-                  <span style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>{selectedOrder.paymentMethod}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Payment Method & Reference</span>
+                  <span style={{ color: 'var(--accent-gold)', fontWeight: 600, display: 'block' }}>{selectedOrder.paymentMethod}</span>
+                  {selectedOrder.stripeSessionId && (
+                    <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                      Stripe: {selectedOrder.stripeSessionId}
+                    </span>
+                  )}
                 </div>
               </div>
 
@@ -396,15 +402,32 @@ export const AdminOrders: React.FC = () => {
                   {selectedOrder.items.map((item, idx) => (
                     <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)' }}>
                       <span>{item.quantity}x {item.brand} {item.name}</span>
-                      <strong style={{ color: 'var(--accent-gold)' }}>${item.price * item.quantity} AUD</strong>
+                      <strong style={{ color: 'var(--accent-gold)' }}>${(item.price * item.quantity).toFixed(2)} AUD</strong>
                     </div>
                   ))}
+
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '0.5rem', paddingTop: '0.5rem', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                      <span>Subtotal</span>
+                      <span>${selectedOrder.subtotal?.toFixed(2)} AUD</span>
+                    </div>
+                    {(selectedOrder.discountAmount ?? 0) > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
+                        <span>Discount ({selectedOrder.couponCode || 'Coupon'})</span>
+                        <span>-${selectedOrder.discountAmount?.toFixed(2)} AUD</span>
+                      </div>
+                    )}
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                      <span>Express Shipping</span>
+                      <span>${(selectedOrder.shippingFee ?? 25).toFixed(2)} AUD</span>
+                    </div>
+                  </div>
                 </div>
               </div>
 
               {/* Totals */}
               <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontWeight: 700, fontSize: '1.1rem' }}>
-                <span style={{ color: 'var(--text-primary)' }}>Total Amount</span>
+                <span style={{ color: 'var(--text-primary)' }}>Total Paid</span>
                 <span style={{ color: 'var(--accent-gold)' }}>${selectedOrder.totalAmount.toFixed(2)} AUD</span>
               </div>
 

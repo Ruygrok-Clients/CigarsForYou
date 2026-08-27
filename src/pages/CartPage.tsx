@@ -2,40 +2,48 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
+import { validateAndFetchCoupon } from '../utils/coupon';
 import {
   ShoppingBag,
   Trash2,
   ShieldAlert,
   Tag,
   ChevronLeft,
-  ArrowRight
+  ArrowRight,
+  Loader2
 } from 'lucide-react';
-import type { Coupon } from '../types';
-
-const DEMO_COUPONS: Record<string, Coupon> = {
-  'WELCOME10': { code: 'WELCOME10', discountType: 'percentage', amount: 10, active: true, timesClaimed: 12 },
-  'CUBAN50': { code: 'CUBAN50', discountType: 'fixed', amount: 50, active: true, timesClaimed: 4 }
-};
 
 export const CartPage: React.FC = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart, appliedCoupon, applyCoupon, subtotal, discountAmount, shippingFee, totalAmount } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart, appliedCoupons, applyCoupon, removeCoupon, subtotal, discountAmount, shippingFee, totalAmount, isFreeShipping } = useCart();
   const { showToast } = useToast();
   const [couponCode, setCouponCode] = useState('');
+  const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
-  const handleApplyCoupon = (e: React.FormEvent) => {
+  const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
-    const clean = couponCode.trim().toUpperCase();
-    if (DEMO_COUPONS[clean]) {
-      applyCoupon(DEMO_COUPONS[clean]);
-      showToast(`Coupon "${clean}" applied successfully!`);
-    } else {
-      showToast('Invalid coupon code. Try WELCOME10 or CUBAN50', 'error');
+    if (!couponCode.trim()) return;
+
+    setIsValidatingCoupon(true);
+    try {
+      const result = await validateAndFetchCoupon(couponCode, subtotal);
+      if (result.success && result.coupon) {
+        applyCoupon(result.coupon);
+        showToast(`Coupon "${result.coupon.code}" applied successfully!`);
+        setCouponCode('');
+      } else {
+        showToast(result.error || 'Invalid coupon code.', 'error');
+      }
+    } catch (err: any) {
+      console.error('Error validating coupon:', err);
+      showToast('Failed to validate coupon. Please try again.', 'error');
+    } finally {
+      setIsValidatingCoupon(false);
     }
   };
 
-  const handleRemoveCoupon = () => {
-    applyCoupon(null);
-    showToast('Coupon removed');
+  const handleRemoveCoupon = (code: string) => {
+    removeCoupon(code);
+    showToast(`Coupon ${code} removed`);
   };
 
   if (cart.length === 0) {
@@ -178,31 +186,45 @@ export const CartPage: React.FC = () => {
                     placeholder="Coupon (e.g. WELCOME10)"
                     value={couponCode}
                     onChange={(e) => setCouponCode(e.target.value)}
+                    disabled={isValidatingCoupon}
                     style={{ textTransform: 'uppercase' }}
                   />
-                  <button type="submit" className="btn btn-secondary btn-sm">
-                    Apply
+                  <button type="submit" className="btn btn-secondary btn-sm" disabled={isValidatingCoupon || !couponCode.trim()}>
+                    {isValidatingCoupon ? <Loader2 size={14} className="spin" /> : 'Apply'}
                   </button>
                 </form>
 
-                {appliedCoupon && (
-                  <div style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    marginTop: '0.5rem',
-                    padding: '0.4rem 0.75rem',
-                    backgroundColor: 'rgba(212, 175, 55, 0.1)',
-                    borderRadius: 'var(--radius-sm)',
-                    border: '1px solid var(--border-color)',
-                    fontSize: '0.825rem'
-                  }}>
-                    <span style={{ color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
-                      <Tag size={12} /> {appliedCoupon.code} ({appliedCoupon.discountType === 'percentage' ? `${appliedCoupon.amount}% off` : `$${appliedCoupon.amount} AUD off`})
-                    </span>
-                    <button onClick={handleRemoveCoupon} style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>
-                      Remove
-                    </button>
+                {appliedCoupons.length > 0 && (
+                  <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.4rem' }}>
+                    {appliedCoupons.map((c) => {
+                      const minReq = c.minSpend ?? c.minOrderAmount ?? 0;
+                      const met = subtotal >= minReq;
+                      const label = c.discountType === 'free_shipping'
+                        ? 'Free Express Delivery'
+                        : c.discountType === 'percentage'
+                        ? `${c.amount}% off`
+                        : `$${c.amount} AUD off`;
+
+                      return (
+                        <div key={c.code} style={{
+                          display: 'flex',
+                          alignItems: 'center',
+                          justifyContent: 'space-between',
+                          padding: '0.4rem 0.75rem',
+                          backgroundColor: met ? 'rgba(212, 175, 55, 0.1)' : 'rgba(244, 67, 54, 0.1)',
+                          borderRadius: 'var(--radius-sm)',
+                          border: `1px solid ${met ? 'var(--border-color)' : 'rgba(244, 67, 54, 0.3)'}`,
+                          fontSize: '0.825rem'
+                        }}>
+                          <span style={{ color: met ? 'var(--accent-gold)' : '#ff5252', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                            <Tag size={12} /> <strong>{c.code}</strong> ({label})
+                          </span>
+                          <button type="button" onClick={() => handleRemoveCoupon(c.code)} style={{ color: 'var(--text-muted)', fontSize: '0.75rem', background: 'none', border: 'none', cursor: 'pointer' }}>
+                            Remove
+                          </button>
+                        </div>
+                      );
+                    })}
                   </div>
                 )}
               </div>
@@ -223,7 +245,11 @@ export const CartPage: React.FC = () => {
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
                   <span>Australia Express Delivery</span>
-                  <span style={{ color: 'var(--accent-gold)' }}>${shippingFee.toFixed(2)} AUD</span>
+                  {isFreeShipping ? (
+                    <span style={{ color: '#4caf50', fontWeight: 600 }}>FREE ($0.00 AUD)</span>
+                  ) : (
+                    <span style={{ color: 'var(--accent-gold)' }}>${shippingFee.toFixed(2)} AUD</span>
+                  )}
                 </div>
 
                 <div style={{

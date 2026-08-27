@@ -17,8 +17,9 @@ export const AdminMarketing: React.FC = () => {
   // Modal State for Coupon
   const [isCouponModalOpen, setIsCouponModalOpen] = useState(false);
   const [code, setCode] = useState('');
-  const [discountType, setDiscountType] = useState<'percentage' | 'fixed'>('percentage');
+  const [discountType, setDiscountType] = useState<'percentage' | 'fixed' | 'free_shipping'>('percentage');
   const [amount, setAmount] = useState(10);
+  const [minSpend, setMinSpend] = useState(0);
 
   const fetchData = async () => {
     try {
@@ -57,7 +58,8 @@ export const AdminMarketing: React.FC = () => {
       discountType,
       amount: Number(amount),
       active: true,
-      timesClaimed: 0
+      timesClaimed: 0,
+      minSpend: Number(minSpend) || 0
     };
 
     try {
@@ -163,6 +165,7 @@ export const AdminMarketing: React.FC = () => {
                   <tr style={{ borderBottom: '1px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)' }}>
                     <th style={{ padding: '0.75rem' }}>Code</th>
                     <th style={{ padding: '0.75rem' }}>Discount</th>
+                    <th style={{ padding: '0.75rem' }}>Min Spend</th>
                     <th style={{ padding: '0.75rem' }}>Times Claimed</th>
                     <th style={{ padding: '0.75rem' }}>Status</th>
                     <th style={{ padding: '0.75rem', textAlign: 'right' }}>Actions</th>
@@ -171,7 +174,7 @@ export const AdminMarketing: React.FC = () => {
                 <tbody>
                   {coupons.length === 0 ? (
                     <tr>
-                      <td colSpan={5} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
+                      <td colSpan={6} style={{ padding: '2rem', textAlign: 'center', color: 'var(--text-muted)' }}>
                         No coupons generated yet. (Default demo codes WELCOME10 and CUBAN50 work at checkout).
                       </td>
                     </tr>
@@ -182,10 +185,19 @@ export const AdminMarketing: React.FC = () => {
                           {c.code}
                         </td>
                         <td style={{ padding: '0.75rem', color: 'var(--text-primary)' }}>
-                          {c.discountType === 'percentage' ? `${c.amount}% OFF` : `$${c.amount} AUD OFF`}
+                          {c.discountType === 'free_shipping' ? (
+                            <span className="badge badge-gold">🚚 Free Express Delivery ($25)</span>
+                          ) : c.discountType === 'percentage' ? (
+                            `${c.amount}% OFF`
+                          ) : (
+                            `$${c.amount} AUD OFF`
+                          )}
                         </td>
                         <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>
-                          {c.timesClaimed || 0} times
+                          {(c.minSpend || c.minOrderAmount) ? `$${c.minSpend || c.minOrderAmount} AUD` : 'None ($0)'}
+                        </td>
+                        <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>
+                          {c.timesClaimed || c.usedCount || 0} times
                         </td>
                         <td style={{ padding: '0.75rem' }}>
                           <button
@@ -302,10 +314,17 @@ export const AdminMarketing: React.FC = () => {
                   <select
                     className="form-control"
                     value={discountType}
-                    onChange={(e) => setDiscountType(e.target.value as any)}
+                    onChange={(e) => {
+                      const newType = e.target.value as any;
+                      setDiscountType(newType);
+                      if (newType === 'free_shipping') {
+                        setAmount(25);
+                      }
+                    }}
                   >
                     <option value="percentage">Percentage (%)</option>
                     <option value="fixed">Fixed AUD ($)</option>
+                    <option value="free_shipping">Free Express Delivery ($25 AUD)</option>
                   </select>
                 </div>
 
@@ -315,11 +334,29 @@ export const AdminMarketing: React.FC = () => {
                     type="number"
                     required
                     min={1}
+                    disabled={discountType === 'free_shipping'}
                     className="form-control"
-                    value={amount}
+                    value={discountType === 'free_shipping' ? 25 : amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
                   />
+                  {discountType === 'free_shipping' && (
+                    <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', display: 'block', marginTop: '0.25rem' }}>
+                      Waives standard $25 Express Shipping
+                    </span>
+                  )}
                 </div>
+              </div>
+
+              <div className="form-group" style={{ marginTop: '1rem' }}>
+                <label className="form-label">Min Spend (AUD $)</label>
+                <input
+                  type="number"
+                  min={0}
+                  className="form-control"
+                  placeholder="0 (no minimum)"
+                  value={minSpend}
+                  onChange={(e) => setMinSpend(Number(e.target.value))}
+                />
               </div>
 
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
