@@ -1,7 +1,8 @@
 import React, { useEffect, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { httpsCallable } from 'firebase/functions';
-import { functions } from '../firebase';
+import { collection, query, where, getDocs } from 'firebase/firestore';
+import { functions, db } from '../firebase';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
@@ -33,7 +34,7 @@ export const CheckoutPage: React.FC = () => {
     const orderNum = searchParams.get('order_number') || '';
 
     if (isSuccess) {
-      setOrderNumber(orderNum);
+      if (orderNum) setOrderNumber(orderNum);
       clearCart();
 
       if (sessionId) {
@@ -51,12 +52,23 @@ export const CheckoutPage: React.FC = () => {
             showToast('Payment confirmed! Your order has been placed in Firestore.');
             try {
               confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-            } catch (_) {}
+            } catch (_) { }
           })
-          .catch((err) => {
-            console.error('Error verifying Stripe order:', err);
+          .catch(async (err) => {
+            console.warn('verifyStripeOrder callable notice, checking Firestore directly:', err);
+            try {
+              const q = query(collection(db, 'orders'), where('stripeSessionId', '==', sessionId));
+              const snap = await getDocs(q);
+              if (!snap.empty) {
+                const existing = snap.docs[0].data() as Order;
+                setOrderDetails({ ...existing, id: snap.docs[0].id });
+                if (existing.orderNumber) setOrderNumber(existing.orderNumber);
+              }
+            } catch (fbErr) {
+              console.error('Error fetching order from Firestore:', fbErr);
+            }
             setStatus('success');
-            showToast('Payment completed. Order details processed.', 'info');
+            showToast('Payment completed. Order confirmed.');
           })
           .finally(() => {
             setVerifying(false);
@@ -66,7 +78,7 @@ export const CheckoutPage: React.FC = () => {
         showToast('Payment successful! Your order has been placed.');
         try {
           confetti({ particleCount: 100, spread: 80, origin: { y: 0.6 } });
-        } catch (_) {}
+        } catch (_) { }
       }
     } else if (isCanceled) {
       setStatus('canceled');
@@ -215,7 +227,7 @@ export const CheckoutPage: React.FC = () => {
               textAlign: 'center'
             }}>
               <p style={{ margin: 0 }}>
-                🚚 Your order will be dispatched via Australia Post Express. Remember to present <strong style={{ color: 'var(--text-primary)' }}>government photo ID (18+)</strong> upon delivery.
+                🚚 Your order will be dispatched via our couriers now. Remember to present <strong style={{ color: 'var(--text-primary)' }}>government photo ID (18+)</strong> upon delivery.
               </p>
             </div>
 

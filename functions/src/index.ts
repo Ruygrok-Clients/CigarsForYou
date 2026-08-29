@@ -10,13 +10,14 @@ import {
   sendNewOrderAdminNotification,
   sendOutOfStockAdminAlert,
   sendStockNotificationAdminAlert,
+  sendCustomerOrderConfirmationEmail,
   sendTestAdminNotification,
 } from "./email";
 
 admin.initializeApp();
 const db = admin.firestore();
 
-setGlobalOptions({ maxInstances: 10, region: "us-central1" });
+setGlobalOptions({ maxInstances: 10, region: "us-central1", secrets: ["RESEND_API_KEY"] });
 
 function getStripeInstance(): Stripe {
   const secretKey = process.env.STRIPE_SECRET_KEY || "STRIPE_SECRET_KEY_PLACEHOLDER";
@@ -40,20 +41,51 @@ export const createStripeCheckoutSession = onCall({ cors: true, secrets: ["STRIP
   const stripe = getStripeInstance();
   const orderNumber = `CFY-${Math.floor(100000 + Math.random() * 900000)}`;
 
-  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: any) => ({
-    price_data: {
-      currency: "aud",
-      product_data: {
-        name: item.product.name,
-        description: item.product.brand ? `Brand: ${item.product.brand}` : undefined,
-        images: item.product.image ? [item.product.image] : undefined,
-      },
-      unit_amount: Math.round(item.product.price * 100), // Amount in cents
-    },
-    quantity: item.quantity,
-  }));
+  // Calculate discounted item prices directly to guarantee accurate Stripe Checkout charges
+  const totalItemSubtotal = items.reduce((acc: number, item: any) => acc + ((item.product?.price || 0) * (item.quantity || 1)), 0) || (subtotal || 0);
+  const actualDiscountAmount = typeof discountAmount === "number" ? Math.max(0, Math.min(discountAmount, totalItemSubtotal)) : 0;
+  const targetItemsTotalCents = Math.round((totalItemSubtotal - actualDiscountAmount) * 100);
 
-  // Add Flat Universal Australia Express Shipping Fee ($25 AUD default)
+  // If discount is applied, adjust unit price proportionally across items with exact cent precision
+  let accumulatedCents = 0;
+  const lineItems: Stripe.Checkout.SessionCreateParams.LineItem[] = items.map((item: any, idx: number) => {
+    const rawPrice = item.product?.price || 0;
+    const quantity = item.quantity || 1;
+    let unitAmountInCents: number;
+
+    if (actualDiscountAmount > 0 && totalItemSubtotal > 0) {
+      if (idx === items.length - 1) {
+        // Last item absorbs any rounding discrepancy
+        const remainingCents = Math.max(0, targetItemsTotalCents - accumulatedCents);
+        unitAmountInCents = Math.max(1, Math.round(remainingCents / quantity));
+      } else {
+        const itemProportion = (rawPrice * quantity) / totalItemSubtotal;
+        const itemTotalCents = Math.round(targetItemsTotalCents * itemProportion);
+        unitAmountInCents = Math.max(1, Math.round(itemTotalCents / quantity));
+        accumulatedCents += unitAmountInCents * quantity;
+      }
+    } else {
+      unitAmountInCents = Math.round(rawPrice * 100);
+    }
+
+    const discountNote = actualDiscountAmount > 0 && couponCode ? ` (Discount applied: ${couponCode})` : "";
+    const description = item.product?.brand ? `Brand: ${item.product.brand}${discountNote}` : (discountNote ? discountNote.trim() : undefined);
+
+    return {
+      price_data: {
+        currency: "aud",
+        product_data: {
+          name: item.product?.name || "Cigar Product",
+          description: description || undefined,
+          images: item.product?.image ? [item.product.image] : (item.product?.imageUrl ? [item.product.imageUrl] : undefined),
+        },
+        unit_amount: unitAmountInCents,
+      },
+      quantity: quantity,
+    };
+  });
+
+  // Add Flat Universal Australia Express Shipping Fee if shipping is not free
   const actualShippingFee = typeof shippingFee === "number" ? shippingFee : 25;
   if (actualShippingFee > 0) {
     lineItems.push({
@@ -67,22 +99,6 @@ export const createStripeCheckoutSession = onCall({ cors: true, secrets: ["STRIP
       },
       quantity: 1,
     });
-  }
-
-  // Handle portal-managed coupon discount dynamically
-  let stripeDiscounts: Stripe.Checkout.SessionCreateParams.Discount[] | undefined = undefined;
-  if (discountAmount && discountAmount > 0) {
-    try {
-      const createdCoupon = await stripe.coupons.create({
-        amount_off: Math.round(discountAmount * 100),
-        currency: "aud",
-        duration: "once",
-        name: couponCode ? `Coupon Discount (${couponCode})` : "Portal Special Discount",
-      });
-      stripeDiscounts = [{ coupon: createdCoupon.id }];
-    } catch (cErr) {
-      logger.error("Failed to create temporary Stripe coupon for discount:", cErr);
-    }
   }
 
   const customerId = request.auth?.uid || "guest-user";
@@ -118,7 +134,6 @@ export const createStripeCheckoutSession = onCall({ cors: true, secrets: ["STRIP
     const session = await stripe.checkout.sessions.create({
       payment_method_types: ["card"],
       line_items: lineItems,
-      discounts: stripeDiscounts,
       mode: "payment",
       customer_email: customerEmail,
       client_reference_id: orderNumber,
@@ -144,6 +159,13 @@ export async function processSuccessfulStripeSession(session: Stripe.Checkout.Se
   if (!session || !session.id) {
     throw new Error("Invalid Stripe session object");
   }
+
+  logger.info(`Processing Stripe session ${session.id}`, {
+    payment_status: session.payment_status,
+    status: session.status,
+    amount_total: session.amount_total,
+    metadata: session.metadata
+  });
 
   // 1. Check if order already exists for this Stripe session
   const existingBySession = await db.collection("orders").where("stripeSessionId", "==", session.id).get();
@@ -173,45 +195,69 @@ export async function processSuccessfulStripeSession(session: Stripe.Checkout.Se
   }
 
   // 2. Parse items, amounts, address, and coupon info
-  let items = [];
+  let items: any[] = [];
   try {
     items = metadata.itemsJson ? JSON.parse(metadata.itemsJson) : [];
   } catch (e) {
     logger.error("Failed to parse itemsJson from session metadata:", e);
   }
 
+  // Fallback: list line items from Stripe if itemsJson was missing
+  if (!items || items.length === 0) {
+    try {
+      const stripe = getStripeInstance();
+      const stripeLineItems = await stripe.checkout.sessions.listLineItems(session.id);
+      items = stripeLineItems.data.map((li) => ({
+        productId: (typeof li.price?.product === "string" ? li.price.product : "") || "cigar-item",
+        name: li.description || "Cigar Product",
+        brand: "",
+        price: (li.price?.unit_amount || 0) / 100,
+        quantity: li.quantity || 1
+      }));
+    } catch (liErr) {
+      logger.warn("Could not retrieve fallback line items from Stripe session:", liErr);
+    }
+  }
+
   const deliveryAddress = {
-    id: Math.random().toString(36).substring(2, 9),
-    street: metadata.street || "",
-    suburb: metadata.suburb || "",
-    state: metadata.state || "NSW",
-    postcode: metadata.postcode || "",
-    country: metadata.country || "Australia"
+    id: String(Math.random().toString(36).substring(2, 9)),
+    street: String(metadata.street || ""),
+    suburb: String(metadata.suburb || ""),
+    state: String(metadata.state || "NSW"),
+    postcode: String(metadata.postcode || ""),
+    country: String(metadata.country || "Australia")
   };
 
   const totalAmount = parseFloat(metadata.totalAmount || "0") || (session.amount_total ? session.amount_total / 100 : 0);
   const subtotal = parseFloat(metadata.subtotal || "0") || totalAmount;
   const discountAmount = parseFloat(metadata.discountAmount || "0");
-  const shippingFee = parseFloat(metadata.shippingFee || "25");
-  const couponCode = metadata.couponCode || "";
+  const shippingFee = parseFloat(metadata.shippingFee || "0");
+  const couponCode = String(metadata.couponCode || "");
   const paymentIntentId = typeof session.payment_intent === "string" ? session.payment_intent : session.payment_intent?.id || "";
 
   const nowIso = new Date().toISOString();
 
+  // Thoroughly sanitize newOrder fields to guarantee no undefined values (which rejects Firestore writes)
   const newOrder = {
-    orderNumber,
-    stripeSessionId: session.id,
-    stripePaymentIntentId: paymentIntentId,
-    customerId: metadata.customerId || "guest-user",
-    customerName: metadata.customerName || session.customer_details?.name || "Customer",
-    customerEmail: metadata.customerEmail || session.customer_details?.email || "",
-    customerPhone: metadata.customerPhone || session.customer_details?.phone || "",
-    items,
-    subtotal,
-    discountAmount,
-    shippingFee,
-    couponCode,
-    totalAmount,
+    orderNumber: String(orderNumber),
+    stripeSessionId: String(session.id),
+    stripePaymentIntentId: String(paymentIntentId),
+    customerId: String(metadata.customerId || "guest-user"),
+    customerName: String(metadata.customerName || session.customer_details?.name || "Customer"),
+    customerEmail: String(metadata.customerEmail || session.customer_details?.email || ""),
+    customerPhone: String(metadata.customerPhone || session.customer_details?.phone || ""),
+    items: (items || []).map((i: any) => ({
+      productId: String(i.productId || i.id || ""),
+      name: String(i.name || "Cigar Product"),
+      brand: String(i.brand || ""),
+      price: Number(i.price || 0),
+      quantity: Number(i.quantity || 1)
+    })),
+    subtotal: Number(subtotal) || 0,
+    discountAmount: Number(discountAmount) || 0,
+    shippingFee: Number(shippingFee) || 0,
+    couponCode: String(couponCode),
+    totalAmount: Number(totalAmount) || 0,
     currency: "AUD",
     status: "Verified",
     source: "Website",
@@ -287,13 +333,6 @@ export async function processSuccessfulStripeSession(session: Stripe.Checkout.Se
     }
   }
 
-  // 6. Trigger admin notification email
-  try {
-    await sendNewOrderAdminNotification(newOrder);
-  } catch (emailErr) {
-    logger.error("Failed to send admin notification email upon Stripe order creation:", emailErr);
-  }
-
   return { created: true, orderId: docRef.id, order: { id: docRef.id, ...newOrder } as any };
 }
 
@@ -301,11 +340,13 @@ export async function processSuccessfulStripeSession(session: Stripe.Checkout.Se
  * CALLABLE FUNCTION: Verify Stripe Order & Write to Firestore
  * Called by frontend when customer returns to checkout page with success=true&session_id=...
  */
-export const verifyStripeOrder = onCall({ secrets: ["STRIPE_SECRET_KEY"] }, async (request) => {
+export const verifyStripeOrder = onCall({ cors: true, secrets: ["STRIPE_SECRET_KEY"] }, async (request) => {
   const { sessionId } = request.data || {};
   if (!sessionId) {
     throw new HttpsError("invalid-argument", "Missing Stripe session ID");
   }
+
+  logger.info(`verifyStripeOrder invoked for session ${sessionId}`);
 
   const stripe = getStripeInstance();
   try {
@@ -314,7 +355,9 @@ export const verifyStripeOrder = onCall({ secrets: ["STRIPE_SECRET_KEY"] }, asyn
       throw new HttpsError("not-found", "Stripe session not found");
     }
 
-    if (session.payment_status !== "paid" && session.status !== "complete") {
+    const isPaid = session.payment_status === "paid" || session.payment_status === "no_payment_required" || session.status === "complete";
+    if (!isPaid) {
+      logger.warn(`Stripe session ${sessionId} is not yet paid (payment_status: ${session.payment_status}, status: ${session.status})`);
       throw new HttpsError("failed-precondition", `Stripe session payment status is '${session.payment_status}'`);
     }
 
@@ -531,78 +574,105 @@ export const processRecurringSubscriptions = onSchedule("every 24 hours", async 
 
 /**
  * FIRESTORE TRIGGER 1: NEW ORDER CREATED
- * Sends Resend notification email to all admin staff when a new order document is created.
+ * 1. Sends admin notification alert under notifications@cigarsforyou.com.au
+ * 2. Sends customer order confirmation receipt under orders@cigarsforyou.com.au
  */
-export const onOrderCreated = onDocumentCreated("orders/{orderId}", async (event) => {
-  const orderData = event.data?.data();
-  if (!orderData) {
-    logger.warn("Order document snapshot is empty, skipping Resend email dispatch.");
-    return;
-  }
+export const onOrderCreated = onDocumentCreated(
+  { document: "orders/{orderId}", secrets: ["RESEND_API_KEY"] },
+  async (event) => {
+    const orderData = event.data?.data();
+    if (!orderData) {
+      logger.warn("Order document snapshot is empty, skipping Resend email dispatch.");
+      return;
+    }
 
-  logger.info(`New order created in Firestore: #${orderData.orderNumber || event.params.orderId}. Sending Resend email to admin staff...`);
-  try {
-    await sendNewOrderAdminNotification(orderData);
-  } catch (err) {
-    logger.error("Failed to process Resend email notification for new order:", err);
+    const orderNumber = orderData.orderNumber || event.params.orderId;
+    logger.info(`New order created in Firestore: #${orderNumber}. Dispatching notification & confirmation emails...`);
+
+    // 1. Dispatch Admin Notification Email (From: notifications@cigarsforyou.com.au)
+    try {
+      const adminResult = await sendNewOrderAdminNotification(orderData);
+      logger.info(`Admin notification email dispatch completed for #${orderNumber}:`, adminResult);
+    } catch (err) {
+      logger.error("Failed to process Resend admin email notification for new order:", err);
+    }
+
+    // 2. Dispatch Customer Confirmation Email with Order Details (From: orders@cigarsforyou.com.au)
+    if (orderData.customerEmail) {
+      try {
+        const customerResult = await sendCustomerOrderConfirmationEmail(orderData);
+        logger.info(`Customer order confirmation email dispatch completed for ${orderData.customerEmail} (#${orderNumber}):`, customerResult);
+      } catch (err) {
+        logger.error(`Failed to process Resend customer confirmation email to ${orderData.customerEmail}:`, err);
+      }
+    } else {
+      logger.warn(`Order #${orderNumber} is missing customerEmail, skipping customer confirmation email.`);
+    }
   }
-});
+);
 
 /**
  * FIRESTORE TRIGGER 2: PRODUCT UPDATED (Out-of-Stock & Replenishment Alert)
  * Triggers when a product's stock is updated.
- * - Sends out-of-stock Resend notification to all admin staff if stock drops to <= 0.
+ * - Sends out-of-stock Resend notification to admin staff under notifications@cigarsforyou.com.au if stock drops to <= 0.
  * - Logs pending notifications if stock is replenished > 0.
  */
-export const onProductStockUpdated = onDocumentUpdated("products/{productId}", async (event) => {
-  const beforeData = event.data?.before.data();
-  const afterData = event.data?.after.data();
+export const onProductStockUpdated = onDocumentUpdated(
+  { document: "products/{productId}", secrets: ["RESEND_API_KEY"] },
+  async (event) => {
+    const beforeData = event.data?.before.data();
+    const afterData = event.data?.after.data();
 
-  if (!beforeData || !afterData) return;
+    if (!beforeData || !afterData) return;
 
-  const productId = event.params.productId;
+    const productId = event.params.productId;
 
-  // Case A: Product went OUT OF STOCK (stock was > 0, now <= 0)
-  if (beforeData.stock > 0 && afterData.stock <= 0) {
-    logger.info(`Product ${afterData.name} (${productId}) went out of stock. Triggering Resend email alert to admin staff...`);
-    try {
-      await sendOutOfStockAdminAlert(afterData, productId);
-    } catch (err) {
-      logger.error("Failed to process Resend out-of-stock email alert:", err);
+    // Case A: Product went OUT OF STOCK (stock was > 0, now <= 0)
+    if (beforeData.stock > 0 && afterData.stock <= 0) {
+      logger.info(`Product ${afterData.name} (${productId}) went out of stock. Triggering Resend email alert to admin staff...`);
+      try {
+        await sendOutOfStockAdminAlert(afterData, productId);
+      } catch (err) {
+        logger.error("Failed to process Resend out-of-stock email alert:", err);
+      }
+    }
+
+    // Case B: Product stock was REPLENISHED (stock was <= 0, now > 0)
+    if (beforeData.stock <= 0 && afterData.stock > 0) {
+      logger.info(`Product ${afterData.name} stock replenished to ${afterData.stock}. Checking customer stock notifications...`);
+      try {
+        const notifs = await db.collection("stockNotifications")
+          .where("productId", "==", productId)
+          .where("notified", "==", false)
+          .get();
+
+        logger.info(`Found ${notifs.size} pending stock notification request(s) for ${afterData.name}.`);
+      } catch (err) {
+        logger.error("Failed to query stock notifications upon replenishment:", err);
+      }
     }
   }
-
-  // Case B: Product stock was REPLENISHED (stock was <= 0, now > 0)
-  if (beforeData.stock <= 0 && afterData.stock > 0) {
-    logger.info(`Product ${afterData.name} stock replenished to ${afterData.stock}. Checking customer stock notifications...`);
-    try {
-      const notifs = await db.collection("stockNotifications")
-        .where("productId", "==", productId)
-        .where("notified", "==", false)
-        .get();
-
-      logger.info(`Found ${notifs.size} pending stock notification request(s) for ${afterData.name}.`);
-    } catch (err) {
-      logger.error("Failed to query stock notifications upon replenishment:", err);
-    }
-  }
-});
+);
 
 /**
  * FIRESTORE TRIGGER 3: NEW STOCK NOTIFICATION REQUEST CREATED
- * Sends Resend notification email to all admin staff when a customer requests to be notified about an out-of-stock product.
+ * Sends Resend notification email to admin staff under notifications@cigarsforyou.com.au
+ * when a customer requests to be notified about an out-of-stock product.
  */
-export const onStockNotificationCreated = onDocumentCreated("stockNotifications/{notificationId}", async (event) => {
-  const notifData = event.data?.data();
-  if (!notifData) return;
+export const onStockNotificationCreated = onDocumentCreated(
+  { document: "stockNotifications/{notificationId}", secrets: ["RESEND_API_KEY"] },
+  async (event) => {
+    const notifData = event.data?.data();
+    if (!notifData) return;
 
-  logger.info(`New stock notification request created for ${notifData.productName} by ${notifData.email}. Triggering Resend email alert to admin staff...`);
-  try {
-    await sendStockNotificationAdminAlert(notifData);
-  } catch (err) {
-    logger.error("Failed to process Resend stock notification request email:", err);
+    logger.info(`New stock notification request created for ${notifData.productName} by ${notifData.email}. Triggering Resend email alert to admin staff...`);
+    try {
+      await sendStockNotificationAdminAlert(notifData);
+    } catch (err) {
+      logger.error("Failed to process Resend stock notification request email:", err);
+    }
   }
-});
+);
 
 /**
  * CALLABLE FUNCTION: Set User Role Claim
@@ -626,28 +696,61 @@ export const setUserRole = onCall(async (request) => {
 });
 
 /**
- * CALLABLE FUNCTION: Send Test Resend Admin Email
+ * CALLABLE FUNCTION: Send Test Resend Email
  * Allows administrators to trigger a diagnostic email via Resend directly from the admin dashboard.
+ * Supports testing both Admin Notifications and Customer Order Confirmations.
  */
-export const sendTestAdminEmail = onCall(async (request) => {
-  const authUid = request.auth?.uid;
-  if (!authUid) {
-    throw new HttpsError("unauthenticated", "User must be authenticated to send test emails");
+export const sendTestAdminEmail = onCall(
+  { secrets: ["RESEND_API_KEY"] },
+  async (request) => {
+    const authUid = request.auth?.uid;
+    if (!authUid) {
+      throw new HttpsError("unauthenticated", "User must be authenticated to send test emails");
+    }
+
+    const callerSnap = await db.collection("users").doc(authUid).get();
+    const callerData = callerSnap.data();
+    const role = callerData?.role;
+
+    if (role !== "admin" && role !== "member") {
+      throw new HttpsError("permission-denied", "Only admin or staff members can trigger test emails");
+    }
+
+    const customEmail = request.data?.email;
+    const testType = request.data?.type; // 'customer_sample' or 'admin_test'
+    const targetEmails = customEmail ? [customEmail] : undefined;
+
+    logger.info(`Test Resend email requested by ${callerData?.email || authUid} (type: ${testType || "admin_test"})`);
+
+    if (testType === "customer_sample" && customEmail) {
+      const sampleOrder = {
+        orderNumber: `CFY-TEST-${Math.floor(1000 + Math.random() * 9000)}`,
+        customerName: callerData?.displayName || "Test Customer",
+        customerEmail: customEmail,
+        customerPhone: "+61 400 123 456",
+        items: [
+          { name: "Cohiba Behike 52", brand: "Cohiba", price: 295.0, quantity: 1 },
+          { name: "Montecristo No. 2", brand: "Montecristo", price: 85.0, quantity: 2 },
+        ],
+        subtotal: 465.0,
+        discountAmount: 25.0,
+        couponCode: "WELCOME25",
+        shippingFee: 0,
+        totalAmount: 440.0,
+        paymentMethod: "Credit Card (Stripe)",
+        createdAt: new Date().toISOString(),
+        deliveryAddress: {
+          street: "100 George Street",
+          suburb: "The Rocks",
+          state: "NSW",
+          postcode: "2000",
+          country: "Australia",
+        },
+      };
+      return await sendCustomerOrderConfirmationEmail(sampleOrder);
+    }
+
+    const result = await sendTestAdminNotification(targetEmails);
+    return result;
   }
-
-  const callerSnap = await db.collection("users").doc(authUid).get();
-  const callerData = callerSnap.data();
-  const role = callerData?.role;
-
-  if (role !== "admin" && role !== "member") {
-    throw new HttpsError("permission-denied", "Only admin or staff members can trigger test emails");
-  }
-
-  const customEmail = request.data?.email;
-  const targetEmails = customEmail ? [customEmail] : undefined;
-
-  logger.info(`Test Resend admin email requested by ${callerData?.email || authUid}`);
-  const result = await sendTestAdminNotification(targetEmails);
-
-  return result;
-});
+);

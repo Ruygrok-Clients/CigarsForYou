@@ -15,7 +15,6 @@ export const AdminSettings: React.FC = () => {
 
   const [portalUsers, setPortalUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-  const [sendingTestEmail, setSendingTestEmail] = useState(false);
 
   // Modal State
   const [isModalOpen, setIsModalOpen] = useState(false);
@@ -128,22 +127,45 @@ export const AdminSettings: React.FC = () => {
     }
   };
 
-  const handleSendTestEmail = async () => {
+  const [sendingTestAdminEmail, setSendingTestAdminEmail] = useState(false);
+  const [sendingTestCustomerEmail, setSendingTestCustomerEmail] = useState(false);
+
+  const handleSendTestAdminEmail = async () => {
     if (screenLocked) return;
-    setSendingTestEmail(true);
+    setSendingTestAdminEmail(true);
     try {
       const sendTestEmailFn = httpsCallable(functions, 'sendTestAdminEmail');
-      const res: any = await sendTestEmailFn({});
+      const res: any = await sendTestEmailFn({ type: 'admin_test' });
       if (res.data?.success) {
-        showToast(`Resend notification test sent successfully to staff!`);
+        showToast('Admin notification alert sent successfully to staff via notifications@cigarsforyou.com.au!');
       } else {
-        showToast(`Notification test complete (${res.data?.reason || 'simulation mode'})`);
+        showToast(`Admin alert test complete (${res.data?.reason || res.data?.error || 'simulation mode'})`);
       }
     } catch (err: any) {
-      console.error('Error triggering test Resend email:', err);
-      showToast(err.message || 'Failed to dispatch test notification email', 'error');
+      console.error('Error triggering test admin email:', err);
+      showToast(err.message || 'Failed to dispatch test admin email', 'error');
     } finally {
-      setSendingTestEmail(false);
+      setSendingTestAdminEmail(false);
+    }
+  };
+
+  const handleSendTestCustomerEmail = async () => {
+    if (screenLocked) return;
+    const targetEmail = currentUser?.email || 'admin@cigarsforyou.com.au';
+    setSendingTestCustomerEmail(true);
+    try {
+      const sendTestEmailFn = httpsCallable(functions, 'sendTestAdminEmail');
+      const res: any = await sendTestEmailFn({ type: 'customer_sample', email: targetEmail });
+      if (res.data?.success) {
+        showToast(`Sample order receipt sent to ${targetEmail} via orders@cigarsforyou.com.au!`);
+      } else {
+        showToast(`Customer confirmation test complete (${res.data?.reason || res.data?.error || 'simulation mode'})`);
+      }
+    } catch (err: any) {
+      console.error('Error triggering test customer confirmation email:', err);
+      showToast(err.message || 'Failed to dispatch test order receipt', 'error');
+    } finally {
+      setSendingTestCustomerEmail(false);
     }
   };
 
@@ -187,34 +209,52 @@ export const AdminSettings: React.FC = () => {
 
       {/* Resend Email Integration Status Card */}
       <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--accent-gold)' }}>
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
           <div>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.5rem' }}>
               <Mail size={20} style={{ color: 'var(--accent-gold)' }} />
               <h2 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', margin: 0 }}>
-                Resend Admin Email Notifications
+                Resend Automated Email Dispatch
               </h2>
-              <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>Active</span>
+              <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>Active & Configured</span>
             </div>
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '0.75rem', maxWidth: '650px' }}>
-              Automated Resend notification emails are dispatched to all active admin staff (<strong>{portalUsers.length} recipients</strong>) for store events.
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1rem', maxWidth: '650px' }}>
+              Automated emails are handled via Resend across two dedicated channel addresses:
             </p>
-            <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-              <span>Sender: <strong style={{ color: 'var(--text-primary)' }}>notifications@cigarsforyou.com.au</strong></span>
-              <span>•</span>
-              <span>Triggers: <span className="badge badge-gray">New Order</span> <span className="badge badge-gray">Out of Stock Alert</span> <span className="badge badge-gray">Stock Notification Request</span></span>
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.85rem' }}>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>Admin Alerts</span>
+                <code style={{ color: 'var(--accent-gold)', fontSize: '0.85rem' }}>notifications@cigarsforyou.com.au</code>
+                <span style={{ color: 'var(--text-muted)' }}>→ New Orders, Out of Stock (0 units), & Customer Restock Requests</span>
+              </div>
+              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
+                <span className="badge badge-gray" style={{ fontSize: '0.7rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }}>Customer Receipts</span>
+                <code style={{ color: '#10b981', fontSize: '0.85rem' }}>orders@cigarsforyou.com.au</code>
+                <span style={{ color: 'var(--text-muted)' }}>→ Itemized purchase confirmation & shipping receipt upon payment</span>
+              </div>
             </div>
           </div>
 
-          <button
-            className="btn btn-secondary btn-sm"
-            disabled={sendingTestEmail || screenLocked}
-            onClick={handleSendTestEmail}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-          >
-            {sendingTestEmail ? <CheckCircle size={14} className="animate-spin" /> : <Send size={14} />}
-            {sendingTestEmail ? 'Sending...' : 'Test Resend Email'}
-          </button>
+          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', minWidth: '200px' }}>
+            <button
+              className="btn btn-secondary btn-sm"
+              disabled={sendingTestAdminEmail || screenLocked}
+              onClick={handleSendTestAdminEmail}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', width: '100%' }}
+            >
+              {sendingTestAdminEmail ? <CheckCircle size={14} className="animate-spin" /> : <Send size={14} />}
+              {sendingTestAdminEmail ? 'Sending Alert...' : 'Test Admin Alert'}
+            </button>
+            <button
+              className="btn btn-outline btn-sm"
+              disabled={sendingTestCustomerEmail || screenLocked}
+              onClick={handleSendTestCustomerEmail}
+              style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.4rem', width: '100%', borderColor: 'rgba(16, 185, 129, 0.4)', color: '#34d399' }}
+            >
+              {sendingTestCustomerEmail ? <CheckCircle size={14} className="animate-spin" /> : <Mail size={14} />}
+              {sendingTestCustomerEmail ? 'Sending Receipt...' : 'Test Order Confirmation'}
+            </button>
+          </div>
         </div>
       </div>
 
