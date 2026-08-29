@@ -510,7 +510,7 @@ export async function sendNewOrderAdminNotification(order: any) {
     </p>
   `;
 
-  const subject = `🛒 New Order Placed: #${order.orderNumber} ($${Number(order.totalAmount || 0).toFixed(2)} AUD)`;
+  const subject = `New Order Placed: #${order.orderNumber} ($${Number(order.totalAmount || 0).toFixed(2)} AUD)`;
   const html = wrapAdminEmailTemplate("New Order Placed", bodyContent);
 
   return sendResendEmail({
@@ -714,15 +714,14 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
         <span>Items Subtotal:</span>
         <span>$${subtotal.toFixed(2)} AUD</span>
       </div>
-      ${
-        discount > 0
-          ? `
+      ${discount > 0
+      ? `
       <div class="total-line" style="color: #34d399;">
         <span>Discount Applied${order.couponCode ? ` (${order.couponCode})` : ""}:</span>
         <span>-$${discount.toFixed(2)} AUD</span>
       </div>`
-          : ""
-      }
+      : ""
+    }
       <div class="total-line">
         <span>Shipping (Express Courier):</span>
         <span>${shipping > 0 ? `$${shipping.toFixed(2)} AUD` : "FREE"}</span>

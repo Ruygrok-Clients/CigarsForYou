@@ -494,8 +494,8 @@ select.form-control option {
 .modal-overlay {
   position: fixed;
   inset: 0;
-  background-color: rgba(0, 0, 0, 0.4);
-  backdrop-filter: blur(20px) saturate(180%);
+  background-color: rgba(0, 0, 0, 0.65);
+  backdrop-filter: blur(12px) saturate(180%);
   display: flex;
   align-items: center;
   justify-content: center;
@@ -505,18 +505,32 @@ select.form-control option {
 }
 
 .modal-content {
-  background: rgba(255, 255, 255, 0.95);
+  background-color: var(--bg-surface);
   backdrop-filter: blur(24px) saturate(190%);
-  border: 1px solid rgba(255, 255, 255, 0.8);
+  border: 1px solid var(--border-color);
   border-radius: var(--radius-lg);
   padding: 2.25rem;
   width: 100%;
   max-width: 520px;
-  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.2);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.4);
   animation: appleSpringUp 0.35s cubic-bezier(0.16, 1, 0.3, 1) forwards;
   max-height: 90vh;
   overflow-y: auto;
   color: var(--text-primary);
+}
+
+[data-theme="dark"] .modal-content {
+  background-color: var(--bg-surface);
+  border-color: var(--border-color);
+  color: var(--text-primary);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.7);
+}
+
+[data-theme="light"] .modal-content {
+  background-color: #ffffff;
+  border-color: rgba(0, 0, 0, 0.12);
+  color: var(--text-primary);
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.12);
 }
 
 @keyframes fadeIn {
@@ -531,9 +545,9 @@ select.form-control option {
 
 /* Glassmorphism Panel */
 .glass-panel {
-  background: rgba(255, 255, 255, 0.75);
+  background: var(--bg-surface);
   backdrop-filter: blur(20px) saturate(180%);
-  border: 1px solid rgba(0, 0, 0, 0.08);
+  border: 1px solid var(--border-subtle);
   border-radius: var(--radius-lg);
 }
 

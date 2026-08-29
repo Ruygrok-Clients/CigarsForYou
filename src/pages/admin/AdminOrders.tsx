@@ -342,34 +342,72 @@ export const AdminOrders: React.FC = () => {
 
       {/* Order Detail Modal */}
       {selectedOrder && (
-        <div className="modal-overlay">
-          <div className="modal-content" style={{ maxWidth: '640px', position: 'relative' }}>
+        <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
+          <div
+            className="modal-content"
+            style={{ maxWidth: '640px', position: 'relative' }}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
               onClick={() => setSelectedOrder(null)}
-              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+              aria-label="Close"
+              style={{
+                position: 'absolute',
+                top: '1.25rem',
+                right: '1.25rem',
+                color: 'var(--text-muted)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 'var(--radius-sm)'
+              }}
             >
               <X size={20} />
             </button>
 
             <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
-              <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
+              <span className="badge badge-gold" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>
                 Ref: {selectedOrder.orderNumber}
               </span>
-              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)' }}>Order Detail & Audit</h2>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
+                Order Detail & Audit
+              </h2>
             </div>
 
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', fontSize: '0.9rem' }}>
               {/* Customer & Address */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem', backgroundColor: 'var(--bg-surface-elevated)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  border: '1px solid var(--border-subtle)',
+                  padding: '1.25rem',
+                  borderRadius: 'var(--radius-md)'
+                }}
+              >
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Customer Info</span>
-                  <strong style={{ color: 'var(--text-primary)' }}>{selectedOrder.customerName}</strong><br />
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Customer Info
+                  </span>
+                  <strong style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>{selectedOrder.customerName}</strong><br />
                   <span style={{ color: 'var(--text-secondary)' }}>{selectedOrder.customerEmail}</span>
-                  {selectedOrder.customerPhone && <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>📞 {selectedOrder.customerPhone}</div>}
+                  {selectedOrder.customerPhone && (
+                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
+                      📞 {selectedOrder.customerPhone}
+                    </div>
+                  )}
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Delivery Address</span>
-                  <span style={{ color: 'var(--text-primary)' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Delivery Address
+                  </span>
+                  <span style={{ color: 'var(--text-primary)', lineHeight: 1.5 }}>
                     {selectedOrder.deliveryAddress.street}<br />
                     {selectedOrder.deliveryAddress.suburb} {selectedOrder.deliveryAddress.state} {selectedOrder.deliveryAddress.postcode}
                   </span>
@@ -377,18 +415,32 @@ export const AdminOrders: React.FC = () => {
               </div>
 
               {/* Compliance & Payment */}
-              <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+              <div
+                style={{
+                  display: 'grid',
+                  gridTemplateColumns: '1fr 1fr',
+                  gap: '1rem',
+                  backgroundColor: 'var(--bg-surface-elevated)',
+                  border: '1px solid var(--border-subtle)',
+                  padding: '1.25rem',
+                  borderRadius: 'var(--radius-md)'
+                }}
+              >
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>18+ Age Confirmed</span>
-                  <span style={{ color: '#4caf50', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    18+ Age Confirmed
+                  </span>
+                  <span style={{ color: '#10b981', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                     <ShieldCheck size={16} /> Yes (Checked at Checkout)
                   </span>
                 </div>
                 <div>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block' }}>Payment Method & Reference</span>
-                  <span style={{ color: 'var(--accent-gold)', fontWeight: 600, display: 'block' }}>{selectedOrder.paymentMethod}</span>
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Payment Method & Reference
+                  </span>
+                  <span style={{ color: 'var(--accent-gold)', fontWeight: 700, display: 'block' }}>{selectedOrder.paymentMethod}</span>
                   {selectedOrder.stripeSessionId && (
-                    <span style={{ color: 'var(--text-muted)', fontSize: '0.75rem', wordBreak: 'break-all' }}>
+                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', wordBreak: 'break-all', display: 'block', marginTop: '0.25rem' }}>
                       Stripe: {selectedOrder.stripeSessionId}
                     </span>
                   )}
@@ -397,38 +449,50 @@ export const AdminOrders: React.FC = () => {
 
               {/* Line Items */}
               <div>
-                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.5rem' }}>Order Line Items</span>
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', backgroundColor: 'var(--bg-surface-elevated)', padding: '1rem', borderRadius: 'var(--radius-md)' }}>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.5rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Order Line Items
+                </span>
+                <div
+                  style={{
+                    display: 'flex',
+                    flexDirection: 'column',
+                    gap: '0.75rem',
+                    backgroundColor: 'var(--bg-surface-elevated)',
+                    border: '1px solid var(--border-subtle)',
+                    padding: '1.25rem',
+                    borderRadius: 'var(--radius-md)'
+                  }}
+                >
                   {selectedOrder.items.map((item, idx) => (
-                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-primary)' }}>
-                      <span>{item.quantity}x {item.brand} {item.name}</span>
+                    <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
+                      <span style={{ fontWeight: 500 }}>{item.quantity}x {item.brand} {item.name}</span>
                       <strong style={{ color: 'var(--accent-gold)' }}>${(item.price * item.quantity).toFixed(2)} AUD</strong>
                     </div>
                   ))}
 
-                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '0.5rem', paddingTop: '0.5rem', fontSize: '0.85rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                  <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '0.5rem', paddingTop: '0.75rem', fontSize: '0.85rem' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
                       <span>Subtotal</span>
-                      <span>${selectedOrder.subtotal?.toFixed(2)} AUD</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${selectedOrder.subtotal?.toFixed(2)} AUD</span>
                     </div>
                     {(selectedOrder.discountAmount ?? 0) > 0 && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', padding: '0.2rem 0', fontWeight: 600 }}>
                         <span>Discount ({selectedOrder.couponCode || 'Coupon'})</span>
                         <span>-${selectedOrder.discountAmount?.toFixed(2)} AUD</span>
                       </div>
                     )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-muted)' }}>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
                       <span>Express Shipping</span>
-                      <span>${(selectedOrder.shippingFee ?? 25).toFixed(2)} AUD</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${(selectedOrder.shippingFee ?? 25).toFixed(2)} AUD</span>
                     </div>
                   </div>
                 </div>
               </div>
 
               {/* Totals */}
-              <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.5rem', borderTop: '1px solid var(--border-subtle)', fontWeight: 700, fontSize: '1.1rem' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', fontWeight: 700, fontSize: '1.2rem' }}>
                 <span style={{ color: 'var(--text-primary)' }}>Total Paid</span>
-                <span style={{ color: 'var(--accent-gold)' }}>${selectedOrder.totalAmount.toFixed(2)} AUD</span>
+                <span style={{ color: 'var(--accent-gold)', fontSize: '1.4rem' }}>${selectedOrder.totalAmount.toFixed(2)} AUD</span>
               </div>
 
               {/* Actions in Modal */}

@@ -86,10 +86,10 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             <Bell size={26} />
           </div>
 
-          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: '#2f0d0e', marginBottom: '0.5rem' }}>
+          <h3 style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
             Back in Stock Notification
           </h3>
-          <p style={{ fontSize: '0.9rem', color: '#515154' }}>
+          <p style={{ fontSize: '0.9rem', color: 'var(--text-secondary)' }}>
             We'll email you immediately when <strong>{product.brand} {product.name}</strong> is back in stock.
           </p>
         </div>
@@ -109,8 +109,8 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             }}>
               <Check size={24} />
             </div>
-            <h4 style={{ color: '#2f0d0e', fontWeight: 700, marginBottom: '0.5rem' }}>You're on the List!</h4>
-            <p style={{ fontSize: '0.875rem', color: '#515154', marginBottom: '1.5rem' }}>
+            <h4 style={{ color: 'var(--text-primary)', fontWeight: 700, marginBottom: '0.5rem' }}>You're on the List!</h4>
+            <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
               We've registered <strong>{email}</strong>. As soon as new inventory arrives, you will be notified.
             </p>
             <button className="btn btn-primary btn-full" onClick={onClose} style={{ borderRadius: '6px' }}>
@@ -120,7 +120,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" style={{ color: '#2f0d0e' }}>Email Address</label>
+              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Email Address</label>
               <input
                 type="email"
                 required
