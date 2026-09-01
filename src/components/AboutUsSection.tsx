@@ -400,7 +400,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 500,
               marginTop: '0.5rem'
             }}>
-              Expected Delivery
+              Expected Dispatch
             </div>
           </div>
         </div>
