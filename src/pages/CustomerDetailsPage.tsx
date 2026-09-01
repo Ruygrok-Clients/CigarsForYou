@@ -223,7 +223,7 @@ export const CustomerDetailsPage: React.FC = () => {
             display: 'flex',
             alignItems: 'center',
             gap: '0.5rem',
-            color: '#ffffff',
+            color: 'var(--text-primary)',
             fontWeight: 700,
             fontSize: '0.95rem'
           }}>
@@ -232,7 +232,7 @@ export const CustomerDetailsPage: React.FC = () => {
               height: '26px',
               borderRadius: '50%',
               backgroundColor: 'var(--accent-gold)',
-              color: '#000000',
+              color: '#ffffff',
               display: 'inline-flex',
               alignItems: 'center',
               justifyContent: 'center',
@@ -253,7 +253,7 @@ export const CustomerDetailsPage: React.FC = () => {
               width: '24px',
               height: '24px',
               borderRadius: '50%',
-              backgroundColor: 'var(--bg-card)',
+              backgroundColor: 'var(--bg-surface-elevated)',
               color: 'var(--text-muted)',
               display: 'inline-flex',
               alignItems: 'center',
@@ -280,7 +280,7 @@ export const CustomerDetailsPage: React.FC = () => {
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
               <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>Final Checkout Step</span>
-              <h1 style={{ fontSize: '2.4rem', color: '#ffffff', margin: 0 }}>Customer & Delivery Details</h1>
+              <h1 style={{ fontSize: '2.4rem', color: 'var(--text-primary)', margin: 0 }}>Customer & Delivery Details</h1>
             </div>
             {currentUser && (
               <div style={{
@@ -314,7 +314,7 @@ export const CustomerDetailsPage: React.FC = () => {
               <div className="card" style={{ padding: '1.75rem', backgroundColor: 'var(--bg-surface)' }}>
                 <h3 style={{
                   fontSize: '1.25rem',
-                  color: '#ffffff',
+                  color: 'var(--text-primary)',
                   marginBottom: '1.25rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -333,7 +333,7 @@ export const CustomerDetailsPage: React.FC = () => {
                     <input
                       type="text"
                       className="form-control"
-                      placeholder="e.g. Alexander Ruygrok"
+                      placeholder="e.g. Oliver Smith"
                       value={name}
                       onChange={(e) => setName(e.target.value)}
                       autoComplete="name"
@@ -351,7 +351,7 @@ export const CustomerDetailsPage: React.FC = () => {
                       <input
                         type="email"
                         className="form-control"
-                        placeholder="alexander@example.com"
+                        placeholder="oliver@example.com"
                         value={email}
                         onChange={(e) => setEmail(e.target.value)}
                         autoComplete="email"
@@ -384,7 +384,7 @@ export const CustomerDetailsPage: React.FC = () => {
               <div className="card" style={{ padding: '1.75rem', backgroundColor: 'var(--bg-surface)' }}>
                 <h3 style={{
                   fontSize: '1.25rem',
-                  color: '#ffffff',
+                  color: 'var(--text-primary)',
                   marginBottom: '1.25rem',
                   display: 'flex',
                   alignItems: 'center',
@@ -510,7 +510,7 @@ export const CustomerDetailsPage: React.FC = () => {
                     }}
                     required
                   />
-                  <label htmlFor="checkoutAgeCheck" style={{ cursor: 'pointer', fontSize: '0.9rem', color: '#ffffff', lineHeight: 1.5 }}>
+                  <label htmlFor="checkoutAgeCheck" style={{ cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
                     <strong style={{ color: ageConfirmed ? '#4caf50' : 'var(--accent-gold)', display: 'block', marginBottom: '0.25rem' }}>
                       Age Verification & Delivery Requirements Confirmation <span style={{ color: '#dc2626' }}>*</span>
                     </strong>
@@ -529,7 +529,7 @@ export const CustomerDetailsPage: React.FC = () => {
             {/* Right Column — Order Summary & Stripe CTA */}
             <div>
               <div className="card" style={{ padding: '1.75rem', border: '1px solid var(--border-color)', position: 'sticky', top: '100px' }}>
-                <h3 style={{ fontSize: '1.3rem', color: '#ffffff', marginBottom: '1.25rem' }}>
+                <h3 style={{ fontSize: '1.3rem', color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
                   Order Summary ({cart.reduce((sum, i) => sum + i.quantity, 0)} items)
                 </h3>
 
@@ -551,7 +551,7 @@ export const CustomerDetailsPage: React.FC = () => {
                         width: '48px',
                         height: '48px',
                         borderRadius: 'var(--radius-sm)',
-                        backgroundColor: 'var(--bg-primary)',
+                        backgroundColor: 'var(--bg-surface-elevated)',
                         display: 'flex',
                         alignItems: 'center',
                         justifyContent: 'center',
@@ -565,7 +565,7 @@ export const CustomerDetailsPage: React.FC = () => {
                         )}
                       </div>
                       <div style={{ flex: 1, minWidth: 0 }}>
-                        <h5 style={{ fontSize: '0.875rem', color: '#ffffff', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        <h5 style={{ fontSize: '0.875rem', color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
                           {item.product.name}
                         </h5>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
@@ -664,10 +664,10 @@ export const CustomerDetailsPage: React.FC = () => {
                     borderTop: '1px solid var(--border-color)',
                     fontWeight: 700,
                     fontSize: '1.2rem',
-                    color: '#ffffff'
+                    color: 'var(--text-primary)'
                   }}>
                     <span>Total</span>
-                    <span style={{ color: '#ffffff' }}>${totalAmount.toFixed(2)} AUD</span>
+                    <span style={{ color: 'var(--text-primary)' }}>${totalAmount.toFixed(2)} AUD</span>
                   </div>
                 </div>
 

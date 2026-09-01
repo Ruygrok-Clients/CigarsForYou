@@ -1,12 +1,12 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { 
-  Award, 
-  ShieldCheck, 
-  Truck, 
-  Flame, 
-  Users, 
-  Sparkles, 
+import {
+  Award,
+  ShieldCheck,
+  Truck,
+  Flame,
+  Users,
+  Sparkles,
   ArrowRight,
   Thermometer,
   PackageCheck,
@@ -27,7 +27,7 @@ import imgCtaBg from '../assets/7139d14b8f024b3281257a7ef37b5342.jpeg';
 export const AboutUsPage: React.FC = () => {
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
-      
+
       {/* Mobile Responsive Layout (<1110px) */}
       <style>{`
         @media (max-width: 1109px) {
@@ -83,7 +83,7 @@ export const AboutUsPage: React.FC = () => {
           }
         }
       `}</style>
-      
+
       {/* 1. Hero Header Section (Expanded Dark Luxury aesthetic) */}
       <section className="about-hero-section" style={{
         backgroundColor: '#2f0d0e',
@@ -179,7 +179,7 @@ export const AboutUsPage: React.FC = () => {
 
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>1-3hrs</div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Expected Delivery</div>
+              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Expected Dispatch</div>
             </div>
 
             <div style={{ textAlign: 'center' }}>

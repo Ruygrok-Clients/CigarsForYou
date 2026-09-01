@@ -94,7 +94,7 @@ export const CheckoutPage: React.FC = () => {
         <div className="container" style={{ maxWidth: '500px' }}>
           <div className="card" style={{ padding: '3rem 2rem' }}>
             <Loader2 className="animate-spin" size={48} style={{ color: 'var(--accent-gold)', margin: '0 auto 1.5rem' }} />
-            <h2 style={{ color: '#ffffff', marginBottom: '0.5rem' }}>Verifying Stripe Payment</h2>
+            <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Verifying Stripe Payment</h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.95rem' }}>
               Finalizing your payment and writing order details into Firestore...
             </p>
@@ -128,7 +128,7 @@ export const CheckoutPage: React.FC = () => {
               Order Confirmed & Paid via Stripe
             </span>
 
-            <h1 style={{ fontSize: '2.5rem', color: '#ffffff', marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: '2.5rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
               Thank You for Your Order!
             </h1>
 
@@ -145,34 +145,34 @@ export const CheckoutPage: React.FC = () => {
             {/* Order Details Breakdown Card */}
             {orderDetails && (
               <div style={{
-                backgroundColor: 'var(--bg-primary)',
+                backgroundColor: 'var(--bg-surface-elevated)',
                 borderRadius: 'var(--radius-md)',
                 padding: '1.5rem',
                 marginBottom: '2rem',
                 border: '1px solid var(--border-subtle)',
                 textAlign: 'left'
               }}>
-                <h3 style={{ fontSize: '1.1rem', color: '#ffffff', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
+                <h3 style={{ fontSize: '1.1rem', color: 'var(--text-primary)', marginBottom: '1rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '0.5rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
                   <Package size={18} style={{ color: 'var(--accent-gold)' }} /> Order Breakdown
                 </h3>
 
                 <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1rem', marginBottom: '1.25rem', fontSize: '0.9rem' }}>
                   <div>
                     <span style={{ color: 'var(--text-muted)', display: 'block' }}>Customer</span>
-                    <strong style={{ color: '#ffffff' }}>{orderDetails.customerName}</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>{orderDetails.customerName}</strong>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{orderDetails.customerEmail}</div>
                     {orderDetails.customerPhone && <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>{orderDetails.customerPhone}</div>}
                   </div>
                   <div>
                     <span style={{ color: 'var(--text-muted)', display: 'block' }}>Delivery Address</span>
-                    <strong style={{ color: '#ffffff' }}>{orderDetails.deliveryAddress.street}</strong>
+                    <strong style={{ color: 'var(--text-primary)' }}>{orderDetails.deliveryAddress.street}</strong>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
                       {orderDetails.deliveryAddress.suburb}, {orderDetails.deliveryAddress.state} {orderDetails.deliveryAddress.postcode}
                     </div>
                   </div>
                   <div>
                     <span style={{ color: 'var(--text-muted)', display: 'block' }}>Payment Method</span>
-                    <strong style={{ color: '#ffffff', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
+                    <strong style={{ color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                       <CreditCard size={14} style={{ color: 'var(--accent-gold)' }} /> Stripe Verified
                     </strong>
                     <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Paid in AUD</div>
@@ -183,7 +183,7 @@ export const CheckoutPage: React.FC = () => {
                   <span style={{ color: 'var(--text-muted)', fontSize: '0.85rem', display: 'block', marginBottom: '0.5rem' }}>Purchased Items:</span>
                   {orderDetails.items?.map((item: any, idx: number) => (
                     <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', fontSize: '0.9rem', marginBottom: '0.4rem' }}>
-                      <span style={{ color: '#ffffff' }}>
+                      <span style={{ color: 'var(--text-primary)' }}>
                         {item.quantity}x {item.name} {item.brand ? `(${item.brand})` : ''}
                       </span>
                       <span style={{ color: 'var(--text-secondary)' }}>
@@ -217,7 +217,7 @@ export const CheckoutPage: React.FC = () => {
             )}
 
             <div style={{
-              backgroundColor: 'var(--bg-primary)',
+              backgroundColor: 'var(--bg-surface-elevated)',
               borderRadius: 'var(--radius-md)',
               padding: '1.25rem',
               marginBottom: '2rem',
@@ -265,7 +265,7 @@ export const CheckoutPage: React.FC = () => {
               <XCircle size={40} />
             </div>
 
-            <h1 style={{ fontSize: '2rem', color: '#ffffff', marginBottom: '0.5rem' }}>
+            <h1 style={{ fontSize: '2rem', color: 'var(--text-primary)', marginBottom: '0.5rem' }}>
               Payment Canceled
             </h1>
 
@@ -298,14 +298,14 @@ export const CheckoutPage: React.FC = () => {
           width: '80px',
           height: '80px',
           borderRadius: '50%',
-          backgroundColor: 'var(--bg-card)',
+          backgroundColor: 'var(--bg-surface-elevated)',
           color: 'var(--text-muted)',
           marginBottom: '1.5rem'
         }}>
           <ShoppingBag size={40} />
         </div>
 
-        <h2 style={{ color: '#ffffff', marginBottom: '1rem' }}>Nothing to See Here</h2>
+        <h2 style={{ color: 'var(--text-primary)', marginBottom: '1rem' }}>Nothing to See Here</h2>
         <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
           Head to your cart to proceed with checkout.
         </p>

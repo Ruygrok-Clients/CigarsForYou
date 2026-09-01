@@ -82,7 +82,7 @@ export const Footer: React.FC = () => {
                 fontSize: '1.05rem',
                 fontWeight: 700,
                 letterSpacing: '0.1em',
-                color: '#ffffff',
+                color: 'var(--text-primary)',
                 textTransform: 'uppercase',
                 fontFamily: 'system-ui, -apple-system, sans-serif'
               }}>
@@ -177,7 +177,7 @@ export const Footer: React.FC = () => {
           }}>
             WARNING: TOBACCO SMOKE CAUSES FATAL DISEASES AND DISABILITY.
           </p>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.4rem', marginBottom: 0 }}>
+          <p style={{ color: 'rgba(245, 235, 230, 0.8)', fontSize: '0.8rem', marginTop: '0.4rem', marginBottom: 0 }}>
             Strictly 18+. Proof of age with government-issued photo ID is required upon delivery.
           </p>
         </div>
@@ -196,7 +196,7 @@ export const Footer: React.FC = () => {
           color: 'var(--text-muted)'
         }}>
           <p style={{ margin: 0 }}>&copy; {new Date().getFullYear()} CigarsForYou Australia. All rights reserved.</p>
-          <p style={{ margin: 0 }}>ABN 88 123 456 789 (Placeholder)</p>
+          <p style={{ margin: 0 }}>ABN 23 679 156 131 </p>
         </div>
       </div>
     </footer>

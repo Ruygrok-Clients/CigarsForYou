@@ -236,7 +236,7 @@ export const AdminLayout: React.FC = () => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
               }}>
-                {userProfile?.displayName || 'Alexander'}
+                {userProfile?.displayName || 'Admin'}
               </span>
               <span style={{
                 fontSize: '0.8rem',
@@ -245,7 +245,7 @@ export const AdminLayout: React.FC = () => {
                 overflow: 'hidden',
                 textOverflow: 'ellipsis'
               }}>
-                {userProfile?.email || 'alexander@ruygrok.co'}
+                {userProfile?.email || 'admin@cigarsforyou.com.au'}
               </span>
             </div>
           </div>
@@ -457,7 +457,7 @@ export const AdminLayout: React.FC = () => {
                   color: 'var(--text-primary)',
                   whiteSpace: 'nowrap'
                 }}>
-                  {userProfile?.email || 'alexander@ruygrok.co'}
+                  {userProfile?.email || 'admin@cigarsforyou.com.au'}
                 </span>
                 <span style={{
                   fontSize: '0.68rem',

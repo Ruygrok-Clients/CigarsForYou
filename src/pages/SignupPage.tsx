@@ -68,7 +68,7 @@ export const SignupPage: React.FC = () => {
                   required
                   className="form-control"
                   style={{ paddingLeft: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
-                  placeholder="e.g. Alexander Smith"
+                  placeholder="e.g. Oliver Smith"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />

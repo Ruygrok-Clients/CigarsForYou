@@ -137,7 +137,7 @@ export const TrustBannerSection: React.FC = () => {
                 maxWidth: '280px',
                 fontWeight: 400
               }}>
-                1-3hr express delivery across NSW & rapid nationwide dispatch.
+                Same Day Shipping For All Products.
               </p>
             </div>
 

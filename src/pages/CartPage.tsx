@@ -51,7 +51,7 @@ export const CartPage: React.FC = () => {
       <div style={{ padding: '6rem 0', textAlign: 'center' }}>
         <div className="container" style={{ maxWidth: '500px' }}>
           <ShoppingBag size={56} style={{ color: 'var(--text-muted)', marginBottom: '1.25rem' }} />
-          <h2 style={{ fontSize: '2rem', color: '#ffffff', marginBottom: '0.75rem' }}>Your Cart is Empty</h2>
+          <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', marginBottom: '0.75rem' }}>Your Cart is Empty</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
             You haven't added any premium Cuban cigars to your humidor cart yet.
           </p>
@@ -69,7 +69,7 @@ export const CartPage: React.FC = () => {
         <div className="cart-header">
           <div>
             <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>Checkout Preparation</span>
-            <h1 style={{ fontSize: '2.5rem', color: '#ffffff' }}>Your Shopping Cart</h1>
+            <h1 style={{ fontSize: '2.5rem', color: 'var(--text-primary)' }}>Your Shopping Cart</h1>
           </div>
           <button className="btn btn-secondary btn-sm cart-clear-btn" onClick={clearCart}>
             Clear Cart
@@ -101,7 +101,7 @@ export const CartPage: React.FC = () => {
                   width: '80px',
                   height: '80px',
                   borderRadius: 'var(--radius-md)',
-                  backgroundColor: 'var(--bg-primary)',
+                  backgroundColor: 'var(--bg-surface-elevated)',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
@@ -122,7 +122,7 @@ export const CartPage: React.FC = () => {
                       <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
                         {item.product.brand}
                       </span>
-                      <h4 style={{ fontSize: '1.15rem', color: '#ffffff', margin: '0.15rem 0' }}>
+                      <h4 style={{ fontSize: '1.15rem', color: 'var(--text-primary)', margin: '0.15rem 0' }}>
                         {item.product.name}
                       </h4>
                     </div>
@@ -175,7 +175,7 @@ export const CartPage: React.FC = () => {
           {/* Order Summary Column */}
           <div>
             <div className="card" style={{ padding: '1.75rem', border: '1px solid var(--border-color)' }}>
-              <h3 style={{ fontSize: '1.4rem', color: '#ffffff', marginBottom: '1.25rem' }}>Order Summary</h3>
+              <h3 style={{ fontSize: '1.4rem', color: 'var(--text-primary)', marginBottom: '1.25rem' }}>Order Summary</h3>
 
               {/* Coupon Form */}
               <div style={{ marginBottom: '1.5rem' }}>
@@ -259,10 +259,10 @@ export const CartPage: React.FC = () => {
                   borderTop: '1px solid var(--border-color)',
                   fontWeight: 700,
                   fontSize: '1.25rem',
-                  color: '#ffffff'
+                  color: 'var(--text-primary)'
                 }}>
                   <span>Total</span>
-                  <span style={{ color: '#ffffff' }}>${totalAmount.toFixed(2)} AUD</span>
+                  <span style={{ color: 'var(--text-primary)' }}>${totalAmount.toFixed(2)} AUD</span>
                 </div>
               </div>
 

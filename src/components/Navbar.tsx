@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useMemo, useRef } from 'react';
 import { Link, useNavigate, useLocation, useSearchParams } from 'react-router-dom';
-import { 
-  ShoppingBag, 
-  ChevronDown, 
-  Search, 
-  MapPin, 
+import {
+  ShoppingBag,
+  ChevronDown,
+  Search,
+  MapPin,
   ArrowRight,
   ArrowLeft,
   User as UserIcon,
@@ -49,7 +49,7 @@ export const Navbar: React.FC = () => {
   const [isScrolled, setIsScrolled] = useState(false);
   const [mobileNavVisible, setMobileNavVisible] = useState(true);
   const lastScrollY = React.useRef(0);
-  
+
   const headerRef = React.useRef<HTMLElement | null>(null);
   const searchBoxRef = useRef<HTMLDivElement | null>(null);
   const mobileSearchBoxRef = useRef<HTMLDivElement | null>(null);
@@ -199,28 +199,28 @@ export const Navbar: React.FC = () => {
           {[...Array(8)].map((_, i) => (
             <div key={i} className="mobile-marquee-item">
               <Truck size={13} style={{ flexShrink: 0 }} />
-              <span>1-3hr Express Delivery On All Tobacco Products in NSW</span>
+              <span>Same Day Shipping For All Products</span>
               <span style={{ opacity: 0.6, marginLeft: '0.8rem', marginRight: '0.4rem', fontSize: '0.7rem' }}>✦</span>
             </div>
           ))}
         </div>
       </div>
 
-      <header 
+      <header
         ref={headerRef}
         className={`site-header ${mobileNavVisible ? 'mobile-visible' : 'mobile-hidden'}`}
         style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        right: 0,
-        zIndex: 1000,
-        width: '100%',
-        backgroundColor: '#ffffff',
-        borderBottom: '1px solid rgba(46, 26, 16, 0.1)',
-        transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, background-color 0.3s ease',
-        boxShadow: isScrolled ? '0 4px 20px rgba(46, 26, 16, 0.08)' : 'none'
-      }}>
+          position: 'fixed',
+          top: 0,
+          left: 0,
+          right: 0,
+          zIndex: 1000,
+          width: '100%',
+          backgroundColor: '#ffffff',
+          borderBottom: '1px solid rgba(46, 26, 16, 0.1)',
+          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, background-color 0.3s ease',
+          boxShadow: isScrolled ? '0 4px 20px rgba(46, 26, 16, 0.08)' : 'none'
+        }}>
         {/* DESKTOP NAVBAR (Displayed when width >= 1110px) */}
         <div className="desktop-navbar">
           {/* Top Header Bar Container */}
@@ -233,24 +233,24 @@ export const Navbar: React.FC = () => {
             justifyContent: 'space-between',
             gap: '1.25rem'
           }}>
-            
+
             {/* Brand Logo (CigarsForYou Official Logo) */}
             <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none', minWidth: '170px' }}>
-              <img 
-                src="/logo.svg" 
-                alt="CigarsForYou" 
-                style={{ 
-                  height: '38px', 
+              <img
+                src="/logo.svg"
+                alt="CigarsForYou"
+                style={{
+                  height: '38px',
                   width: 'auto',
                   display: 'block'
-                }} 
+                }}
               />
             </Link>
 
             {/* Center Search Capsule (Desktop) */}
             <div ref={searchBoxRef} style={{ flex: 1, maxWidth: '580px', position: 'relative' }}>
-              <form 
-                onSubmit={handleSearchSubmit} 
+              <form
+                onSubmit={handleSearchSubmit}
                 style={{ width: '100%', display: 'flex' }}
               >
                 <div className="medicart-search-bar" style={{ width: '100%' }}>
@@ -347,8 +347,8 @@ export const Navbar: React.FC = () => {
                     justifyContent: 'space-between'
                   }}>
                     <span>{searchResults.length} matching cigar{searchResults.length === 1 ? '' : 's'}</span>
-                    <button 
-                      type="button" 
+                    <button
+                      type="button"
                       onClick={() => setIsSearchFocused(false)}
                       style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#71717a' }}
                     >
@@ -438,10 +438,10 @@ export const Navbar: React.FC = () => {
 
             {/* Right Section: Australian Location, Cart, User Profile / Sign In */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '1.25rem' }}>
-              
+
               {/* Australian Location Selector Pill */}
-              <div 
-                style={{ position: 'relative', cursor: 'pointer' }} 
+              <div
+                style={{ position: 'relative', cursor: 'pointer' }}
                 onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
               >
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.65rem' }}>
@@ -532,9 +532,9 @@ export const Navbar: React.FC = () => {
               </div>
 
               {/* Shopping Bag Button */}
-              <Link 
-                to="/cart" 
-                style={{ 
+              <Link
+                to="/cart"
+                style={{
                   position: 'relative',
                   width: '38px',
                   height: '38px',
@@ -572,7 +572,7 @@ export const Navbar: React.FC = () => {
 
               {/* User Account Pill / Sign In Prompt */}
               {currentUser ? (
-                <Link 
+                <Link
                   to="/account"
                   style={{
                     display: 'flex',
@@ -607,7 +607,7 @@ export const Navbar: React.FC = () => {
                   </div>
                 </Link>
               ) : (
-                <Link 
+                <Link
                   to="/login"
                   style={{
                     display: 'inline-flex',
@@ -663,7 +663,7 @@ export const Navbar: React.FC = () => {
                 <ArrowLeft size={15} />
               </button>
 
-              <div 
+              <div
                 id="cigar-pills-container"
                 className="no-scrollbar"
                 style={{
@@ -742,22 +742,22 @@ export const Navbar: React.FC = () => {
           }}>
             {/* Brand Logo (Enlarged for Mobile) */}
             <Link to="/" style={{ display: 'flex', alignItems: 'center', textDecoration: 'none' }}>
-              <img 
-                src="/logo.svg" 
-                alt="CigarsForYou" 
-                style={{ 
-                  height: '44px', 
+              <img
+                src="/logo.svg"
+                alt="CigarsForYou"
+                style={{
+                  height: '44px',
                   width: 'auto',
                   display: 'block'
-                }} 
+                }}
               />
             </Link>
 
             {/* Right Section: 3 Icons/Points (Location Picker, Profile Account, Cart) - Exact Same Height and Size (38px x 38px) */}
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
-              
+
               {/* 1. Location Picker Icon (To the left of profile account) */}
-              <div 
+              <div
                 style={{ position: 'relative', cursor: 'pointer' }}
                 onClick={() => setLocationDropdownOpen(!locationDropdownOpen)}
                 title={`Selected state: ${selectedLocation}`}
@@ -856,7 +856,7 @@ export const Navbar: React.FC = () => {
               </div>
 
               {/* 2. Profile Account Icon (Middle) */}
-              <Link 
+              <Link
                 to={currentUser ? '/account' : '/login'}
                 style={{
                   width: '38px',
@@ -883,9 +883,9 @@ export const Navbar: React.FC = () => {
               </Link>
 
               {/* 3. Shopping Bag Cart Icon (Right) */}
-              <Link 
-                to="/cart" 
-                style={{ 
+              <Link
+                to="/cart"
+                style={{
                   position: 'relative',
                   width: '38px',
                   height: '38px',
@@ -1016,8 +1016,8 @@ export const Navbar: React.FC = () => {
                   justifyContent: 'space-between'
                 }}>
                   <span>{searchResults.length} matching cigar{searchResults.length === 1 ? '' : 's'}</span>
-                  <button 
-                    type="button" 
+                  <button
+                    type="button"
                     onClick={() => setIsSearchFocused(false)}
                     style={{ border: 'none', background: 'transparent', cursor: 'pointer', color: '#71717a' }}
                   >
@@ -1130,7 +1130,7 @@ export const Navbar: React.FC = () => {
                 <ArrowLeft size={13} />
               </button>
 
-              <div 
+              <div
                 id="cigar-pills-container-mobile"
                 className="no-scrollbar"
                 style={{

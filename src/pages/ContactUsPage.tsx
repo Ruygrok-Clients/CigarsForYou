@@ -233,7 +233,7 @@ export const ContactUsPage: React.FC = () => {
                     <input
                       type="text"
                       required
-                      placeholder="e.g. Alexander Ruygrok"
+                      placeholder="e.g. Oliver Smith"
                       value={formData.name}
                       onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                       style={{
