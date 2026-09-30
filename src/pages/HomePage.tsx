@@ -551,15 +551,14 @@ export const HomePage: React.FC = () => {
 
         </div>
 
-        {/* Responsive CSS Rules for Desktop (>= 1110px) vs Mobile (< 1110px) */}
+        {/* Mobile hero is the default. The desktop hero returns at 1110px. */}
         <style>{`
+          .desktop-hero { display: none !important; }
+          .mobile-hero { display: block !important; }
+
           @media (min-width: 1110px) {
             .desktop-hero { display: block !important; }
             .mobile-hero { display: none !important; }
-          }
-          @media (max-width: 1109px) {
-            .desktop-hero { display: none !important; }
-            .mobile-hero { display: block !important; }
           }
         `}</style>
       </section>

@@ -62,9 +62,35 @@ export const ContactUsPage: React.FC = () => {
 
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
-      {/* Mobile Responsive Layout (<1110px) */}
+      {/* Mobile-first layout. 769px restores the mid layout; 1110px restores the full page. */}
       <style>{`
-        @media (max-width: 1109px) {
+        .contact-hero-section {
+          padding: 2rem 1rem 2.5rem 1rem !important;
+        }
+        .contact-page-section {
+          padding-top: 1.75rem !important;
+          padding-bottom: 2.5rem !important;
+          padding-left: 1rem !important;
+          padding-right: 1rem !important;
+        }
+        .contact-grid-2col {
+          grid-template-columns: 1fr !important;
+          gap: 2rem !important;
+        }
+        .contact-card-padding {
+          padding: 1.5rem 1.25rem !important;
+        }
+        .contact-faq-section {
+          padding-top: 2rem !important;
+          padding-bottom: 2.5rem !important;
+          padding-left: 1rem !important;
+          padding-right: 1rem !important;
+        }
+        .form-two-col {
+          grid-template-columns: 1fr !important;
+        }
+
+        @media (min-width: 769px) {
           .contact-hero-section {
             padding: 2.5rem 1.25rem 3.25rem 1.25rem !important;
           }
@@ -74,39 +100,36 @@ export const ContactUsPage: React.FC = () => {
             padding-left: 1.25rem !important;
             padding-right: 1.25rem !important;
           }
-          .contact-grid-2col {
-            grid-template-columns: 1fr !important;
-            gap: 2rem !important;
-          }
-          .contact-card-padding {
-            padding: 1.5rem 1.25rem !important;
-          }
           .contact-faq-section {
             padding-top: 2.5rem !important;
             padding-bottom: 3.25rem !important;
             padding-left: 1.25rem !important;
             padding-right: 1.25rem !important;
           }
+          .form-two-col {
+            grid-template-columns: 1fr 1fr !important;
+          }
         }
 
-        @media (max-width: 779px) {
+        @media (min-width: 1110px) {
           .contact-hero-section {
-            padding: 2rem 1rem 2.5rem 1rem !important;
+            padding: 5rem 1.5rem 5.5rem 1.5rem !important;
           }
           .contact-page-section {
-            padding-top: 1.75rem !important;
-            padding-bottom: 2.5rem !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
+            padding: 5rem 1.5rem !important;
+          }
+          .contact-grid-2col {
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)) !important;
+            gap: 3.5rem !important;
+          }
+          .contact-card-padding {
+            padding: 2.25rem !important;
+          }
+          .contact-grid-2col > .contact-card-padding {
+            padding: 2.5rem !important;
           }
           .contact-faq-section {
-            padding-top: 2rem !important;
-            padding-bottom: 2.5rem !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-          }
-          .form-two-col {
-            grid-template-columns: 1fr !important;
+            padding: 5rem 1.5rem 6rem 1.5rem !important;
           }
         }
       `}</style>
@@ -577,12 +600,6 @@ export const ContactUsPage: React.FC = () => {
         </div>
       </section>
 
-      {/* CSS helper for smaller screens */}
-      <style>{`
-        @media (max-width: 640px) {
-          .form-two-col { grid-template-columns: 1fr !important; }
-        }
-      `}</style>
     </div>
   );
 };

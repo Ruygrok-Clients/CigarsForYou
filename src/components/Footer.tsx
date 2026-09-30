@@ -26,36 +26,67 @@ export const Footer: React.FC = () => {
           100% { transform: translateX(-50%); }
         }
 
-        @media (max-width: 479.98px) {
+        .footer-grid {
+          grid-template-columns: 1fr !important;
+          gap: 2rem !important;
+          text-align: left !important;
+        }
+        .footer-brand {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          text-align: left !important;
+        }
+        .footer-logo {
+          height: 95px !important;
+          max-width: 100% !important;
+        }
+        .footer-col {
+          display: flex !important;
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          text-align: left !important;
+        }
+        .footer-copyright {
+          flex-direction: column !important;
+          align-items: flex-start !important;
+          text-align: left !important;
+          gap: 0.5rem !important;
+        }
+        .footer-warning {
+          text-align: left !important;
+        }
+
+        @media (min-width: 769px) {
           .footer-grid {
-            grid-template-columns: 1fr !important;
-            gap: 2rem !important;
-            text-align: left !important;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)) !important;
+            gap: 2.5rem !important;
+            text-align: initial !important;
           }
           .footer-brand {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            text-align: left !important;
+            display: block !important;
+            align-items: stretch !important;
+            text-align: initial !important;
           }
           .footer-logo {
-            height: 95px !important;
+            height: 48px !important;
             max-width: 100% !important;
           }
           .footer-col {
-            display: flex !important;
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            text-align: left !important;
+            display: block !important;
+            align-items: stretch !important;
+            text-align: initial !important;
           }
           .footer-copyright {
-            flex-direction: column !important;
-            align-items: flex-start !important;
-            text-align: left !important;
-            gap: 0.5rem !important;
+            flex-direction: row !important;
+            flex-wrap: wrap !important;
+            justify-content: space-between !important;
+            align-items: center !important;
+            text-align: initial !important;
+            gap: 1rem !important;
           }
           .footer-warning {
-            text-align: left !important;
+            text-align: center !important;
           }
         }
       `}</style>

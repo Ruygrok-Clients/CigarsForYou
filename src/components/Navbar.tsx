@@ -221,7 +221,7 @@ export const Navbar: React.FC = () => {
           transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, background-color 0.3s ease',
           boxShadow: isScrolled ? '0 4px 20px rgba(46, 26, 16, 0.08)' : 'none'
         }}>
-        {/* DESKTOP NAVBAR (Displayed when width >= 1110px) */}
+        {/* DESKTOP NAVBAR (Displayed above the tablet breakpoint, from 1025px) */}
         <div className="desktop-navbar">
           {/* Top Header Bar Container */}
           <div style={{
@@ -730,7 +730,7 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* MOBILE NAVBAR (Displayed when width < 1110px) */}
+        {/* COMPACT NAVBAR (Displayed through the tablet breakpoint, up to 1024px) */}
         <div className="mobile-navbar">
           {/* Top Header Row */}
           <div style={{
@@ -1198,7 +1198,7 @@ export const Navbar: React.FC = () => {
           </div>
         </div>
 
-        {/* CSS Breakpoint Rules for Desktop (>= 1110px) vs Mobile (< 1110px) with Smooth Hide/Show Scroll Animation & Marquee Animation */}
+        {/* Compact nav through tablet. Full nav from the laptop breakpoint (1025px). */}
         <style>{`
           @keyframes topMarqueeScroll {
             0% { transform: translateX(0%); }
@@ -1243,26 +1243,25 @@ export const Navbar: React.FC = () => {
             padding-right: 0.5rem;
           }
 
-          @media (min-width: 1110px) {
+          .desktop-navbar { display: none !important; }
+          .mobile-navbar { display: block !important; }
+          header.site-header.mobile-hidden {
+            transform: translateY(-100%);
+          }
+          header.site-header.mobile-visible {
+            transform: translateY(0);
+          }
+          .mobile-marquee-top.visible {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+          }
+
+          @media (min-width: 1025px) {
             .desktop-navbar { display: block !important; }
             .mobile-navbar { display: none !important; }
             .mobile-marquee-top { display: none !important; }
             header.site-header { transform: translateY(0) !important; }
-          }
-          @media (max-width: 1109px) {
-            .desktop-navbar { display: none !important; }
-            .mobile-navbar { display: block !important; }
-            header.site-header.mobile-hidden {
-              transform: translateY(-100%);
-            }
-            header.site-header.mobile-visible {
-              transform: translateY(0);
-            }
-            .mobile-marquee-top.visible {
-              transform: translateY(0);
-              opacity: 1;
-              pointer-events: auto;
-            }
           }
         `}</style>
       </header>

@@ -28,9 +28,41 @@ export const AboutUsPage: React.FC = () => {
   return (
     <div style={{ backgroundColor: '#ffffff', minHeight: '100vh' }}>
 
-      {/* Mobile Responsive Layout (<1110px) */}
+      {/* Mobile-first layout. Stacked padding is the default; 769px restores the mid layout; 1110px restores the full page. */}
       <style>{`
-        @media (max-width: 1109px) {
+        .about-hero-section {
+          padding: 2rem 1rem 2.5rem 1rem !important;
+        }
+        .about-page-section {
+          padding-top: 1.75rem !important;
+          padding-bottom: 2.5rem !important;
+          padding-left: 1rem !important;
+          padding-right: 1rem !important;
+        }
+        .about-cta-section {
+          padding: 2.5rem 1rem !important;
+        }
+        .about-grid-2col {
+          grid-template-columns: 1fr !important;
+          gap: 2.5rem !important;
+        }
+        .about-grid-3col {
+          grid-template-columns: 1fr !important;
+          gap: 1.25rem !important;
+        }
+        .about-text-col {
+          max-width: 100% !important;
+        }
+        .about-stat-grid {
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 1.25rem !important;
+          padding-top: 1.5rem !important;
+        }
+        .about-card-padding {
+          padding: 1.5rem 1.25rem !important;
+        }
+
+        @media (min-width: 769px) {
           .about-hero-section {
             padding: 2.5rem 1.25rem 3.25rem 1.25rem !important;
           }
@@ -43,43 +75,50 @@ export const AboutUsPage: React.FC = () => {
           .about-cta-section {
             padding: 3.25rem 1.25rem !important;
           }
-          .about-grid-2col {
-            grid-template-columns: 1fr !important;
-            gap: 2.5rem !important;
-          }
           .about-grid-3col {
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)) !important;
             gap: 1.5rem !important;
           }
-          .about-text-col {
-            max-width: 100% !important;
-          }
-          .about-stat-grid {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 1.25rem !important;
-            padding-top: 1.5rem !important;
-          }
-          .about-card-padding {
-            padding: 1.5rem 1.25rem !important;
-          }
         }
 
-        @media (max-width: 779px) {
+        @media (min-width: 1110px) {
           .about-hero-section {
-            padding: 2rem 1rem 2.5rem 1rem !important;
+            padding: 6rem 1.5rem 7rem 1.5rem !important;
           }
           .about-page-section {
-            padding-top: 1.75rem !important;
-            padding-bottom: 2.5rem !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
+            padding: 6.5rem 1.5rem !important;
           }
           .about-cta-section {
-            padding: 2.5rem 1rem !important;
+            padding: 7rem 1.5rem !important;
+          }
+          .about-grid-2col {
+            grid-template-columns: repeat(auto-fit, minmax(340px, 1fr)) !important;
+          }
+          section:nth-of-type(2) .about-grid-2col {
+            gap: 5rem !important;
+          }
+          section:nth-of-type(4) .about-grid-2col {
+            gap: 4.5rem !important;
           }
           .about-grid-3col {
-            grid-template-columns: 1fr !important;
-            gap: 1.25rem !important;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+          }
+          section:nth-of-type(3) .about-grid-3col {
+            gap: 2.5rem !important;
+          }
+          section:nth-of-type(5) .about-grid-3col {
+            gap: 2rem !important;
+          }
+          .about-text-col {
+            max-width: none !important;
+          }
+          .about-stat-grid {
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+            gap: 2rem !important;
+            padding-top: 2rem !important;
+          }
+          .about-card-padding {
+            padding: revert !important;
           }
         }
       `}</style>

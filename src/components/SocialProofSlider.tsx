@@ -101,15 +101,20 @@ export const SocialProofSlider: React.FC = () => {
 
       {/* Responsive Styles */}
       <style>{`
-        @media (max-width: 992px) {
+        .testimonial-quote-wrapper {
+          width: 100% !important;
+          max-width: 100% !important;
+        }
+        @media (min-width: 769px) {
           .testimonial-quote-wrapper {
             width: 85% !important;
             max-width: 100% !important;
           }
         }
-        @media (max-width: 768px) {
+        @media (min-width: 993px) {
           .testimonial-quote-wrapper {
-            width: 100% !important;
+            width: 50% !important;
+            max-width: 50vw !important;
           }
         }
       `}</style>

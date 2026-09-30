@@ -33,62 +33,80 @@ export const AboutUsSection: React.FC = () => {
         }
 
         .about-us-svg-desktop {
-          display: block;
+          display: none !important;
         }
         .about-us-svg-mobile {
-          display: none;
+          display: block !important;
         }
 
-        /* Mobile top/horizontal margin & padding reduction (<1110px) */
-        @media (max-width: 1109px) {
+        .about-us-section {
+          padding-top: 1.75rem !important;
+          padding-bottom: 3rem !important;
+          padding-left: 1rem !important;
+          padding-right: 1rem !important;
+        }
+        .about-us-grid {
+          grid-template-columns: 1fr !important;
+          gap: 2.5rem !important;
+          margin-bottom: 3.5rem !important;
+        }
+        .about-us-text-col {
+          max-width: 100% !important;
+        }
+        .about-us-images-col {
+          max-width: 100% !important;
+          height: 320px !important;
+        }
+        .about-us-stats {
+          grid-template-columns: repeat(2, 1fr) !important;
+          gap: 1.5rem !important;
+        }
+
+        @media (min-width: 481px) {
+          .about-us-images-col {
+            height: 380px !important;
+          }
+        }
+
+        @media (min-width: 769px) {
+          .about-us-svg-desktop {
+            display: block !important;
+          }
+          .about-us-svg-mobile {
+            display: none !important;
+          }
           .about-us-section {
             padding-top: 2.25rem !important;
             padding-bottom: 3.5rem !important;
             padding-left: 1.25rem !important;
             padding-right: 1.25rem !important;
           }
-        }
-
-        /* Stacking and mobile curve activation when smaller than 780px (<780px) */
-        @media (max-width: 779px) {
-          .about-us-section {
-            padding-top: 1.75rem !important;
-            padding-bottom: 3rem !important;
-            padding-left: 1rem !important;
-            padding-right: 1rem !important;
-          }
-          .about-us-svg-desktop {
-            display: none !important;
-          }
-          .about-us-svg-mobile {
-            display: block !important;
-          }
           .about-us-grid {
-            grid-template-columns: 1fr !important;
-            gap: 2.5rem !important;
-            margin-bottom: 3.5rem !important;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+            gap: 4rem !important;
+            margin-bottom: 5rem !important;
           }
           .about-us-text-col {
-            max-width: 100% !important;
+            max-width: 540px !important;
           }
           .about-us-images-col {
-            max-width: 100% !important;
-            height: 380px !important;
+            max-width: 480px !important;
+            height: 460px !important;
           }
           .about-us-stats {
-            grid-template-columns: repeat(2, 1fr) !important;
-            gap: 1.5rem !important;
+            grid-template-columns: repeat(auto-fit, minmax(180px, 1fr)) !important;
+            gap: 2rem !important;
           }
         }
 
-        @media (max-width: 480px) {
-          .about-us-images-col {
-            height: 320px !important;
+        @media (min-width: 1110px) {
+          .about-us-section {
+            padding: 6rem 0 5rem 0 !important;
           }
         }
       `}</style>
 
-      {/* Dashed Background Curve SVG & Moving Delivery Truck (Desktop / Tablet >= 780px) */}
+      {/* Dashed Background Curve SVG & Moving Delivery Truck (from 769px) */}
       <svg
         className="about-us-svg-desktop"
         style={{

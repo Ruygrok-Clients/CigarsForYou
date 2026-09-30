@@ -166,28 +166,41 @@ body {
   padding-top: var(--navbar-height, 120px);
 }
 
+/*
+  Responsive tiers (mobile-first):
+  - Mobile: default styles (viewport <= 768px)
+  - Tablet: @media (min-width: 769px)
+  - Laptop: @media (min-width: 1025px)
+  - Desktop: @media (min-width: 1921px) inherits the laptop layout
+*/
+
 /* Sticky Sidebar for Product Catalogue Pages */
+.catalog-grid-layout {
+  grid-template-columns: 1fr !important;
+  gap: 1.5rem !important;
+}
+
 .catalog-sidebar-sticky {
-  position: -webkit-sticky;
-  position: sticky;
-  top: 135px;
+  position: relative !important;
+  top: 0 !important;
   align-self: flex-start;
   height: fit-content;
-  max-height: calc(100vh - 150px);
+  max-height: none !important;
   overflow-y: auto;
   scrollbar-width: thin;
   z-index: 20;
 }
 
-@media (max-width: 768px) {
+@media (min-width: 769px) {
   .catalog-grid-layout {
-    grid-template-columns: 1fr !important;
-    gap: 1.5rem !important;
+    grid-template-columns: minmax(240px, 270px) 1fr !important;
+    gap: 2.5rem !important;
   }
   .catalog-sidebar-sticky {
-    position: relative !important;
-    top: 0 !important;
-    max-height: none !important;
+    position: -webkit-sticky !important;
+    position: sticky !important;
+    top: 145px !important;
+    max-height: calc(100vh - 150px) !important;
   }
 }
 
@@ -586,14 +599,14 @@ select.form-control option {
 /* Responsive Grid helpers */
 .grid-responsive {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
-  gap: 1.5rem;
+  grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
+  gap: 1rem;
 }
 
-@media (max-width: 640px) {
+@media (min-width: 641px) {
   .grid-responsive {
-    grid-template-columns: repeat(auto-fill, minmax(160px, 1fr));
-    gap: 1rem;
+    grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+    gap: 1.5rem;
   }
 }
 
@@ -606,22 +619,22 @@ select.form-control option {
    ========================================================================== */
 
 .product-sep-section {
-  padding: 5rem 0 1.5rem 0;
+  padding: 2.25rem 0 1.5rem 0;
   background-color: #ffffff;
   position: relative;
 }
 
 .featured-products-section {
-  padding: 4.5rem 0 5rem 0;
+  padding: 2.25rem 0 5rem 0;
   background-color: #ffffff;
 }
 
-@media (max-width: 1109px) {
+@media (min-width: 1110px) {
   .product-sep-section {
-    padding-top: 2.25rem;
+    padding-top: 5rem;
   }
   .featured-products-section {
-    padding-top: 2.25rem;
+    padding-top: 4.5rem;
   }
 }
 
@@ -632,7 +645,7 @@ select.form-control option {
 
 .product-sep-big-title {
   font-family: var(--font-sans);
-  font-size: clamp(3.2rem, 7.5vw, 6.2rem);
+  font-size: clamp(2.5rem, 11vw, 4rem);
   font-weight: 700;
   line-height: 0.88;
   letter-spacing: -0.025em;
@@ -642,12 +655,13 @@ select.form-control option {
   padding: 0;
 }
 
-/* 2-Column Card Grid */
+/* Card grid: full width on mobile, equal 50% columns from tablet upward */
 .product-sep-grid {
   display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 1.75rem;
+  grid-template-columns: 1fr;
+  gap: 1.25rem;
   width: 100%;
+  align-items: stretch;
 }
 
 .product-sep-card {
@@ -656,7 +670,9 @@ select.form-control option {
   color: inherit;
   cursor: pointer;
   position: relative;
-  height: 520px;
+  width: 100%;
+  height: auto;
+  aspect-ratio: 6 / 5;
   border-radius: 4px;
   overflow: hidden;
   box-shadow: 0 8px 30px rgba(0, 0, 0, 0.08);
@@ -669,6 +685,8 @@ select.form-control option {
 }
 
 .product-sep-card-img {
+  position: absolute;
+  inset: 0;
   width: 100%;
   height: 100%;
   object-fit: cover;
@@ -732,44 +750,52 @@ select.form-control option {
   box-shadow: 0 6px 18px rgba(0, 0, 0, 0.25);
 }
 
-/* Responsive Grid Breakpoints */
-@media (max-width: 992px) {
-  .product-sep-grid {
-    grid-template-columns: repeat(2, 1fr);
-    gap: 1.25rem;
-  }
-  .product-sep-card {
-    height: 460px;
-  }
+/* Small-phone hero buttons. Wider layouts drop these constraints at 641px. */
+.hero-btn-group {
+  flex-direction: column;
+  align-items: center;
+  width: 100%;
+  max-width: 320px;
+  margin: 0 auto;
+  gap: 0.85rem !important;
 }
 
-@media (max-width: 640px) {
-  .product-sep-grid {
-    grid-template-columns: 1fr;
-  }
-  .product-sep-card {
-    height: 420px;
-  }
-  .product-sep-big-title {
-    font-size: clamp(2.5rem, 11vw, 4rem);
-  }
+.hero-btn {
+  width: 100% !important;
+  height: 52px !important;
+  min-height: 52px !important;
+  max-height: 52px !important;
+  justify-content: center !important;
+  box-sizing: border-box !important;
+}
 
+@media (min-width: 641px) {
   .hero-btn-group {
-    flex-direction: column;
-    align-items: center;
-    width: 100%;
-    max-width: 320px;
-    margin: 0 auto;
-    gap: 0.85rem !important;
+    flex-direction: revert;
+    align-items: revert;
+    width: revert;
+    max-width: revert;
+    margin: revert;
+    gap: revert !important;
   }
 
   .hero-btn {
-    width: 100% !important;
-    height: 52px !important;
-    min-height: 52px !important;
-    max-height: 52px !important;
-    justify-content: center !important;
-    box-sizing: border-box !important;
+    width: revert !important;
+    height: revert !important;
+    min-height: revert !important;
+    max-height: revert !important;
+    justify-content: revert !important;
+    box-sizing: revert !important;
+  }
+}
+
+@media (min-width: 769px) {
+  .product-sep-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 1.75rem;
+  }
+  .product-sep-big-title {
+    font-size: clamp(3.2rem, 7.5vw, 6.2rem);
   }
 }
 
@@ -927,84 +953,76 @@ select.form-control option {
 /* Checkout Page Responsive Layout */
 .checkout-container-grid {
   display: grid;
-  grid-template-columns: 1fr 380px;
-  gap: 2.5rem;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
   align-items: start;
 }
 
 .checkout-form-row-2 {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
 .checkout-form-row-3 {
   display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  grid-template-columns: 1fr;
   gap: 1rem;
 }
 
 .checkout-address-fields {
-  display: grid;
-  grid-template-columns: 2fr 1fr 1fr;
+  display: flex;
+  flex-direction: column;
   gap: 1rem;
 }
 
 .checkout-state-postcode-container {
-  display: contents;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 0.85rem;
 }
 
 .checkout-payment-tabs {
   display: flex;
-  gap: 1rem;
+  flex-direction: column;
+  gap: 0.75rem;
   margin-bottom: 1.25rem;
 }
 
-@media (max-width: 990px) {
-  .checkout-container-grid {
-    grid-template-columns: 1fr !important;
-    gap: 1.5rem !important;
-  }
-
-  .checkout-form-row-2 {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-  }
-
-  .checkout-form-row-3 {
-    grid-template-columns: 1fr !important;
-    gap: 1rem !important;
-  }
-
-  .checkout-address-fields {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1rem !important;
-  }
-
+@media (min-width: 769px) {
   .checkout-state-postcode-container {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1rem !important;
-  }
-
-  .checkout-payment-tabs {
-    flex-direction: column !important;
-    gap: 0.75rem !important;
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
   }
 }
 
-@media (max-width: 500px) {
+@media (min-width: 1025px) {
+  .checkout-container-grid {
+    grid-template-columns: 1fr 380px;
+    gap: 2.5rem;
+  }
+
+  .checkout-form-row-2 {
+    grid-template-columns: 1fr 1fr;
+  }
+
+  .checkout-form-row-3 {
+    grid-template-columns: 2fr 1fr 1fr;
+  }
+
   .checkout-address-fields {
-    display: flex !important;
-    flex-direction: column !important;
-    gap: 1rem !important;
+    display: grid;
+    grid-template-columns: 2fr 1fr 1fr;
   }
 
   .checkout-state-postcode-container {
-    display: grid !important;
-    grid-template-columns: 1fr 1fr !important;
-    gap: 0.85rem !important;
+    display: contents;
+  }
+
+  .checkout-payment-tabs {
+    flex-direction: row;
+    gap: 1rem;
   }
 }
 
@@ -1012,21 +1030,27 @@ select.form-control option {
 .cart-header {
   margin-bottom: 2rem;
   display: flex;
+  flex-direction: column;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 1rem;
   width: 100%;
 }
 
-@media (max-width: 700px) {
+.cart-clear-btn {
+  align-self: flex-end;
+  margin-top: 0.5rem;
+}
+
+@media (min-width: 769px) {
   .cart-header {
-    flex-direction: column;
-    align-items: flex-start;
+    flex-direction: row;
+    align-items: center;
   }
 
   .cart-clear-btn {
-    align-self: flex-end;
-    margin-top: 0.5rem;
+    align-self: auto;
+    margin-top: 0;
   }
 }
 

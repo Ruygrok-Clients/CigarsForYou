@@ -412,8 +412,7 @@ export const CustomerDetailsPage: React.FC = () => {
                     {formErrors.street && <span style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.2rem', display: 'block' }}>{formErrors.street}</span>}
                   </div>
 
-                  {/* Suburb & State Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
+                  <div className="checkout-address-fields">
                     <div>
                       <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
                         Suburb / City <span style={{ color: '#dc2626' }}>*</span>
@@ -430,60 +429,59 @@ export const CustomerDetailsPage: React.FC = () => {
                       {formErrors.suburb && <span style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.2rem', display: 'block' }}>{formErrors.suburb}</span>}
                     </div>
 
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                        State <span style={{ color: '#dc2626' }}>*</span>
-                      </label>
-                      <select
-                        className="form-control"
-                        value={stateVal}
-                        onChange={(e) => setStateVal(e.target.value)}
-                        autoComplete="address-level1"
-                        required
-                      >
-                        <option value="NSW">NSW - New South Wales</option>
-                        <option value="VIC">VIC - Victoria</option>
-                        <option value="QLD">QLD - Queensland</option>
-                        <option value="WA">WA - Western Australia</option>
-                        <option value="SA">SA - South Australia</option>
-                        <option value="TAS">TAS - Tasmania</option>
-                        <option value="ACT">ACT - Capital Territory</option>
-                        <option value="NT">NT - Northern Territory</option>
-                      </select>
+                    <div className="checkout-state-postcode-container">
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                          State <span style={{ color: '#dc2626' }}>*</span>
+                        </label>
+                        <select
+                          className="form-control"
+                          value={stateVal}
+                          onChange={(e) => setStateVal(e.target.value)}
+                          autoComplete="address-level1"
+                          required
+                        >
+                          <option value="NSW">NSW - New South Wales</option>
+                          <option value="VIC">VIC - Victoria</option>
+                          <option value="QLD">QLD - Queensland</option>
+                          <option value="WA">WA - Western Australia</option>
+                          <option value="SA">SA - South Australia</option>
+                          <option value="TAS">TAS - Tasmania</option>
+                          <option value="ACT">ACT - Capital Territory</option>
+                          <option value="NT">NT - Northern Territory</option>
+                        </select>
+                      </div>
+
+                      <div>
+                        <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                          Postcode <span style={{ color: '#dc2626' }}>*</span>
+                        </label>
+                        <input
+                          type="text"
+                          className="form-control"
+                          placeholder="2000"
+                          value={postcode}
+                          onChange={(e) => setPostcode(e.target.value)}
+                          autoComplete="postal-code"
+                          required
+                        />
+                        {formErrors.postcode && <span style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.2rem', display: 'block' }}>{formErrors.postcode}</span>}
+                      </div>
                     </div>
                   </div>
 
-                  {/* Postcode & Country Grid */}
-                  <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                        Postcode <span style={{ color: '#dc2626' }}>*</span>
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        placeholder="2000"
-                        value={postcode}
-                        onChange={(e) => setPostcode(e.target.value)}
-                        autoComplete="postal-code"
-                        required
-                      />
-                      {formErrors.postcode && <span style={{ color: '#dc2626', fontSize: '0.75rem', marginTop: '0.2rem', display: 'block' }}>{formErrors.postcode}</span>}
-                    </div>
-
-                    <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
-                        Country
-                      </label>
-                      <input
-                        type="text"
-                        className="form-control"
-                        value={country}
-                        readOnly
-                        disabled
-                        style={{ opacity: 0.7, cursor: 'not-allowed' }}
-                      />
-                    </div>
+                  <div>
+                    <label style={{ display: 'block', fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
+                      Country
+                    </label>
+                    <input
+                      type="text"
+                      className="form-control"
+                      value={country}
+                      readOnly
+                      disabled
+                      style={{ opacity: 0.7, cursor: 'not-allowed' }}
+                    />
                   </div>
                 </div>
               </div>

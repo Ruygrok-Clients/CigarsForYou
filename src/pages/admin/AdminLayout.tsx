@@ -478,22 +478,31 @@ export const AdminLayout: React.FC = () => {
       </div>
 
       <style>{`
-        @media (max-width: 768px) {
-          .admin-sidebar {
-            position: fixed;
-            top: 0;
-            bottom: 0;
-            left: -260px;
-            transition: left 0.25s ease;
-          }
-          .admin-sidebar.open {
-            left: 0;
-          }
-          .mobile-only { display: block !important; }
-          .desktop-only { display: none !important; }
+        .admin-sidebar {
+          position: fixed;
+          top: 0;
+          bottom: 0;
+          left: -260px;
+          transition: left 0.25s ease;
         }
+        .admin-sidebar.open {
+          left: 0;
+        }
+        .mobile-only { display: block !important; }
+        .desktop-only { display: none !important; }
+
         @media (min-width: 769px) {
+          .admin-sidebar,
+          .admin-sidebar.open {
+            position: sticky;
+            top: 0;
+            bottom: auto;
+            left: auto;
+            transition: none;
+          }
           .mobile-only { display: none !important; }
+          .desktop-only { display: inline !important; }
+          div.desktop-only { display: flex !important; }
         }
       `}</style>
     </div>

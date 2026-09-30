@@ -55,20 +55,20 @@
   background-color: #faf8f5;
   border-radius: 8px;
   border: 1px solid rgba(46, 26, 16, 0.08);
-  padding: 2rem;
+  padding: 0.85rem 0.6rem;
   box-shadow: 0 10px 40px rgba(46, 26, 16, 0.04);
   width: 100%;
   box-sizing: border-box;
   overflow: hidden;
 }
 
-/* 1020px Breakpoint Layout Toggles */
+/* Mobile showcase is the default. The desktop showcase returns at 1020px. */
 .featured-showcase-desktop {
-  display: block;
+  display: none !important;
 }
 
 .featured-showcase-mobile {
-  display: none;
+  display: block !important;
 }
 
 .featured-showcase-grid {
@@ -128,8 +128,8 @@
   border-radius: 8px;
   border: 1px solid rgba(46, 26, 16, 0.09);
   position: relative;
-  height: 235px;
-  min-height: 235px;
+  height: 200px;
+  min-height: 200px;
   overflow: hidden;
   box-shadow: inset 0 2px 10px rgba(0, 0, 0, 0.02);
   width: 100%;
@@ -149,25 +149,25 @@
   box-sizing: border-box;
 }
 
-@media (max-width: 1019.98px) {
-  .featured-showcase-desktop {
-    display: none !important;
-  }
-  .featured-showcase-mobile {
-    display: block !important;
-  }
+@media (min-width: 481px) {
   .featured-showcase-box {
     padding: 1.25rem 0.85rem;
   }
+  .featured-wheel-column-mobile {
+    height: 235px;
+    min-height: 235px;
+  }
 }
 
-@media (max-width: 480px) {
-  .featured-showcase-box {
-    padding: 0.85rem 0.6rem;
+@media (min-width: 1020px) {
+  .featured-showcase-desktop {
+    display: block !important;
   }
-  .featured-wheel-column-mobile {
-    height: 200px;
-    min-height: 200px;
+  .featured-showcase-mobile {
+    display: none !important;
+  }
+  .featured-showcase-box {
+    padding: 2rem;
   }
 }
 

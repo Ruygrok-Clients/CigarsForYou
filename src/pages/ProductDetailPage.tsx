@@ -299,16 +299,27 @@ export const ProductDetailPage: React.FC = () => {
   return (
     <div style={{ backgroundColor: '#ffffff', color: '#1d1d1f', minHeight: '100vh', paddingBottom: '5rem' }}>
       <style>{`
-        @media (max-width: 800px) {
+        .product-detail-grid {
+          grid-template-columns: 1fr !important;
+          gap: 2rem !important;
+        }
+        .product-detail-image-col {
+          position: relative !important;
+          top: auto !important;
+          align-self: stretch !important;
+          width: 100% !important;
+        }
+
+        @media (min-width: 769px) {
           .product-detail-grid {
-            grid-template-columns: 1fr !important;
-            gap: 2rem !important;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
+            gap: 3.5rem !important;
           }
           .product-detail-image-col {
-            position: relative !important;
-            top: auto !important;
-            align-self: stretch !important;
-            width: 100% !important;
+            position: sticky !important;
+            top: calc(var(--navbar-height, 120px) + 1.5rem) !important;
+            align-self: start !important;
+            width: auto !important;
           }
         }
       `}</style>
