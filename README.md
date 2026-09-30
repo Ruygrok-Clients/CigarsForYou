@@ -42,7 +42,7 @@ A production-grade, full-stack e-commerce web application for **CigarsForYou**, 
 - **Frontend**: React (Vite + TypeScript), React Router, React Query
 - **Styling**: Custom CSS with espresso/leather/gold humidor design tokens
 - **Backend**: Firebase Firestore, Firebase Auth, Firebase Cloud Functions v2
-- **Payments**: Stripe & PayPal scaffolded integration for one-off & recurring billing
+- **Payments**: Online checkout is temporarily unavailable. A payment processor will be added later. PayPal webhook scaffolding remains unused.
 - **Iconography**: Lucide React
 
 ---
@@ -80,8 +80,6 @@ node scripts/seed-products.js
 Environment variables and webhooks are scaffolded in `functions/src/index.ts` and `functions/.env.example`.
 Set secrets in Firebase Secret Manager:
 ```bash
-firebase functions:secrets:set STRIPE_SECRET_KEY
-firebase functions:secrets:set STRIPE_WEBHOOK_SECRET
 firebase functions:secrets:set PAYPAL_CLIENT_ID
 firebase functions:secrets:set PAYPAL_CLIENT_SECRET
 ```

@@ -89,8 +89,6 @@ export interface OrderStatusHistory {
 export interface Order {
   id?: string;
   orderNumber: string;
-  stripeSessionId?: string;
-  stripePaymentIntentId?: string;
   customerId: string;
   customerName: string;
   customerEmail: string;
@@ -104,7 +102,7 @@ export interface Order {
   currency: 'AUD';
   status: OrderStatus;
   source: OrderSource;
-  paymentMethod: 'Stripe' | 'PayPal' | 'Test Card';
+  paymentMethod: 'PayPal' | 'Pending' | 'Other';
   deliveryAddress: Address;
   ageConfirmed: boolean;
   createdAt: string;

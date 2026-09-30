@@ -78,7 +78,7 @@ export const LegalPage: React.FC = () => {
 
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>3. Third-Party Payment & Service Processors</h2>
               <p>
-                Payment information is tokenized and processed securely via <strong>Stripe Inc.</strong> and <strong>PayPal Holdings Inc.</strong> CigarsForYou does not store raw credit card credentials on its servers. Database infrastructure and user authentication services are provided via <strong>Firebase / Google Cloud Platform</strong>.
+                Online card payments are not currently offered while a new payment processor is being set up. CigarsForYou does not store raw credit card credentials on its servers. Database infrastructure and user authentication services are provided via <strong>Firebase / Google Cloud Platform</strong>.
               </p>
 
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>4. Australian Privacy Principles (APPs)</h2>

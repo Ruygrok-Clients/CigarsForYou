@@ -482,7 +482,7 @@ export async function sendNewOrderAdminNotification(order: any) {
       </div>
       <div class="info-row">
         <span class="info-label">Payment Method:</span>
-        <span class="info-val">${order.paymentMethod || "Stripe"}</span>
+        <span class="info-val">${order.paymentMethod || "Pending"}</span>
       </div>
       <div class="info-row">
         <span class="info-label">Total Amount:</span>
@@ -686,7 +686,7 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
       </div>
       <div class="summary-row">
         <span class="summary-label">Payment Method:</span>
-        <span class="summary-val">${order.paymentMethod || "Credit Card (Stripe)"}</span>
+        <span class="summary-val">${order.paymentMethod || "Pending"}</span>
       </div>
       <div class="summary-row">
         <span class="summary-label">Payment Status:</span>

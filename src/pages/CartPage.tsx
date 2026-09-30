@@ -9,7 +9,6 @@ import {
   ShieldAlert,
   Tag,
   ChevronLeft,
-  ArrowRight,
   Loader2
 } from 'lucide-react';
 
@@ -283,17 +282,18 @@ export const CartPage: React.FC = () => {
                 <span>Government-issued 18+ photo ID is checked upon delivery.</span>
               </div>
 
-              {/* Proceed to Customer Details Intermediary Step */}
-              <Link
-                to="/checkout-details"
+              <button
+                type="button"
                 className="btn btn-primary btn-lg btn-full"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none' }}
+                disabled
+                aria-disabled="true"
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: 0.55, cursor: 'not-allowed' }}
               >
-                Proceed to Customer Details <ArrowRight size={18} />
-              </Link>
+                Checkout unavailable
+              </button>
 
-              <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.75rem' }}>
-                Enter shipping details & confirm order in the next step.
+              <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.85rem', lineHeight: 1.5 }}>
+                Online payment is temporarily unavailable. You can keep browsing and update your cart, but orders cannot be placed right now.
               </p>
             </div>
           </div>

@@ -439,11 +439,6 @@ export const AdminOrders: React.FC = () => {
                     Payment Method & Reference
                   </span>
                   <span style={{ color: 'var(--accent-gold)', fontWeight: 700, display: 'block' }}>{selectedOrder.paymentMethod}</span>
-                  {selectedOrder.stripeSessionId && (
-                    <span style={{ color: 'var(--text-secondary)', fontSize: '0.75rem', wordBreak: 'break-all', display: 'block', marginTop: '0.25rem' }}>
-                      Stripe: {selectedOrder.stripeSessionId}
-                    </span>
-                  )}
                 </div>
               </div>
 
