@@ -157,7 +157,7 @@ export const HomePage: React.FC = () => {
                     alignItems: 'center',
                     gap: '0.4rem'
                   }}>
-                    <Truck size={15} /> Same Day Shipping For All Products
+                    <Truck size={15} /> Immediate Dispatch (1-3hr Delivery)
                   </span>
                 </div>
 
@@ -402,7 +402,7 @@ export const HomePage: React.FC = () => {
                   maxWidth: '580px',
                   marginInline: 'auto'
                 }}>
-                  Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. Same Day Shipping For All Products.
+                  Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. Choose Immediate Dispatch (1-3hr Delivery) or Free Express Delivery.
                 </p>
 
                 {/* Action Buttons (Dynamically shrink on small screens via 100% width, max-width & horizontal margin) */}

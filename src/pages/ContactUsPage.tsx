@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Phone, Clock, Send, HelpCircle, ChevronDown, CheckCircle2, MessageSquare, ShieldAlert } from 'lucide-react';
+import { Mail, Phone, Truck, Send, HelpCircle, ChevronDown, CheckCircle2, MessageSquare, ShieldAlert } from 'lucide-react';
 import { useToast } from '../components/Toast';
 
 export const ContactUsPage: React.FC = () => {
@@ -43,8 +43,8 @@ export const ContactUsPage: React.FC = () => {
 
   const faqs = [
     {
-      q: 'How fast is express delivery in New South Wales?',
-      a: 'We offer rapid 1-3 hour express courier delivery across Sydney metropolitan areas, and standard express parcel delivery (1-2 business days) across regional NSW.'
+      q: 'How does delivery work?',
+      a: 'There are two options. Immediate Dispatch (1-3hrs Delivery): we are an official partner with the Uber Commercial Courier program, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Free Express Delivery: priority express with logistics and courier partners such as DHL or AusPost.'
     },
     {
       q: 'How is age verification handled upon delivery?',
@@ -407,7 +407,7 @@ export const ContactUsPage: React.FC = () => {
               )}
             </div>
 
-            {/* Right Column: Contact Details Cards & Operational Hours */}
+            {/* Right Column: Contact Details Cards */}
             <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
 
               {/* Contact Information Card */}
@@ -472,7 +472,7 @@ export const ContactUsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  {/* Support Hours */}
+                  {/* Delivery methods */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                     <div style={{
                       width: '44px',
@@ -484,17 +484,17 @@ export const ContactUsPage: React.FC = () => {
                       justifyContent: 'center',
                       flexShrink: 0
                     }}>
-                      <Clock size={20} style={{ color: '#e59d5c' }} />
+                      <Truck size={20} style={{ color: '#e59d5c' }} />
                     </div>
                     <div>
                       <span style={{ fontSize: '0.75rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block' }}>
-                        Operational Hours (AEST)
+                        Delivery
                       </span>
                       <div style={{ fontSize: '0.95rem', fontWeight: 600, color: '#ffffff' }}>
-                        Mon – Fri: 8:00 AM – 6:00 PM
+                        Immediate Dispatch (1-3hrs Delivery)
                       </div>
-                      <div style={{ fontSize: '0.85rem', color: '#d1d5db' }}>
-                        Saturday: 9:00 AM – 2:00 PM
+                      <div style={{ fontSize: '0.85rem', color: '#d1d5db', lineHeight: 1.45, marginTop: '0.2rem' }}>
+                        Or Free Express Delivery with partners such as DHL or AusPost.
                       </div>
                     </div>
                   </div>
@@ -515,10 +515,10 @@ export const ContactUsPage: React.FC = () => {
                 <ShieldAlert size={24} style={{ color: '#c06517', flexShrink: 0, marginTop: '2px' }} />
                 <div>
                   <h4 style={{ fontSize: '0.95rem', fontWeight: 700, color: '#2f0d0e', marginBottom: '0.25rem' }}>
-                    Express Delivery Inquiries
+                    Delivery Options
                   </h4>
                   <p style={{ fontSize: '0.85rem', color: '#6b7280', lineHeight: 1.5, margin: 0 }}>
-                    For urgent order adjustments or express delivery updates within Sydney/NSW, please call our toll-free phone line directly for priority dispatch handling.
+                    Immediate Dispatch (1-3hrs Delivery) is handled by our Uber Commercial Courier partners. Free Express Delivery is priority express with courier partners such as DHL or AusPost.
                   </p>
                 </div>
               </div>

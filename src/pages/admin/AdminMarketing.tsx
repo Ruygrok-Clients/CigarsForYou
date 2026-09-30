@@ -186,7 +186,7 @@ export const AdminMarketing: React.FC = () => {
                         </td>
                         <td style={{ padding: '0.75rem', color: 'var(--text-primary)' }}>
                           {c.discountType === 'free_shipping' ? (
-                            <span className="badge badge-gold">🚚 Free Express Delivery ($25)</span>
+                            <span className="badge badge-gold">Waives Immediate Dispatch</span>
                           ) : c.discountType === 'percentage' ? (
                             `${c.amount}% OFF`
                           ) : (
@@ -318,13 +318,13 @@ export const AdminMarketing: React.FC = () => {
                       const newType = e.target.value as any;
                       setDiscountType(newType);
                       if (newType === 'free_shipping') {
-                        setAmount(25);
+                        setAmount(0);
                       }
                     }}
                   >
                     <option value="percentage">Percentage (%)</option>
                     <option value="fixed">Fixed AUD ($)</option>
-                    <option value="free_shipping">Free Express Delivery ($25 AUD)</option>
+                    <option value="free_shipping">Waives Immediate Dispatch</option>
                   </select>
                 </div>
 
@@ -336,12 +336,12 @@ export const AdminMarketing: React.FC = () => {
                     min={1}
                     disabled={discountType === 'free_shipping'}
                     className="form-control"
-                    value={discountType === 'free_shipping' ? 25 : amount}
+                    value={discountType === 'free_shipping' ? 0 : amount}
                     onChange={(e) => setAmount(Number(e.target.value))}
                   />
                   {discountType === 'free_shipping' && (
                     <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', display: 'block', marginTop: '0.25rem' }}>
-                      Waives standard $25 Express Shipping
+                      Waives the Immediate Dispatch delivery fee. Free Express Delivery is already free.
                     </span>
                   )}
                 </div>

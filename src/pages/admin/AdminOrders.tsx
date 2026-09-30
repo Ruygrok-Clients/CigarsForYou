@@ -12,10 +12,68 @@ import {
   Eye, 
   X, 
   ShieldCheck, 
-  Search
+  Search,
+  Copy,
+  Check
 } from 'lucide-react';
 
 const ORDER_STATUS_STEPS: OrderStatus[] = ['Pending', 'Verified', 'Processing', 'Shipped', 'Delivered'];
+
+const CopyIconButton: React.FC<{ label: string; value: string }> = ({ label, value }) => {
+  const { showToast } = useToast();
+  const [copied, setCopied] = useState(false);
+
+  const onCopy = async () => {
+    const text = value.trim();
+    if (!text) {
+      showToast(`No ${label.toLowerCase()} to copy`, 'error');
+      return;
+    }
+    try {
+      await navigator.clipboard.writeText(text);
+      setCopied(true);
+      showToast(`${label} copied`);
+      window.setTimeout(() => setCopied(false), 1200);
+    } catch {
+      showToast('Could not copy to clipboard', 'error');
+    }
+  };
+
+  return (
+    <button
+      type="button"
+      onClick={onCopy}
+      aria-label={`Copy ${label}`}
+      title={`Copy ${label}`}
+      style={{
+        background: 'none',
+        border: '1px solid var(--border-subtle)',
+        color: copied ? '#10b981' : 'var(--text-muted)',
+        cursor: 'pointer',
+        padding: '0.25rem',
+        display: 'inline-flex',
+        alignItems: 'center',
+        justifyContent: 'center',
+        borderRadius: 'var(--radius-sm)',
+        flexShrink: 0
+      }}
+    >
+      {copied ? <Check size={14} /> : <Copy size={14} />}
+    </button>
+  );
+};
+
+const CopyFieldRow: React.FC<{ label: string; value?: string }> = ({ label, value }) => (
+  <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', padding: '0.4rem 0' }}>
+    <div style={{ minWidth: 0 }}>
+      <span style={{ color: 'var(--text-muted)', fontSize: '0.72rem', display: 'block', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+        {label}
+      </span>
+      <span style={{ color: 'var(--text-primary)', lineHeight: 1.45, wordBreak: 'break-word' }}>{value?.trim() || '—'}</span>
+    </div>
+    <CopyIconButton label={label} value={value || ''} />
+  </div>
+);
 
 export const AdminOrders: React.FC = () => {
   const { screenLocked } = useAdminContext();
@@ -382,36 +440,29 @@ export const AdminOrders: React.FC = () => {
               {/* Customer & Address */}
               <div
                 style={{
-                  display: 'grid',
-                  gridTemplateColumns: '1fr 1fr',
-                  gap: '1rem',
                   backgroundColor: 'var(--bg-surface-elevated)',
                   border: '1px solid var(--border-subtle)',
                   padding: '1.25rem',
                   borderRadius: 'var(--radius-md)'
                 }}
               >
-                <div>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Customer Info
-                  </span>
-                  <strong style={{ color: 'var(--text-primary)', fontSize: '1rem' }}>{selectedOrder.customerName}</strong><br />
-                  <span style={{ color: 'var(--text-secondary)' }}>{selectedOrder.customerEmail}</span>
-                  {selectedOrder.customerPhone && (
-                    <div style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginTop: '0.25rem' }}>
-                      📞 {selectedOrder.customerPhone}
-                    </div>
-                  )}
-                </div>
-                <div>
-                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.25rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                    Delivery Address
-                  </span>
-                  <span style={{ color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                    {selectedOrder.deliveryAddress.street}<br />
-                    {selectedOrder.deliveryAddress.suburb} {selectedOrder.deliveryAddress.state} {selectedOrder.deliveryAddress.postcode}
-                  </span>
-                </div>
+                <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.35rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                  Customer & Delivery
+                </span>
+                <CopyFieldRow label="Name" value={selectedOrder.customerName} />
+                <CopyFieldRow label="Phone" value={selectedOrder.customerPhone} />
+                <CopyFieldRow label="Email" value={selectedOrder.customerEmail} />
+                <CopyFieldRow label="Street" value={selectedOrder.deliveryAddress?.street} />
+                <CopyFieldRow label="Suburb" value={selectedOrder.deliveryAddress?.suburb} />
+                <CopyFieldRow label="State" value={selectedOrder.deliveryAddress?.state} />
+                <CopyFieldRow label="Postcode" value={selectedOrder.deliveryAddress?.postcode} />
+                <CopyFieldRow
+                  label="Delivery address"
+                  value={[
+                    selectedOrder.deliveryAddress?.street,
+                    [selectedOrder.deliveryAddress?.suburb, selectedOrder.deliveryAddress?.state, selectedOrder.deliveryAddress?.postcode].filter(Boolean).join(' ')
+                  ].filter(Boolean).join(', ')}
+                />
               </div>
 
               {/* Compliance & Payment */}
@@ -477,8 +528,8 @@ export const AdminOrders: React.FC = () => {
                       </div>
                     )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
-                      <span>Express Shipping</span>
-                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${(selectedOrder.shippingFee ?? 25).toFixed(2)} AUD</span>
+                      <span>{selectedOrder.deliveryMethod === 'immediate' ? 'Immediate Dispatch' : 'Free Express Delivery'}</span>
+                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${(selectedOrder.shippingFee ?? 0).toFixed(2)} AUD</span>
                     </div>
                   </div>
                 </div>

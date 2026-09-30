@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import type { CartItem, Coupon, Product } from '../types';
+import type { CartItem, Coupon, DeliveryMethod, Product } from '../types';
 
 interface CartContextType {
   cart: CartItem[];
@@ -17,6 +17,10 @@ interface CartContextType {
   totalAmount: number;
   itemCount: number;
   isFreeShipping: boolean;
+  deliveryMethod: DeliveryMethod;
+  setDeliveryMethod: (method: DeliveryMethod) => void;
+  immediateDispatchFee: number;
+  setImmediateDispatchFee: (fee: number) => void;
 }
 
 const CART_KEY = 'cfy_cart_items_v1';
@@ -129,10 +133,13 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setAppliedCoupons(prev => prev.filter(c => c.code.toUpperCase() !== cleanCode));
   };
 
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('express');
+  const [immediateDispatchFee, setImmediateDispatchFee] = useState(0);
+
   const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   const isFreeShipping = appliedCoupons.some(c => c.discountType === 'free_shipping');
-  const baseShippingFee = cart.length > 0 ? 25 : 0;
-  const shippingFee = (cart.length > 0 && !isFreeShipping) ? baseShippingFee : 0;
+  const quotedImmediateFee = deliveryMethod === 'immediate' ? Math.max(0, immediateDispatchFee) : 0;
+  const shippingFee = cart.length > 0 && !isFreeShipping ? quotedImmediateFee : 0;
 
   // Calculate sum of item discounts (excluding free_shipping which makes shippingFee = 0)
   let rawItemDiscount = 0;
@@ -170,7 +177,11 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       shippingFee,
       totalAmount,
       itemCount,
-      isFreeShipping
+      isFreeShipping,
+      deliveryMethod,
+      setDeliveryMethod,
+      immediateDispatchFee,
+      setImmediateDispatchFee
     }}>
       {children}
     </CartContext.Provider>

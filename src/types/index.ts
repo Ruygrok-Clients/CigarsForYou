@@ -69,6 +69,8 @@ export interface CartItem {
   quantity: number;
 }
 
+export type DeliveryMethod = 'immediate' | 'express';
+
 export type OrderStatus = 'Pending' | 'Verified' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 export type OrderSource = 'Website' | 'Manual';
 
@@ -97,6 +99,7 @@ export interface Order {
   subtotal: number;
   discountAmount: number;
   shippingFee?: number;
+  deliveryMethod?: DeliveryMethod;
   couponCode?: string;
   totalAmount: number;
   currency: 'AUD';

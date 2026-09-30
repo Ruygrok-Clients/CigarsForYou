@@ -22,7 +22,7 @@ export const DEMO_COUPONS: Record<string, Coupon> = {
   FREESHIP: {
     code: 'FREESHIP',
     discountType: 'free_shipping',
-    amount: 25,
+    amount: 0,
     active: true,
     timesClaimed: 8,
     minSpend: 0

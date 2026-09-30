@@ -13,7 +13,7 @@ import {
 } from 'lucide-react';
 
 export const CartPage: React.FC = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart, appliedCoupons, applyCoupon, removeCoupon, subtotal, discountAmount, shippingFee, totalAmount, isFreeShipping } = useCart();
+  const { cart, removeFromCart, updateQuantity, clearCart, appliedCoupons, applyCoupon, removeCoupon, subtotal, discountAmount, shippingFee, totalAmount, isFreeShipping, deliveryMethod } = useCart();
   const { showToast } = useToast();
   const [couponCode, setCouponCode] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
@@ -199,7 +199,7 @@ export const CartPage: React.FC = () => {
                       const minReq = c.minSpend ?? c.minOrderAmount ?? 0;
                       const met = subtotal >= minReq;
                       const label = c.discountType === 'free_shipping'
-                        ? 'Free Express Delivery'
+                        ? 'Waives Immediate Dispatch'
                         : c.discountType === 'percentage'
                         ? `${c.amount}% off`
                         : `$${c.amount} AUD off`;
@@ -243,13 +243,19 @@ export const CartPage: React.FC = () => {
                 )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-                  <span>Australia Express Delivery</span>
-                  {isFreeShipping ? (
+                  <span>{deliveryMethod === 'immediate' ? 'Immediate Dispatch (1-3hrs Delivery)' : 'Free Express Delivery'}</span>
+                  {shippingFee === 0 ? (
                     <span style={{ color: '#4caf50', fontWeight: 600 }}>FREE ($0.00 AUD)</span>
                   ) : (
                     <span style={{ color: 'var(--accent-gold)' }}>${shippingFee.toFixed(2)} AUD</span>
                   )}
                 </div>
+                {deliveryMethod !== 'immediate' && (
+                  <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
+                    Immediate Dispatch (1-3hrs Delivery) is priced on the delivery details page.
+                    {isFreeShipping ? ' A free-shipping coupon will waive that fee.' : ''}
+                  </p>
+                )}
 
                 <div style={{
                   display: 'flex',
@@ -282,18 +288,16 @@ export const CartPage: React.FC = () => {
                 <span>Government-issued 18+ photo ID is checked upon delivery.</span>
               </div>
 
-              <button
-                type="button"
+              <Link
+                to="/checkout-details"
                 className="btn btn-primary btn-lg btn-full"
-                disabled
-                aria-disabled="true"
-                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: 0.55, cursor: 'not-allowed' }}
+                style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', textDecoration: 'none' }}
               >
-                Checkout unavailable
-              </button>
+                Continue to Delivery Details
+              </Link>
 
               <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.85rem', lineHeight: 1.5 }}>
-                Online payment is temporarily unavailable. You can keep browsing and update your cart, but orders cannot be placed right now.
+                You can review delivery options next. Online payment is still unavailable, so orders cannot be placed right now.
               </p>
             </div>
           </div>

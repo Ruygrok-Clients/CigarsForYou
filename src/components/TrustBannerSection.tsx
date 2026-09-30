@@ -127,7 +127,7 @@ export const TrustBannerSection: React.FC = () => {
                 marginBottom: '0.4rem',
                 letterSpacing: '-0.01em'
               }}>
-                express delivery always
+                two ways to your door
               </h3>
               <p style={{
                 fontSize: '0.875rem',
@@ -137,7 +137,7 @@ export const TrustBannerSection: React.FC = () => {
                 maxWidth: '280px',
                 fontWeight: 400
               }}>
-                Same Day Shipping For All Products.
+                Immediate Dispatch (1-3hr Delivery) with Uber Commercial Courier, or Free Express Delivery with partners such as DHL or AusPost.
               </p>
             </div>
 

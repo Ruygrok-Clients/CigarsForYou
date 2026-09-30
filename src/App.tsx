@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { LocationProvider } from './context/LocationContext';
 import { AgeGateProvider } from './context/AgeGateContext';
 import { ToastProvider } from './components/Toast';
 
@@ -88,6 +89,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AgeGateProvider>
+          <LocationProvider>
           <CartProvider>
             <ToastProvider>
               <AdminContextProvider>
@@ -134,6 +136,7 @@ export default function App() {
               </AdminContextProvider>
             </ToastProvider>
           </CartProvider>
+          </LocationProvider>
         </AgeGateProvider>
       </AuthProvider>
     </QueryClientProvider>

@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
+import { useLocationSelection } from '../context/LocationContext';
+import { AUSTRALIAN_STATES } from '../constants/locations';
 import { CIGAR_CATALOG } from '../data/cigarCatalog';
 
 export const CIGAR_BRANDS = [
@@ -26,24 +28,13 @@ export const CIGAR_BRANDS = [
   { name: 'Punch', slug: 'punch' }
 ];
 
-export const AUSTRALIAN_STATES = [
-  { code: 'NSW', name: 'New South Wales (Available)', available: true },
-  { code: 'VIC', name: 'Victoria (Coming Soon)', available: false },
-  { code: 'QLD', name: 'Queensland (Coming Soon)', available: false },
-  { code: 'WA', name: 'Western Australia (Coming Soon)', available: false },
-  { code: 'SA', name: 'South Australia (Coming Soon)', available: false },
-  { code: 'TAS', name: 'Tasmania (Coming Soon)', available: false },
-  { code: 'ACT', name: 'ACT (Coming Soon)', available: false },
-  { code: 'NT', name: 'Northern Territory (Coming Soon)', available: false }
-];
-
 export const Navbar: React.FC = () => {
   const { itemCount } = useCart();
   const { currentUser, userProfile } = useAuth();
+  const { selectedLocation, setSelectedLocation } = useLocationSelection();
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
-  const [selectedLocation, setSelectedLocation] = useState('NSW');
   const [locationDropdownOpen, setLocationDropdownOpen] = useState(false);
   const [locationNotice, setLocationNotice] = useState<string | null>(null);
   const [isScrolled, setIsScrolled] = useState(false);
@@ -199,7 +190,7 @@ export const Navbar: React.FC = () => {
           {[...Array(8)].map((_, i) => (
             <div key={i} className="mobile-marquee-item">
               <Truck size={13} style={{ flexShrink: 0 }} />
-              <span>Same Day Shipping For All Products</span>
+              <span>Immediate Dispatch (1-3hr Delivery)</span>
               <span style={{ opacity: 0.6, marginLeft: '0.8rem', marginRight: '0.4rem', fontSize: '0.7rem' }}>✦</span>
             </div>
           ))}

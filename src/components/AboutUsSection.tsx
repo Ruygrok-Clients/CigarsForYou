@@ -418,7 +418,7 @@ export const AboutUsSection: React.FC = () => {
               fontWeight: 500,
               marginTop: '0.5rem'
             }}>
-              Expected Dispatch
+              Immediate Dispatch
             </div>
           </div>
         </div>

@@ -3,9 +3,9 @@ import { Link } from 'react-router-dom';
 import { CIGAR_BRANDS } from './Navbar';
 
 const MARQUEE_ITEMS = [
-  'AUSTRALIA-WIDE EXPRESS',
+  'IMMEDIATE DISPATCH',
+  'FREE EXPRESS DELIVERY',
   '100% GENUINE CUBAN',
-  'EXPRESS DISPATCH',
   'AGE VERIFIED 18+'
 ];
 

@@ -218,7 +218,7 @@ export const AboutUsPage: React.FC = () => {
 
             <div style={{ textAlign: 'center' }}>
               <div style={{ fontSize: '2.5rem', fontWeight: 800, color: '#c06517', fontFamily: 'var(--font-serif)' }}>1-3hrs</div>
-              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Expected Dispatch</div>
+              <div style={{ fontSize: '0.875rem', color: '#9ca3af', fontWeight: 500, marginTop: '0.2rem' }}>Immediate Dispatch</div>
             </div>
 
             <div style={{ textAlign: 'center' }}>
@@ -699,10 +699,10 @@ export const AboutUsPage: React.FC = () => {
             }}>
               <Truck size={32} style={{ color: '#c06517', marginBottom: '1.25rem' }} />
               <h3 style={{ fontSize: '1.25rem', fontWeight: 700, color: '#ffffff', marginBottom: '0.75rem' }}>
-                1–3 Hour NSW Express Courier
+                Immediate Dispatch (1-3hrs)
               </h3>
               <p style={{ fontSize: '0.95rem', color: '#9ca3af', lineHeight: 1.6 }}>
-                Need cigars for tonight's celebration? We offer ultra-fast 1-3 hour express hand-delivery across Sydney and NSW metropolitan zones.
+                We are an official partner with the Uber Commercial Courier program, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Free Express Delivery is also available with courier partners such as DHL or AusPost.
               </p>
             </div>
 
