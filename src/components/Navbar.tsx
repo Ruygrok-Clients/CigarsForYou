@@ -10,13 +10,17 @@ import {
   User as UserIcon,
   Truck,
   Flame,
-  X
+  X,
+  Clock
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLocationSelection } from '../context/LocationContext';
+import { useClosingSoon } from '../context/ClosingSoonContext';
 import { AUSTRALIAN_STATES } from '../constants/locations';
 import { CIGAR_CATALOG } from '../data/cigarCatalog';
+
+const CLOSING_BANNER_HEIGHT = 36;
 
 export const CIGAR_BRANDS = [
   { name: 'Cohiba', slug: 'cohiba' },
@@ -32,6 +36,13 @@ export const Navbar: React.FC = () => {
   const { itemCount } = useCart();
   const { currentUser, userProfile } = useAuth();
   const { selectedLocation, setSelectedLocation } = useLocationSelection();
+  const { isClosingSoon, isClerkGrace, isFinalCall, formattedCountdown } = useClosingSoon();
+  const showCountdown = isClosingSoon || isClerkGrace || isFinalCall;
+  const countdownLabel = isFinalCall
+    ? `Final call — order in ${formattedCountdown}`
+    : isClerkGrace
+      ? `Clerk extra time — order in ${formattedCountdown}`
+      : `Order in ${formattedCountdown} for Immediate Dispatch today`;
   const [selectedCategory, setSelectedCategory] = useState('All Categories');
   const [searchQuery, setSearchQuery] = useState('');
   const [isSearchFocused, setIsSearchFocused] = useState(false);
@@ -83,7 +94,8 @@ export const Navbar: React.FC = () => {
     const updateNavbarHeight = () => {
       if (headerRef.current) {
         const height = headerRef.current.offsetHeight;
-        document.documentElement.style.setProperty('--navbar-height', `${height}px`);
+        const extra = showCountdown ? CLOSING_BANNER_HEIGHT : 0;
+        document.documentElement.style.setProperty('--navbar-height', `${height + extra}px`);
       }
     };
 
@@ -136,7 +148,7 @@ export const Navbar: React.FC = () => {
       window.removeEventListener('scroll', handleScroll);
       window.removeEventListener('resize', updateNavbarHeight);
     };
-  }, []);
+  }, [showCountdown]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -184,32 +196,53 @@ export const Navbar: React.FC = () => {
 
   return (
     <>
-      {/* Top Marquee Bar for Mobile (Appears when mobile navbar disappears on scroll) */}
-      <div className={`mobile-marquee-top ${!mobileNavVisible ? 'visible' : ''}`}>
-        <div className="mobile-marquee-track">
-          {[...Array(8)].map((_, i) => (
-            <div key={i} className="mobile-marquee-item">
-              <Truck size={13} style={{ flexShrink: 0 }} />
-              <span>Immediate Dispatch (1-3hr Delivery)</span>
-              <span style={{ opacity: 0.6, marginLeft: '0.8rem', marginRight: '0.4rem', fontSize: '0.7rem' }}>✦</span>
-            </div>
-          ))}
-        </div>
+      {/* Top Marquee Bar for Mobile (Appears when mobile navbar disappears on scroll).
+          During the closing window it stays visible and shows the live countdown. */}
+      <div className={`mobile-marquee-top ${showCountdown ? 'closing-static' : !mobileNavVisible ? 'visible' : ''}`}>
+        {showCountdown ? (
+          <div className="mobile-marquee-static">
+            <Clock size={13} style={{ flexShrink: 0 }} />
+            <span>{countdownLabel}</span>
+          </div>
+        ) : (
+          <div className="mobile-marquee-track">
+            {[...Array(8)].map((_, i) => (
+              <div key={i} className="mobile-marquee-item">
+                <Truck size={13} style={{ flexShrink: 0 }} />
+                <span>Immediate Dispatch (1-3hr Delivery)</span>
+                <span style={{ opacity: 0.6, marginLeft: '0.8rem', marginRight: '0.4rem', fontSize: '0.7rem' }}>✦</span>
+              </div>
+            ))}
+          </div>
+        )}
       </div>
+
+      {showCountdown && (
+        <div className="desktop-closing-banner">
+          <Clock size={14} style={{ flexShrink: 0 }} />
+          <span>
+            {isFinalCall
+              ? `Final call from the clerk — order in ${formattedCountdown} for Immediate Dispatch tonight`
+              : isClerkGrace
+                ? `The shop clerk gave you extra time — order in ${formattedCountdown} for Immediate Dispatch tonight`
+                : countdownLabel}
+          </span>
+        </div>
+      )}
 
       <header
         ref={headerRef}
-        className={`site-header ${mobileNavVisible ? 'mobile-visible' : 'mobile-hidden'}`}
+        className={`site-header ${mobileNavVisible ? 'mobile-visible' : 'mobile-hidden'}${showCountdown ? ' with-closing-banner' : ''}`}
         style={{
           position: 'fixed',
-          top: 0,
+          top: showCountdown ? CLOSING_BANNER_HEIGHT : 0,
           left: 0,
           right: 0,
           zIndex: 1000,
           width: '100%',
           backgroundColor: '#ffffff',
           borderBottom: '1px solid rgba(46, 26, 16, 0.1)',
-          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, background-color 0.3s ease',
+          transition: 'transform 0.35s cubic-bezier(0.16, 1, 0.3, 1), top 0.35s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.3s ease, background-color 0.3s ease',
           boxShadow: isScrolled ? '0 4px 20px rgba(46, 26, 16, 0.08)' : 'none'
         }}>
         {/* DESKTOP NAVBAR (Displayed above the tablet breakpoint, from 1025px) */}
@@ -1234,10 +1267,37 @@ export const Navbar: React.FC = () => {
             padding-right: 0.5rem;
           }
 
+          .mobile-marquee-static {
+            width: 100%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.4rem;
+            padding: 0 0.75rem;
+            font-size: 0.74rem;
+            font-weight: 700;
+            letter-spacing: 0.02em;
+            color: #ffffff;
+            white-space: nowrap;
+          }
+
+          .mobile-marquee-top.closing-static {
+            transform: translateY(0);
+            opacity: 1;
+            pointer-events: auto;
+          }
+
+          .desktop-closing-banner {
+            display: none;
+          }
+
           .desktop-navbar { display: none !important; }
           .mobile-navbar { display: block !important; }
           header.site-header.mobile-hidden {
             transform: translateY(-100%);
+          }
+          header.site-header.with-closing-banner.mobile-hidden {
+            transform: translateY(calc(-100% - 36px));
           }
           header.site-header.mobile-visible {
             transform: translateY(0);
@@ -1253,6 +1313,24 @@ export const Navbar: React.FC = () => {
             .mobile-navbar { display: none !important; }
             .mobile-marquee-top { display: none !important; }
             header.site-header { transform: translateY(0) !important; }
+            .desktop-closing-banner {
+              display: flex;
+              position: fixed;
+              top: 0;
+              left: 0;
+              right: 0;
+              height: 36px;
+              z-index: 1001;
+              align-items: center;
+              justify-content: center;
+              gap: 0.45rem;
+              background-color: #c06517;
+              color: #ffffff;
+              font-size: 0.84rem;
+              font-weight: 700;
+              letter-spacing: 0.02em;
+              box-shadow: 0 2px 10px rgba(46, 26, 16, 0.2);
+            }
           }
         `}</style>
       </header>

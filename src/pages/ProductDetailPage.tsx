@@ -6,6 +6,7 @@ import type { Product, PackagingOption } from '../types';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { StockNotificationModal } from '../components/StockNotificationModal';
+import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
 import { 
   getExtendedProductDetails,
   getRecommendedCigarsForProduct,
@@ -397,6 +398,7 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* Right Column: Main Product Details */}
             <div>
+              <ClosingSoonCountdownBanner />
               {/* Uppercase Category Tag */}
               <div style={{
                 fontSize: '0.8rem',

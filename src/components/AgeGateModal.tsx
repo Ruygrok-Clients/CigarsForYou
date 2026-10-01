@@ -2,14 +2,16 @@ import React from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Lock, X } from 'lucide-react';
 import { useAgeGate } from '../context/AgeGateContext';
+import { useClosingSoon } from '../context/ClosingSoonContext';
 
 export const AgeGateModal: React.FC = () => {
   const { isAgeVerified, verifyAge, rejectAge } = useAgeGate();
+  const { showPopup } = useClosingSoon();
   const navigate = useNavigate();
   const location = useLocation();
 
-  // If already verified or currently on the age-restricted page, don't show modal
-  if (isAgeVerified || location.pathname === '/age-restricted') {
+  // Closing, clerk-grace, and final-call notices take the first overlay. Age gate follows once they are dismissed.
+  if (showPopup || isAgeVerified || location.pathname === '/age-restricted') {
     return null;
   }
 

@@ -5,11 +5,15 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { LocationProvider } from './context/LocationContext';
 import { AgeGateProvider } from './context/AgeGateContext';
+import { ClosingSoonProvider } from './context/ClosingSoonContext';
 import { ToastProvider } from './components/Toast';
 
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
 import { AgeGateModal } from './components/AgeGateModal';
+import { ClosingSoonModal } from './components/ClosingSoonModal';
+import { ClerkGraceModal } from './components/ClerkGraceModal';
+import { FinalCallModal } from './components/FinalCallModal';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ScrollToTop } from './components/ScrollToTop';
 
@@ -79,6 +83,9 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
       {!isAdminPath && <Navbar />}
       <main className={isAdminPath ? '' : 'storefront-main'} style={{ flex: 1 }}>{children}</main>
       {!isAdminPath && <Footer />}
+      {!isAdminPath && !showLoading && <ClosingSoonModal />}
+      {!isAdminPath && !showLoading && <ClerkGraceModal />}
+      {!isAdminPath && !showLoading && <FinalCallModal />}
       {!isAdminPath && !showLoading && <AgeGateModal />}
     </div>
   );
@@ -89,6 +96,7 @@ export default function App() {
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
         <AgeGateProvider>
+          <ClosingSoonProvider>
           <LocationProvider>
           <CartProvider>
             <ToastProvider>
@@ -137,6 +145,7 @@ export default function App() {
             </ToastProvider>
           </CartProvider>
           </LocationProvider>
+          </ClosingSoonProvider>
         </AgeGateProvider>
       </AuthProvider>
     </QueryClientProvider>

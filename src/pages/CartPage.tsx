@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
+import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import {
   ShoppingBag,
@@ -49,6 +50,7 @@ export const CartPage: React.FC = () => {
     return (
       <div style={{ padding: '6rem 0', textAlign: 'center' }}>
         <div className="container" style={{ maxWidth: '500px' }}>
+          <ClosingSoonCountdownBanner style={{ textAlign: 'left', marginBottom: '1.5rem' }} />
           <ShoppingBag size={56} style={{ color: 'var(--text-muted)', marginBottom: '1.25rem' }} />
           <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', marginBottom: '0.75rem' }}>Your Cart is Empty</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '2rem' }}>
@@ -74,6 +76,8 @@ export const CartPage: React.FC = () => {
             Clear Cart
           </button>
         </div>
+
+        <ClosingSoonCountdownBanner style={{ marginTop: '0.25rem' }} />
 
         <div style={{
           display: 'grid',

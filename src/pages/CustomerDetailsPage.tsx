@@ -4,6 +4,8 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLocationSelection } from '../context/LocationContext';
 import { useToast } from '../components/Toast';
+import { useClosingSoon } from '../context/ClosingSoonContext';
+import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import { AUSTRALIAN_STATES } from '../constants/locations';
 import { FREE_EXPRESS_NAME, IMMEDIATE_DISPATCH_NAME, UBER_PARTNER_BLURB } from '../constants/deliveryCopy';
@@ -115,6 +117,7 @@ export const CustomerDetailsPage: React.FC = () => {
     ? estimateImmediateDispatchFee({ postcode: postcode.trim(), state: stateVal })
     : null;
   const immediateAvailable = Boolean(quote);
+  const { isClerkGrace, isFinalCall } = useClosingSoon();
   const deliveryWindow = getDeliveryWindow(now);
 
   const quotedFee = quote?.feeAud ?? 0;
@@ -172,7 +175,11 @@ export const CustomerDetailsPage: React.FC = () => {
       ? `This address is in ${stateVal}, but your selected location is ${selectedLocation}. Immediate Dispatch is only available when they match.`
       : !quote
         ? 'Immediate Dispatch is not available for this postcode.'
-        : immediateDispatchHoursMessage(deliveryWindow);
+        : isFinalCall
+          ? 'The clerk is keeping Immediate Dispatch open for this last stretch. Order before the extra time ends and we will dispatch this straight away.'
+          : isClerkGrace
+            ? 'The shop clerk is holding Immediate Dispatch open a little longer. Order before the extra time ends and we will dispatch this straight away.'
+            : immediateDispatchHoursMessage(deliveryWindow);
 
   return (
     <div style={{ padding: '2.5rem 0 6rem 0' }}>
@@ -217,6 +224,8 @@ export const CustomerDetailsPage: React.FC = () => {
             )}
           </div>
         </div>
+
+        <ClosingSoonCountdownBanner />
 
         <form onSubmit={(e) => e.preventDefault()}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
