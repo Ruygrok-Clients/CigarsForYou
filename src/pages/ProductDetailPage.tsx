@@ -7,6 +7,7 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
+import { useProductViewers } from '../hooks/useProductViewers';
 import { 
   getExtendedProductDetails,
   getRecommendedCigarsForProduct,
@@ -38,6 +39,7 @@ export const ProductDetailPage: React.FC = () => {
   const [recommendedCigars, setRecommendedCigars] = useState<Product[]>([]);
   const [selectedBundleItems, setSelectedBundleItems] = useState<Record<string, boolean>>({});
   const [selectedRecPackagings, setSelectedRecPackagings] = useState<Record<string, string>>({});
+  const viewerCount = useProductViewers(product?.id);
 
   // Function to check if a specific packaging option is in stock based on product stock
   const getRequiredStockForOption = (optionId: string) => {
@@ -437,6 +439,29 @@ export const ProductDetailPage: React.FC = () => {
                   AUD {quantity > 1 ? `(${quantity}x @ $${unitPrice.toFixed(2)} / pack)` : '(Inc. GST)'}
                 </span>
               </div>
+
+              {product.stock > 0 && product.stock <= 20 && (
+                <p style={{
+                  color: '#c06517',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  margin: '0 0 0.35rem',
+                  letterSpacing: '0.01em'
+                }}>
+                  {product.stock} Remaining Stock Left
+                </p>
+              )}
+
+              {viewerCount != null && viewerCount > 0 && (
+                <p style={{
+                  color: '#6e6e73',
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                  margin: '0 0 0.75rem'
+                }}>
+                  {viewerCount} {viewerCount === 1 ? 'person' : 'people'} viewing this right now
+                </p>
+              )}
 
               {/* Subtitle summary */}
               <p style={{ color: '#515154', fontSize: '0.98rem', lineHeight: 1.5, marginBottom: '2rem' }}>

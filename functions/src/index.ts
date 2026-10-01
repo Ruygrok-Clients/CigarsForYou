@@ -11,6 +11,11 @@ import {
   sendCustomerOrderConfirmationEmail,
   sendTestAdminNotification,
 } from "./email";
+import {
+  cleanupExpiredSocialProof,
+  generateDailySocialProofFeed,
+  writeOrderSocialProof,
+} from "./socialProof";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -158,8 +163,64 @@ export const onOrderCreated = onDocumentCreated(
     } else {
       logger.warn(`Order #${orderNumber} is missing customerEmail, skipping customer confirmation email.`);
     }
+
+    try {
+      await writeOrderSocialProof(orderData);
+      logger.info(`Social proof order entry written for #${orderNumber}.`);
+    } catch (err) {
+      logger.error(`Failed to write social proof entry for order #${orderNumber}:`, err);
+    }
   }
 );
+
+/**
+ * Daily synthetic social-proof feed (01:00 Australia/Sydney).
+ * Idempotent per Sydney calendar day via social_proof_runs/{YYYY-MM-DD}.
+ */
+export const generateDailySocialProof = onSchedule(
+  {
+    schedule: "0 1 * * *",
+    timeZone: "Australia/Sydney",
+    retryCount: 1,
+  },
+  async () => {
+    const result = await generateDailySocialProofFeed();
+    logger.info("Daily social proof generate finished.", result);
+  }
+);
+
+/**
+ * Nightly cleanup of social-proof entries outside the 59-minute window.
+ */
+export const cleanupSocialProof = onSchedule(
+  {
+    schedule: "0 22 * * *",
+    timeZone: "Australia/Sydney",
+  },
+  async () => {
+    const deleted = await cleanupExpiredSocialProof();
+    logger.info(`Social proof cleanup deleted ${deleted} expired entries.`);
+  }
+);
+
+/**
+ * Manual seed / recovery for the daily social-proof feed.
+ * Still respects the Sydney-day run lock.
+ */
+export const runDailySocialProof = onCall(async (request) => {
+  const authUid = request.auth?.uid;
+  if (!authUid) {
+    throw new HttpsError("unauthenticated", "User must be authenticated");
+  }
+
+  const callerSnap = await db.collection("users").doc(authUid).get();
+  const role = callerSnap.data()?.role;
+  if (role !== "admin" && role !== "member") {
+    throw new HttpsError("permission-denied", "Only admin or staff members can seed social proof");
+  }
+
+  return generateDailySocialProofFeed();
+});
 
 /**
  * FIRESTORE TRIGGER 2: PRODUCT UPDATED (Out-of-Stock & Replenishment Alert)

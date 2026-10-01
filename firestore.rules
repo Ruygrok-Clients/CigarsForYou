@@ -71,5 +71,22 @@ service cloud.firestore {
       allow create: if true;
       allow read, write: if isMemberOrAdmin();
     }
+
+    // Live product-page presence (anonymous storefront visitors)
+    match /productPresence/{productId}/sessions/{sessionId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
+    // Social proof toast feed (written only by Cloud Functions / Admin SDK)
+    match /social_proof/{id} {
+      allow read: if true;
+      allow write: if false;
+    }
+
+    // Daily generate idempotency markers — fully private
+    match /social_proof_runs/{runId} {
+      allow read, write: if false;
+    }
   }
 }

@@ -16,6 +16,8 @@ import { ClerkGraceModal } from './components/ClerkGraceModal';
 import { FinalCallModal } from './components/FinalCallModal';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ScrollToTop } from './components/ScrollToTop';
+import { SocialProofToast } from './components/SocialProofToast';
+import { useAgeGate } from './context/AgeGateContext';
 
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
@@ -49,6 +51,7 @@ const queryClient = new QueryClient();
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
+  const { isAgeVerified } = useAgeGate();
   const isAdminPath = location.pathname.startsWith('/admin');
   const [showLoading, setShowLoading] = useState(true);
 
@@ -87,6 +90,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
       {!isAdminPath && !showLoading && <ClerkGraceModal />}
       {!isAdminPath && !showLoading && <FinalCallModal />}
       {!isAdminPath && !showLoading && <AgeGateModal />}
+      {!isAdminPath && !showLoading && isAgeVerified && <SocialProofToast />}
     </div>
   );
 }
