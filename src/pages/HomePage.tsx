@@ -7,6 +7,7 @@ import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ProductSeparationsSection } from '../components/ProductSeparationsSection';
 import { FeaturedProductsShowcase } from '../components/FeaturedProductsShowcase';
 import { AboutUsSection } from '../components/AboutUsSection';
+import { DispatchPackagingSection } from '../components/DispatchPackagingSection';
 import { TrustBannerSection } from '../components/TrustBannerSection';
 import { SocialProofSlider } from '../components/SocialProofSlider';
 import { CIGAR_BRANDS } from '../components/Navbar';
@@ -572,6 +573,9 @@ export const HomePage: React.FC = () => {
         loading={loading}
         onOpenNotifyModal={(p) => setSelectedNotifyProduct(p)}
       />
+
+      {/* Dispatch Packaging Section */}
+      <DispatchPackagingSection />
 
       {/* About Us Feature Section */}
       <div id="about-us" style={{ scrollMarginTop: '90px' }}>
