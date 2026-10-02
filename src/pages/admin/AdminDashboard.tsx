@@ -4,6 +4,7 @@ import { collection, getDocs, query, where } from 'firebase/firestore';
 import { db } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import type { Order, Product, PortalStats } from '../../types';
+import { orderSourceLabel } from '../../utils/rewards';
 import { 
   ShoppingBag, 
   Bell, 
@@ -191,7 +192,9 @@ export const AdminDashboard: React.FC = () => {
                       <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>{order.customerEmail}</span>
                     </td>
                     <td style={{ padding: '0.75rem' }}>
-                      <span className="badge badge-gray" style={{ fontSize: '0.7rem' }}>{order.source}</span>
+                      <span className={`badge ${order.source === 'Reward' ? 'badge-amber' : 'badge-gray'}`} style={{ fontSize: '0.7rem' }}>
+                        {orderSourceLabel(order.source)}
+                      </span>
                     </td>
                     <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--text-primary)' }}>
                       ${order.totalAmount.toFixed(2)} AUD

@@ -21,6 +21,8 @@ export interface UserProfile {
   phone?: string;
   rewardsProgramInterest?: boolean;
   rewardsProgramVotedAt?: string;
+  /** True balance. May go negative after a clawback. Spendable points are max(0, this). */
+  rewardsPoints?: number;
   createdAt: string;
 }
 
@@ -72,7 +74,46 @@ export interface CartItem {
 export type DeliveryMethod = 'immediate' | 'express';
 
 export type OrderStatus = 'Pending' | 'Verified' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
-export type OrderSource = 'Website' | 'Manual';
+export type OrderSource = 'Website' | 'Manual' | 'Reward';
+
+export interface RewardProduct {
+  id?: string;
+  name: string;
+  description?: string;
+  imageUrl: string;
+  pointsCost: number;
+  stock: number;
+  active: boolean;
+  createdAt: string;
+}
+
+export interface RewardCartItem {
+  product: RewardProduct;
+  quantity: number;
+}
+
+export interface RewardCheckoutDraft {
+  name: string;
+  email: string;
+  phone: string;
+  street: string;
+  suburb: string;
+  state: string;
+  postcode: string;
+  country: string;
+  ageConfirmed: boolean;
+}
+
+export type RewardsLedgerReason = 'earn' | 'redeem' | 'clawback' | 'redeem_refund';
+
+export interface RewardsLedgerEntry {
+  id?: string;
+  userId: string;
+  orderId?: string;
+  delta: number;
+  reason: RewardsLedgerReason;
+  createdAt: string;
+}
 
 export interface OrderItem {
   productId: string;
@@ -80,7 +121,12 @@ export interface OrderItem {
   brand: string;
   price: number;
   quantity: number;
+  pointsCost?: number;
+  /** True when a cancel restored this line's stock. */
+  stockRestored?: boolean;
 }
+
+export type RefundMethod = 'manual' | 'processor';
 
 export interface OrderStatusHistory {
   status: OrderStatus;
@@ -110,6 +156,18 @@ export interface Order {
   ageConfirmed: boolean;
   createdAt: string;
   paidAt?: string;
+  refundedAt?: string;
+  /** How a recorded refund was issued. Always `manual` until a processor is connected. */
+  refundMethod?: RefundMethod;
+  /** Amount recorded as refunded. Defaults to the order total when an admin records a refund. */
+  refundAmount?: number;
+  /** Points granted for this paid order. Absent until earn has been processed. */
+  pointsEarned?: number;
+  pointsClawedBack?: boolean;
+  /** Points spent on a reward redemption. */
+  pointsSpent?: number;
+  /** True after a cancelled reward order has had its points returned. */
+  pointsRefunded?: boolean;
   statusHistory: OrderStatusHistory[];
   archived?: boolean;
 }

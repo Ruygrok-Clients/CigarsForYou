@@ -1,7 +1,7 @@
 import { setGlobalOptions } from "firebase-functions";
 import { onRequest, onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
-import { onDocumentCreated, onDocumentUpdated } from "firebase-functions/v2/firestore";
+import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 import {
@@ -19,6 +19,7 @@ import {
   writeOrderSocialProof,
   writeStockNotifySocialProof,
 } from "./socialProof";
+import { placeRewardOrderForUser, syncOrderRewards } from "./rewards";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -128,6 +129,32 @@ export const processRecurringSubscriptions = onSchedule("every 24 hours", async 
 
     logger.info(`Created subscription order ${orderNumber} for ${subData.customerEmail}`);
   }
+});
+
+/**
+ * Awards points when a non-reward order is paid, and claws them back if it is
+ * later cancelled or refunded. Reward orders never earn points.
+ */
+export const syncOrderRewardsOnWrite = onDocumentWritten("orders/{orderId}", async (event) => {
+  if (!event.data?.after.exists) return;
+  try {
+    await syncOrderRewards(event.params.orderId);
+  } catch (err) {
+    logger.error(`Rewards sync failed for order ${event.params.orderId}:`, err);
+    throw err;
+  }
+});
+
+/**
+ * Places a reward redemption as an order. Refuses while payments are paused
+ * (set REWARD_ORDERS_ENABLED=true once the payment processor is live).
+ */
+export const placeRewardOrder = onCall(async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "Sign in to redeem rewards.");
+  }
+  return placeRewardOrderForUser(uid, request.data || {});
 });
 
 /**

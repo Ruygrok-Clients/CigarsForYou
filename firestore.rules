@@ -24,11 +24,17 @@ service cloud.firestore {
       return isAuthenticated() && (getUserData().role == 'admin' || getUserData().role == 'member');
     }
 
+    function rewardsPointsUntouched() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['rewardsPoints']);
+    }
+
     // User profiles collection
+    // rewardsPoints is written only by Cloud Functions (Admin SDK bypasses these rules).
     match /users/{userId} {
       allow read: if isOwner(userId) || isMemberOrAdmin();
-      allow create: if isAuthenticated() && request.auth.uid == userId;
-      allow update: if isOwner(userId) || isAdmin();
+      allow create: if isAuthenticated() && request.auth.uid == userId
+        && (!request.resource.data.keys().hasAny(['rewardsPoints']) || request.resource.data.rewardsPoints == 0);
+      allow update: if (isOwner(userId) || isAdmin()) && rewardsPointsUntouched();
       allow delete: if isAdmin();
     }
 
@@ -38,11 +44,37 @@ service cloud.firestore {
       allow write: if isMemberOrAdmin();
     }
 
+    function orderRewardsFieldsUntouched() {
+      return request.resource.data.get('pointsEarned', null) == resource.data.get('pointsEarned', null)
+        && request.resource.data.get('pointsClawedBack', false) == resource.data.get('pointsClawedBack', false)
+        && request.resource.data.get('pointsSpent', 0) == resource.data.get('pointsSpent', 0)
+        && request.resource.data.get('pointsRefunded', false) == resource.data.get('pointsRefunded', false)
+        && request.resource.data.source == resource.data.source;
+    }
+
     // Orders collection
+    // Reward orders and points fields are written only by Cloud Functions.
     match /orders/{orderId} {
       allow read: if isAuthenticated() && (resource.data.customerId == request.auth.uid || isMemberOrAdmin());
-      allow create: if true; // Customers & guests can place orders
-      allow update, delete: if isMemberOrAdmin();
+      allow create: if request.resource.data.source != 'Reward'
+        && request.resource.data.get('pointsEarned', 0) == 0
+        && request.resource.data.get('pointsClawedBack', false) == false
+        && request.resource.data.get('pointsSpent', 0) == 0
+        && request.resource.data.get('pointsRefunded', false) == false;
+      allow update: if isMemberOrAdmin() && orderRewardsFieldsUntouched();
+      allow delete: if isMemberOrAdmin();
+    }
+
+    // Rewards shop catalog (separate from store products)
+    match /rewardProducts/{productId} {
+      allow read: if true;
+      allow write: if isMemberOrAdmin();
+    }
+
+    // Points earn / redeem / clawback audit log
+    match /rewardsLedger/{entryId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isMemberOrAdmin());
+      allow write: if false;
     }
 
     // Subscriptions collection

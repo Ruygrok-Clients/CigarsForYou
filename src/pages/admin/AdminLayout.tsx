@@ -8,6 +8,7 @@ import {
   Box, 
   Bell, 
   Tag, 
+  Award,
   Settings, 
   Lock, 
   Unlock, 
@@ -31,6 +32,7 @@ export const AdminLayout: React.FC = () => {
 
   const marketingItems = [
     { label: 'Coupons', path: '/admin/marketing', icon: Tag },
+    { label: 'Rewards Program', path: '/admin/rewards', icon: Award },
     { label: 'Stock Notifications', path: '/admin/stock-notifications', icon: Bell }
   ];
 
@@ -80,6 +82,7 @@ export const AdminLayout: React.FC = () => {
     const path = location.pathname;
     if (path === '/admin') return { section: 'Overview', title: 'Dashboard' };
     if (path.startsWith('/admin/marketing')) return { section: 'Marketing', title: 'Coupons' };
+    if (path.startsWith('/admin/rewards')) return { section: 'Marketing', title: 'Rewards Program' };
     if (path.startsWith('/admin/stock-notifications')) return { section: 'Marketing', title: 'Stock Notifications' };
     if (path.startsWith('/admin/products')) return { section: 'Operations', title: 'Products & Stock' };
     if (path.startsWith('/admin/orders')) return { section: 'Operations', title: 'Orders' };

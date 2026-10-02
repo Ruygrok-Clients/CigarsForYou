@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useRewardsCart } from '../context/RewardsCartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLocationSelection } from '../context/LocationContext';
 import { useToast } from '../components/Toast';
@@ -49,14 +50,22 @@ export const CustomerDetailsPage: React.FC = () => {
     removeCoupon,
     subtotal,
     discountAmount,
-    shippingFee,
     totalAmount,
-    isFreeShipping,
-    deliveryMethod,
-    setDeliveryMethod,
-    setImmediateDispatchFee
+    isFreeShipping: productIsFreeShipping,
+    deliveryMethod: productDeliveryMethod,
+    setDeliveryMethod: setProductDeliveryMethod,
+    setImmediateDispatchFee: setProductImmediateDispatchFee,
+    shippingFee: productShippingFee
   } = useCart();
-  const { currentUser, userProfile } = useAuth();
+  const [searchParams] = useSearchParams();
+  const rewardsMode = searchParams.get('mode') === 'rewards';
+  const rewardsCart = useRewardsCart();
+  const deliveryMethod = rewardsMode ? rewardsCart.deliveryMethod : productDeliveryMethod;
+  const setDeliveryMethod = rewardsMode ? rewardsCart.setDeliveryMethod : setProductDeliveryMethod;
+  const setImmediateDispatchFee = rewardsMode ? rewardsCart.setImmediateDispatchFee : setProductImmediateDispatchFee;
+  const isFreeShipping = rewardsMode ? false : productIsFreeShipping;
+  const shippingFee = rewardsMode ? rewardsCart.shippingFee : productShippingFee;
+  const { currentUser, userProfile, loading: authLoading } = useAuth();
   const { selectedLocation } = useLocationSelection();
   const { showToast } = useToast();
 
@@ -106,10 +115,21 @@ export const CustomerDetailsPage: React.FC = () => {
   }, []);
 
   useEffect(() => {
+    if (rewardsMode) {
+      if (authLoading) return;
+      if (!currentUser) {
+        navigate('/login');
+        return;
+      }
+      if (rewardsCart.items.length === 0) {
+        navigate('/account?tab=rewards&panel=shop');
+      }
+      return;
+    }
     if (cart.length === 0) {
       navigate('/cart');
     }
-  }, [cart, navigate]);
+  }, [rewardsMode, authLoading, currentUser, rewardsCart.items.length, cart, navigate]);
 
   const postcodeReady = /^\d{4}$/.test(postcode.trim());
   const stateMatches = stateVal === selectedLocation;
@@ -165,7 +185,37 @@ export const CustomerDetailsPage: React.FC = () => {
     setOpenInfo(method);
   };
 
-  if (cart.length === 0) {
+  const handleContinueRewards = () => {
+    if (!name.trim() || !email.trim() || !phone.trim() || !street.trim() || !suburb.trim() || !postcodeReady || !ageConfirmed) {
+      showToast('Please complete your details and confirm you are 18 or older.', 'error');
+      return;
+    }
+    if (deliveryMethod === 'immediate' && !immediateAvailable) {
+      showToast('Immediate Dispatch is not available for this address.', 'error');
+      return;
+    }
+    rewardsCart.setCheckoutDraft({
+      name: name.trim(),
+      email: email.trim(),
+      phone: phone.trim(),
+      street: street.trim(),
+      suburb: suburb.trim(),
+      state: stateVal,
+      postcode: postcode.trim(),
+      country,
+      ageConfirmed: true
+    });
+    navigate('/checkout?mode=rewards');
+  };
+
+  const rewardsReturnPath = '/account?tab=rewards&panel=shop';
+  const summaryCount = rewardsMode
+    ? rewardsCart.items.reduce((sum, item) => sum + item.quantity, 0)
+    : cart.reduce((sum, item) => sum + item.quantity, 0);
+
+  if (rewardsMode) {
+    if (authLoading || rewardsCart.items.length === 0) return null;
+  } else if (cart.length === 0) {
     return null;
   }
 
@@ -192,9 +242,9 @@ export const CustomerDetailsPage: React.FC = () => {
           marginBottom: '3rem',
           flexWrap: 'wrap'
         }}>
-          <Link to="/cart" style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', textDecoration: 'none' }}>
+          <Link to={rewardsMode ? rewardsReturnPath : '/cart'} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', textDecoration: 'none' }}>
             <span style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.2)', color: 'var(--accent-gold)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>✓</span>
-            <span>1. Shopping Cart</span>
+            <span>{rewardsMode ? '1. Rewards Shop' : '1. Shopping Cart'}</span>
           </Link>
           <span style={{ color: 'var(--text-muted)' }}>→</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.95rem' }}>
@@ -209,8 +259,8 @@ export const CustomerDetailsPage: React.FC = () => {
         </div>
 
         <div style={{ marginBottom: '2rem' }}>
-          <Link to="/cart" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '0.75rem', textDecoration: 'none' }}>
-            <ChevronLeft size={16} /> Return to Cart
+          <Link to={rewardsMode ? rewardsReturnPath : '/cart'} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '0.75rem', textDecoration: 'none' }}>
+            <ChevronLeft size={16} /> {rewardsMode ? 'Return to Rewards Shop' : 'Return to Cart'}
           </Link>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
@@ -441,10 +491,31 @@ export const CustomerDetailsPage: React.FC = () => {
             <div>
               <div className="card" style={{ padding: '1.75rem', border: '1px solid var(--border-color)', position: 'sticky', top: '100px' }}>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
-                  Order Summary ({cart.reduce((sum, item) => sum + item.quantity, 0)} items)
+                  Order Summary ({summaryCount} items)
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem', maxHeight: '220px', overflowY: 'auto', paddingRight: '0.4rem', marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1.25rem' }}>
-                  {cart.map((item) => (
+                  {rewardsMode ? rewardsCart.items.map((item) => (
+                    <div key={item.product.id} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
+                      <div style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
+                        {item.product.imageUrl ? (
+                          <img src={item.product.imageUrl} alt={item.product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                        ) : (
+                          <ShoppingBag size={20} style={{ color: 'var(--accent-gold)' }} />
+                        )}
+                      </div>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <h5 style={{ fontSize: '0.875rem', color: 'var(--text-primary)', margin: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                          {item.product.name}
+                        </h5>
+                        <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                          Qty: {item.quantity} × {item.product.pointsCost} pts
+                        </span>
+                      </div>
+                      <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-gold)' }}>
+                        {item.product.pointsCost * item.quantity} pts
+                      </span>
+                    </div>
+                  )) : cart.map((item) => (
                     <div key={item.product.id || item.product.slug} style={{ display: 'flex', gap: '0.75rem', alignItems: 'center' }}>
                       <div style={{ width: '48px', height: '48px', borderRadius: 'var(--radius-sm)', backgroundColor: 'var(--bg-surface-elevated)', display: 'flex', alignItems: 'center', justifyContent: 'center', flexShrink: 0, overflow: 'hidden' }}>
                         {item.product.imageUrl ? (
@@ -468,6 +539,7 @@ export const CustomerDetailsPage: React.FC = () => {
                   ))}
                 </div>
 
+                {!rewardsMode && (
                 <div style={{ marginBottom: '1.25rem' }}>
                   <label style={{ display: 'block', fontSize: '0.8rem', color: 'var(--text-secondary)', marginBottom: '0.4rem' }}>
                     Promo / Coupon Code
@@ -510,13 +582,21 @@ export const CustomerDetailsPage: React.FC = () => {
                     </div>
                   )}
                 </div>
+                )}
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem', fontSize: '0.9rem', marginBottom: '1.5rem' }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-                    <span>Subtotal</span>
-                    <span>${subtotal.toFixed(2)} AUD</span>
-                  </div>
-                  {discountAmount > 0 && (
+                  {rewardsMode ? (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                      <span>Points</span>
+                      <span>{rewardsCart.pointsTotal} pts</span>
+                    </div>
+                  ) : (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+                      <span>Subtotal</span>
+                      <span>${subtotal.toFixed(2)} AUD</span>
+                    </div>
+                  )}
+                  {!rewardsMode && discountAmount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
                       <span>Coupon Discount</span>
                       <span>-${discountAmount.toFixed(2)} AUD</span>
@@ -531,8 +611,8 @@ export const CustomerDetailsPage: React.FC = () => {
                     )}
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-primary)' }}>
-                    <span>Total</span>
-                    <span>${totalAmount.toFixed(2)} AUD</span>
+                    <span>{rewardsMode ? 'Due now' : 'Total'}</span>
+                    <span>{rewardsMode ? `$${shippingFee.toFixed(2)} AUD` : `$${totalAmount.toFixed(2)} AUD`}</span>
                   </div>
                 </div>
 
@@ -541,17 +621,29 @@ export const CustomerDetailsPage: React.FC = () => {
                   <span>Mandatory 18+ photo ID is verified by delivery personnel upon arrival.</span>
                 </div>
 
-                <button
-                  type="button"
-                  disabled
-                  aria-disabled="true"
-                  className="btn btn-primary btn-lg btn-full"
-                  style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: 0.55, cursor: 'not-allowed' }}
-                >
-                  Payment unavailable
-                </button>
+                {rewardsMode ? (
+                  <button
+                    type="button"
+                    className="btn btn-primary btn-lg btn-full"
+                    onClick={handleContinueRewards}
+                  >
+                    Continue to checkout
+                  </button>
+                ) : (
+                  <button
+                    type="button"
+                    disabled
+                    aria-disabled="true"
+                    className="btn btn-primary btn-lg btn-full"
+                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: 0.55, cursor: 'not-allowed' }}
+                  >
+                    Payment unavailable
+                  </button>
+                )}
                 <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.75rem 0 0 0', lineHeight: 1.5 }}>
-                  Online payment is temporarily unavailable. You can review these details, but orders cannot be placed right now.
+                  {rewardsMode
+                    ? 'Delivery is added on the next step. Online payment is still paused, so the reward order will not be placed yet.'
+                    : 'Online payment is temporarily unavailable. You can review these details, but orders cannot be placed right now.'}
                 </p>
               </div>
             </div>

@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc, increment } from 'firebase/firestore';
 import { db } from '../../firebase';
 import type { Order, OrderStatus } from '../../types';
+import { orderSourceLabel } from '../../utils/rewards';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
 import { 
@@ -14,7 +15,8 @@ import {
   ShieldCheck, 
   Search,
   Copy,
-  Check
+  Check,
+  Ban
 } from 'lucide-react';
 
 const ORDER_STATUS_STEPS: OrderStatus[] = ['Pending', 'Verified', 'Processing', 'Shipped', 'Delivered'];
@@ -86,6 +88,10 @@ export const AdminOrders: React.FC = () => {
   const [statusFilter, setStatusFilter] = useState<string>('all');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedOrder, setSelectedOrder] = useState<Order | null>(null);
+  const [cancelTarget, setCancelTarget] = useState<Order | null>(null);
+  const [refundSelected, setRefundSelected] = useState(false);
+  const [restoreStockByIndex, setRestoreStockByIndex] = useState<Record<number, boolean>>({});
+  const [cancelling, setCancelling] = useState(false);
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -141,26 +147,118 @@ export const AdminOrders: React.FC = () => {
     }
   };
 
+  const openCancelModal = (order: Order) => {
+    if (screenLocked) {
+      showToast('Screen Lock active (View-Only Mode)', 'info');
+      return;
+    }
+    if (order.status === 'Cancelled') return;
+    setCancelTarget(order);
+    setRefundSelected(false);
+    setRestoreStockByIndex({});
+  };
+
+  const handleCancelOrder = async () => {
+    if (screenLocked || !cancelTarget?.id || cancelTarget.status === 'Cancelled') return;
+
+    setCancelling(true);
+    try {
+      const order = cancelTarget;
+      const now = new Date().toISOString();
+      const updatedItems = order.items.map((item, idx) => ({
+        ...item,
+        stockRestored: item.stockRestored === true || restoreStockByIndex[idx] === true,
+      }));
+      const updatedHistory = [
+        ...(order.statusHistory || []),
+        { status: 'Cancelled' as const, timestamp: now, updatedBy: 'Admin Portal' },
+      ];
+
+      const patch: {
+        status: 'Cancelled';
+        statusHistory: Order['statusHistory'];
+        items: Order['items'];
+        refundedAt?: string;
+        refundMethod?: 'manual';
+        refundAmount?: number;
+      } = {
+        status: 'Cancelled',
+        statusHistory: updatedHistory,
+        items: updatedItems,
+      };
+
+      if (refundSelected) {
+        patch.refundedAt = now;
+        patch.refundMethod = 'manual';
+        patch.refundAmount = order.totalAmount;
+      }
+
+      await updateDoc(doc(db, 'orders', order.id), patch);
+
+      const stockCollection = order.source === 'Reward' ? 'rewardProducts' : 'products';
+      for (let idx = 0; idx < order.items.length; idx++) {
+        const item = order.items[idx];
+        if (!restoreStockByIndex[idx] || item.stockRestored || !item.productId) continue;
+        try {
+          await updateDoc(doc(db, stockCollection, item.productId), { stock: increment(item.quantity) });
+        } catch {
+          // Ignore if the product no longer exists
+        }
+      }
+
+      const next: Order = {
+        ...order,
+        status: 'Cancelled',
+        statusHistory: updatedHistory,
+        items: updatedItems,
+        ...(refundSelected
+          ? { refundedAt: now, refundMethod: 'manual' as const, refundAmount: order.totalAmount }
+          : {}),
+      };
+
+      setOrders(prev => prev.map(o => o.id === order.id ? next : o));
+      if (selectedOrder?.id === order.id) setSelectedOrder(next);
+      setCancelTarget(null);
+      showToast(
+        refundSelected
+          ? `Order ${order.orderNumber} cancelled and marked refunded`
+          : `Order ${order.orderNumber} cancelled`
+      );
+    } catch (err) {
+      console.error('Error cancelling order:', err);
+      showToast('Failed to cancel order', 'error');
+    } finally {
+      setCancelling(false);
+    }
+  };
+
   const handleArchiveOrder = async (order: Order) => {
     if (screenLocked) return;
     try {
       const orderRef = doc(db, 'orders', order.id!);
       await updateDoc(orderRef, { archived: true });
 
-      // Restore inventory stock for line items when archived/binned
-      for (const item of order.items) {
-        if (item.productId) {
-          try {
-            const pRef = doc(db, 'products', item.productId);
-            await updateDoc(pRef, { stock: increment(item.quantity) });
-          } catch (e) {
-            // Ignore if product no longer exists
+      let restoredStock = false;
+      if (order.source !== 'Reward' && order.status !== 'Cancelled') {
+        for (const item of order.items) {
+          if (item.productId && !item.stockRestored) {
+            try {
+              const pRef = doc(db, 'products', item.productId);
+              await updateDoc(pRef, { stock: increment(item.quantity) });
+              restoredStock = true;
+            } catch {
+              // Ignore if product no longer exists
+            }
           }
         }
       }
 
       setOrders(prev => prev.map(o => o.id === order.id ? { ...o, archived: true } : o));
-      showToast(`Order ${order.orderNumber} moved to Bin (Stock Restored)`);
+      showToast(
+        restoredStock
+          ? `Order ${order.orderNumber} moved to Bin (Stock Restored)`
+          : `Order ${order.orderNumber} moved to Bin`
+      );
     } catch (err) {
       console.error('Error archiving order:', err);
     }
@@ -269,6 +367,7 @@ export const AdminOrders: React.FC = () => {
                 <option value="all">All Sources</option>
                 <option value="Website">Website</option>
                 <option value="Manual">Manual</option>
+                <option value="Reward">Reward Order</option>
               </select>
             </div>
 
@@ -286,6 +385,7 @@ export const AdminOrders: React.FC = () => {
                 <option value="Processing">Processing</option>
                 <option value="Shipped">Shipped</option>
                 <option value="Delivered">Delivered</option>
+                <option value="Cancelled">Cancelled</option>
               </select>
             </div>
           </div>
@@ -329,13 +429,33 @@ export const AdminOrders: React.FC = () => {
                       {order.items.map(i => `${i.quantity}x ${i.name}`).join(', ')}
                     </td>
                     <td style={{ padding: '0.75rem', fontWeight: 700, color: 'var(--text-primary)' }}>
-                      ${order.totalAmount.toFixed(2)} AUD
+                      {order.source === 'Reward' ? (
+                        <span>
+                          {order.pointsSpent ?? 0} pts
+                          <div style={{ fontWeight: 500, fontSize: '0.75rem', color: 'var(--text-muted)' }}>
+                            ${order.totalAmount.toFixed(2)} delivery
+                          </div>
+                        </span>
+                      ) : (
+                        <>${order.totalAmount.toFixed(2)} AUD</>
+                      )}
                     </td>
                     <td style={{ padding: '0.75rem' }}>
-                      <span className="badge badge-gold">{order.status}</span>
+                      <span className={`badge ${order.status === 'Cancelled' ? 'badge-red' : 'badge-gold'}`}>
+                        {order.status}
+                      </span>
+                      {order.refundedAt && (
+                        <span className="badge badge-amber" style={{ marginLeft: '0.35rem' }}>Refunded</span>
+                      )}
                     </td>
                     <td style={{ padding: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
-                      {order.source} · {order.paymentMethod}
+                      {order.source === 'Reward' ? (
+                        <span className="badge badge-amber">Reward Order</span>
+                      ) : (
+                        orderSourceLabel(order.source)
+                      )}
+                      {' · '}
+                      {order.paymentMethod}
                     </td>
                     <td style={{ padding: '0.75rem', textAlign: 'right' }}>
                       <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
@@ -349,7 +469,7 @@ export const AdminOrders: React.FC = () => {
 
                         {viewTab === 'active' ? (
                           <>
-                            {order.status !== 'Delivered' && (
+                            {order.status !== 'Delivered' && order.status !== 'Cancelled' && (
                               <button
                                 className="btn btn-primary btn-sm"
                                 title="Advance Status"
@@ -357,6 +477,16 @@ export const AdminOrders: React.FC = () => {
                                 onClick={() => handleAdvanceStatus(order)}
                               >
                                 &rarr;
+                              </button>
+                            )}
+                            {order.status !== 'Cancelled' && (
+                              <button
+                                className="btn btn-danger btn-sm"
+                                title="Cancel / Refund"
+                                disabled={screenLocked}
+                                onClick={() => openCancelModal(order)}
+                              >
+                                <Ban size={14} />
                               </button>
                             )}
                             <button
@@ -428,9 +558,22 @@ export const AdminOrders: React.FC = () => {
             </button>
 
             <div style={{ marginBottom: '1.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
-              <span className="badge badge-gold" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>
+              <span className={`badge ${selectedOrder.status === 'Cancelled' ? 'badge-red' : 'badge-gold'}`} style={{ marginBottom: '0.5rem', display: 'inline-block' }}>
                 Ref: {selectedOrder.orderNumber}
               </span>
+              {selectedOrder.source === 'Reward' && (
+                <span className="badge badge-amber" style={{ marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'inline-block' }}>
+                  Reward Order
+                </span>
+              )}
+              <span className={`badge ${selectedOrder.status === 'Cancelled' ? 'badge-red' : 'badge-gold'}`} style={{ marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'inline-block' }}>
+                {selectedOrder.status}
+              </span>
+              {selectedOrder.refundedAt && (
+                <span className="badge badge-amber" style={{ marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'inline-block' }}>
+                  Refunded
+                </span>
+              )}
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
                 Order Detail & Audit
               </h2>
@@ -512,15 +655,26 @@ export const AdminOrders: React.FC = () => {
                   {selectedOrder.items.map((item, idx) => (
                     <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', color: 'var(--text-primary)' }}>
                       <span style={{ fontWeight: 500 }}>{item.quantity}x {item.brand} {item.name}</span>
-                      <strong style={{ color: 'var(--accent-gold)' }}>${(item.price * item.quantity).toFixed(2)} AUD</strong>
+                      <strong style={{ color: 'var(--accent-gold)' }}>
+                        {selectedOrder.source === 'Reward'
+                          ? `${(item.pointsCost ?? 0) * item.quantity} pts`
+                          : `$${(item.price * item.quantity).toFixed(2)} AUD`}
+                      </strong>
                     </div>
                   ))}
 
                   <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '0.5rem', paddingTop: '0.75rem', fontSize: '0.85rem' }}>
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
-                      <span>Subtotal</span>
-                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${selectedOrder.subtotal?.toFixed(2)} AUD</span>
-                    </div>
+                    {selectedOrder.source === 'Reward' ? (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
+                        <span>Points spent</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>{selectedOrder.pointsSpent ?? 0} pts</span>
+                      </div>
+                    ) : (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
+                        <span>Subtotal</span>
+                        <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${selectedOrder.subtotal?.toFixed(2)} AUD</span>
+                      </div>
+                    )}
                     {(selectedOrder.discountAmount ?? 0) > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', padding: '0.2rem 0', fontWeight: 600 }}>
                         <span>Discount ({selectedOrder.couponCode || 'Coupon'})</span>
@@ -537,22 +691,159 @@ export const AdminOrders: React.FC = () => {
 
               {/* Totals */}
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', paddingTop: '0.75rem', borderTop: '1px solid var(--border-subtle)', fontWeight: 700, fontSize: '1.2rem' }}>
-                <span style={{ color: 'var(--text-primary)' }}>Total Paid</span>
+                <span style={{ color: 'var(--text-primary)' }}>{selectedOrder.source === 'Reward' ? 'Due now' : 'Total Paid'}</span>
                 <span style={{ color: 'var(--accent-gold)', fontSize: '1.4rem' }}>${selectedOrder.totalAmount.toFixed(2)} AUD</span>
               </div>
 
               {/* Actions in Modal */}
-              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem' }}>
-                {selectedOrder.status !== 'Delivered' && (
+              <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
+                {selectedOrder.status !== 'Delivered' && selectedOrder.status !== 'Cancelled' && (
                   <button
-                    className="btn btn-primary btn-full"
+                    className="btn btn-primary"
+                    style={{ flex: '1 1 180px' }}
                     disabled={screenLocked}
                     onClick={() => handleAdvanceStatus(selectedOrder)}
                   >
                     Advance Status to Next Phase
                   </button>
                 )}
+                {selectedOrder.status !== 'Cancelled' && (
+                  <button
+                    className="btn btn-danger"
+                    style={{ flex: '1 1 180px' }}
+                    disabled={screenLocked}
+                    onClick={() => openCancelModal(selectedOrder)}
+                  >
+                    Cancel / Refund
+                  </button>
+                )}
               </div>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {cancelTarget && (
+        <div className="modal-overlay" onClick={() => { if (!cancelling) setCancelTarget(null); }}>
+          <div
+            className="modal-content"
+            style={{ maxWidth: '560px', position: 'relative' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => { if (!cancelling) setCancelTarget(null); }}
+              aria-label="Close"
+              disabled={cancelling}
+              style={{
+                position: 'absolute',
+                top: '1.25rem',
+                right: '1.25rem',
+                color: 'var(--text-muted)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 'var(--radius-sm)'
+              }}
+            >
+              <X size={20} />
+            </button>
+
+            <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
+              <span className="badge badge-red" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>
+                Ref: {cancelTarget.orderNumber}
+              </span>
+              <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
+                Cancel & Refund
+              </h2>
+              <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 0', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                This sets the order to Cancelled. Reward points are reversed either way. There is no payment processor connected, so a recorded refund is bookkeeping only and must be processed offline.
+              </p>
+            </div>
+
+            <label style={{ display: 'flex', alignItems: 'flex-start', gap: '0.65rem', marginBottom: '1.25rem', cursor: 'pointer' }}>
+              <input
+                type="checkbox"
+                checked={refundSelected}
+                disabled={cancelling}
+                onChange={(e) => setRefundSelected(e.target.checked)}
+                style={{ marginTop: '0.2rem' }}
+              />
+              <span>
+                <span style={{ display: 'block', color: 'var(--text-primary)', fontWeight: 600 }}>
+                  Record refund (${cancelTarget.totalAmount.toFixed(2)} AUD)
+                </span>
+                <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.2rem' }}>
+                  Marks the order as refunded manually. Payment is not sent back automatically.
+                </span>
+              </span>
+            </label>
+
+            <div style={{ marginBottom: '1.25rem' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.5rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Stock
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                {cancelTarget.items.map((item, idx) => (
+                  <label
+                    key={`${item.productId}-${idx}`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.65rem',
+                      cursor: item.stockRestored ? 'default' : 'pointer',
+                      padding: '0.75rem',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'var(--bg-surface-elevated)'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={item.stockRestored === true || restoreStockByIndex[idx] === true}
+                      disabled={cancelling || item.stockRestored === true}
+                      onChange={(e) => {
+                        setRestoreStockByIndex(prev => ({ ...prev, [idx]: e.target.checked }));
+                      }}
+                      style={{ marginTop: '0.2rem' }}
+                    />
+                    <span>
+                      <span style={{ display: 'block', color: 'var(--text-primary)', fontWeight: 600 }}>
+                        Restore {item.quantity}x {item.brand} {item.name}
+                      </span>
+                      <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.2rem' }}>
+                        {item.stockRestored
+                          ? 'Stock was already restored for this item.'
+                          : 'Leave unchecked to keep this quantity deducted.'}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ flex: 1 }}
+                disabled={cancelling}
+                onClick={() => setCancelTarget(null)}
+              >
+                Keep Order
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                style={{ flex: 1 }}
+                disabled={cancelling || screenLocked}
+                onClick={handleCancelOrder}
+              >
+                {cancelling ? 'Cancelling…' : 'Cancel Order'}
+              </button>
             </div>
           </div>
         </div>

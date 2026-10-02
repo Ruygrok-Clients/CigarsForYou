@@ -3,6 +3,7 @@ import { BrowserRouter, Routes, Route, useLocation } from 'react-router-dom';
 import { QueryClient, QueryClientProvider } from '@tanstack/react-query';
 import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
+import { RewardsCartProvider } from './context/RewardsCartContext';
 import { LocationProvider } from './context/LocationContext';
 import { AgeGateProvider } from './context/AgeGateContext';
 import { ClosingSoonProvider } from './context/ClosingSoonContext';
@@ -46,6 +47,7 @@ import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminProducts } from './pages/admin/AdminProducts';
 import { AdminStockNotifications } from './pages/admin/AdminStockNotifications';
 import { AdminMarketing } from './pages/admin/AdminMarketing';
+import { AdminRewards } from './pages/admin/AdminRewards';
 import { AdminSettings } from './pages/admin/AdminSettings';
 
 const queryClient = new QueryClient();
@@ -107,6 +109,7 @@ export default function App() {
           <ClosingSoonProvider>
           <LocationProvider>
           <CartProvider>
+          <RewardsCartProvider>
             <ToastProvider>
               <AdminContextProvider>
                 <BrowserRouter>
@@ -143,6 +146,7 @@ export default function App() {
                           <Route path="/admin/products" element={<AdminProducts />} />
                           <Route path="/admin/stock-notifications" element={<AdminStockNotifications />} />
                           <Route path="/admin/marketing" element={<AdminMarketing />} />
+                          <Route path="/admin/rewards" element={<AdminRewards />} />
                           <Route path="/admin/settings" element={<AdminSettings />} />
                         </Route>
                       </Route>
@@ -151,6 +155,7 @@ export default function App() {
                 </BrowserRouter>
               </AdminContextProvider>
             </ToastProvider>
+          </RewardsCartProvider>
           </CartProvider>
           </LocationProvider>
           </ClosingSoonProvider>

@@ -1,10 +1,11 @@
 import React, { useState, useEffect } from 'react';
-import { useNavigate, Link } from 'react-router-dom';
+import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
+import { RewardsProgramPanel } from '../components/RewardsProgramPanel';
 import type { Order, StockNotification, Product, Address } from '../types';
 import { 
   User as UserIcon, 
@@ -18,23 +19,33 @@ import {
   Check,
   Trash2,
   ExternalLink,
-  Crown,
-  Sparkles,
-  Gift,
   ShoppingCart,
-  ThumbsUp,
   Edit2,
   X,
   Plus
 } from 'lucide-react';
+
+type AccountTab = 'orders' | 'notify' | 'rewards' | 'profile';
+
+function accountTabFromQuery(value: string | null): AccountTab | null {
+  if (value === 'orders' || value === 'notify' || value === 'rewards' || value === 'profile') return value;
+  return null;
+}
 
 export const AccountPage: React.FC = () => {
   const { currentUser, userProfile, logOut, updateUserProfile } = useAuth();
   const { addToCart } = useCart();
   const { showToast } = useToast();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const activeTab = accountTabFromQuery(searchParams.get('tab')) ?? 'orders';
 
-  const [activeTab, setActiveTab] = useState<'orders' | 'notify' | 'rewards' | 'profile'>('orders');
+  const chooseTab = (tab: AccountTab) => {
+    const next = new URLSearchParams(searchParams);
+    next.set('tab', tab);
+    if (tab !== 'rewards') next.delete('panel');
+    navigate({ pathname: '/account', search: next.toString() }, { replace: true });
+  };
   
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
@@ -62,9 +73,6 @@ export const AccountPage: React.FC = () => {
   const [productsMap, setProductsMap] = useState<Record<string, Product>>({});
   const [notificationsLoading, setNotificationsLoading] = useState(true);
 
-  // Rewards Program Voting State
-  const [hasVotedInterest, setHasVotedInterest] = useState(false);
-
   // Derive normalized address list from userProfile
   const savedAddressesList: Address[] = React.useMemo(() => {
     if (userProfile?.addresses && userProfile.addresses.length > 0) {
@@ -83,32 +91,14 @@ export const AccountPage: React.FC = () => {
     return null;
   }, [savedAddressesList]);
 
-  // Sync profile identity, phone, and rewards voting when userProfile updates
+  // Sync profile identity and phone when userProfile updates
   useEffect(() => {
     if (userProfile) {
       setEditDisplayName(userProfile.displayName || '');
       setEditEmail(userProfile.email || '');
       if (userProfile.phone) setPhone(userProfile.phone);
-      if (userProfile.rewardsProgramInterest) {
-        setHasVotedInterest(true);
-      }
     }
   }, [userProfile]);
-
-  const handleVoteRewardsInterest = async () => {
-    if (hasVotedInterest || !currentUser) return;
-    try {
-      setHasVotedInterest(true);
-      await updateUserProfile({
-        rewardsProgramInterest: true,
-        rewardsProgramVotedAt: new Date().toISOString()
-      });
-      showToast('Thank you! Your vote of interest in the Rewards Program has been registered.');
-    } catch (err) {
-      console.error('Error recording rewards interest vote:', err);
-      showToast('Failed to register vote. Please try again.', 'error');
-    }
-  };
 
   useEffect(() => {
     if (!currentUser) {
@@ -417,7 +407,7 @@ export const AccountPage: React.FC = () => {
           overflowX: 'auto'
         }}>
           <button
-            onClick={() => setActiveTab('orders')}
+            onClick={() => chooseTab('orders')}
             className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
           >
@@ -425,7 +415,7 @@ export const AccountPage: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('notify')}
+            onClick={() => chooseTab('notify')}
             className={`btn ${activeTab === 'notify' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
           >
@@ -433,7 +423,7 @@ export const AccountPage: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('rewards')}
+            onClick={() => chooseTab('rewards')}
             className={`btn ${activeTab === 'rewards' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
           >
@@ -441,7 +431,7 @@ export const AccountPage: React.FC = () => {
           </button>
 
           <button
-            onClick={() => setActiveTab('profile')}
+            onClick={() => chooseTab('profile')}
             className={`btn ${activeTab === 'profile' ? 'btn-primary' : 'btn-secondary'}`}
             style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
           >
@@ -479,13 +469,18 @@ export const AccountPage: React.FC = () => {
 
                       <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
                         <span className="badge badge-gold">{order.status}</span>
-                        <button
-                          className="btn btn-outline btn-sm"
-                          onClick={() => handleReorder(order)}
-                          style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
-                        >
-                          Reorder Items
-                        </button>
+                        {order.source === 'Reward' && (
+                          <span className="badge badge-amber">Reward Order</span>
+                        )}
+                        {order.source !== 'Reward' && (
+                          <button
+                            className="btn btn-outline btn-sm"
+                            onClick={() => handleReorder(order)}
+                            style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
+                          >
+                            Reorder Items
+                          </button>
+                        )}
                       </div>
                     </div>
 
@@ -499,15 +494,31 @@ export const AccountPage: React.FC = () => {
                       {order.items.map((item, idx) => (
                         <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: idx < order.items.length - 1 ? '1px solid var(--border-subtle)' : 'none', fontSize: '0.9rem' }}>
                           <span style={{ color: 'var(--text-primary)' }}>{item.quantity}x {item.brand} {item.name}</span>
-                          <span style={{ color: 'var(--text-secondary)' }}>${(item.price * item.quantity).toFixed(2)} AUD</span>
+                          <span style={{ color: 'var(--text-secondary)' }}>
+                            {order.source === 'Reward'
+                              ? `${(item.pointsCost ?? 0) * item.quantity} pts`
+                              : `$${(item.price * item.quantity).toFixed(2)} AUD`}
+                          </span>
                         </div>
                       ))}
                     </div>
 
                     <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Total Paid</span>
-                      <span style={{ color: 'var(--accent-gold)', fontSize: '1.15rem' }}>${order.totalAmount.toFixed(2)} AUD</span>
+                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
+                        {order.source === 'Reward' ? 'Points spent' : 'Total Paid'}
+                      </span>
+                      <span style={{ color: 'var(--accent-gold)', fontSize: '1.15rem' }}>
+                        {order.source === 'Reward'
+                          ? `${order.pointsSpent ?? 0} pts`
+                          : `$${order.totalAmount.toFixed(2)} AUD`}
+                      </span>
                     </div>
+                    {order.source === 'Reward' && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+                        <span>Delivery</span>
+                        <span>${(order.shippingFee ?? order.totalAmount).toFixed(2)} AUD</span>
+                      </div>
+                    )}
                   </div>
                 ))}
               </div>
@@ -629,146 +640,12 @@ export const AccountPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 3: Rewards Program (Coming Soon) */}
+        {/* Tab 3: Rewards Program */}
         {activeTab === 'rewards' && (
-          <div className="card" style={{ padding: '3.5rem 2rem', textAlign: 'center', width: '100%' }}>
-            <div style={{
-              display: 'inline-flex',
-              alignItems: 'center',
-              justifyContent: 'center',
-              width: '76px',
-              height: '76px',
-              borderRadius: '50%',
-              backgroundColor: 'rgba(192, 101, 23, 0.12)',
-              color: '#c06517',
-              border: '1px solid rgba(192, 101, 23, 0.25)',
-              marginBottom: '1.5rem'
-            }}>
-              <Award size={40} />
-            </div>
-
-            <div style={{ display: 'flex', justifyContent: 'center', gap: '0.5rem', marginBottom: '1rem' }}>
-              <span className="badge badge-gold" style={{ padding: '0.4rem 1rem' }}>
-                VIP Lounge
-              </span>
-              <span className="badge badge-amber" style={{ padding: '0.4rem 1rem' }}>
-                Coming Soon
-              </span>
-            </div>
-
-            <h2 style={{ fontSize: '2.5rem', fontWeight: 700, color: 'var(--text-primary)', marginBottom: '1rem', letterSpacing: '-0.02em' }}>
-              CigarsForYou Rewards Program
-            </h2>
-
-            <p style={{ color: 'var(--text-secondary)', fontSize: '1.1rem', lineHeight: 1.7, marginBottom: '2.5rem', maxWidth: '640px', margin: '0 auto 2.5rem auto' }}>
-              We are crafting an exclusive VIP Rewards Program for our valued Cuban cigar connoisseurs. Earn loyalty points on every order, unlock priority allocation access to rare limited-edition vitolas, and enjoy curated perks.
-            </p>
-
-            {/* Feature Teasers */}
-            <div style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
-              gap: '1.5rem',
-              textAlign: 'left',
-              marginBottom: '2.5rem'
-            }}>
-              <div style={{
-                padding: '1.5rem',
-                backgroundColor: 'var(--bg-primary)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)'
-              }}>
-                <Crown size={26} style={{ color: '#c06517', marginBottom: '0.75rem' }} />
-                <h4 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                  Points per Purchase
-                </h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
-                  Earn 1 Point for every $1 spent across all handcrafted cigars.
-                </p>
-              </div>
-
-              <div style={{
-                padding: '1.5rem',
-                backgroundColor: 'var(--bg-primary)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)'
-              }}>
-                <Sparkles size={26} style={{ color: '#c06517', marginBottom: '0.75rem' }} />
-                <h4 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                  Rare Drop Priority
-                </h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
-                  Early notification & priority reservations on limited vitolas and aged stock.
-                </p>
-              </div>
-
-              <div style={{
-                padding: '1.5rem',
-                backgroundColor: 'var(--bg-primary)',
-                borderRadius: 'var(--radius-md)',
-                border: '1px solid var(--border-subtle)'
-              }}>
-                <Gift size={26} style={{ color: '#c06517', marginBottom: '0.75rem' }} />
-                <h4 style={{ color: 'var(--text-primary)', fontSize: '1.1rem', fontWeight: 600, marginBottom: '0.4rem' }}>
-                  Anniversary Gifts
-                </h4>
-                <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', margin: 0, lineHeight: 1.5 }}>
-                  Exclusive birthday humidor accessories and tier bonus vouchers.
-                </p>
-              </div>
-            </div>
-
-            {/* Interest Voting Button */}
-            <div style={{ marginBottom: '2rem', display: 'flex', justifyContent: 'center', width: '100%' }}>
-              <button
-                onClick={handleVoteRewardsInterest}
-                className={`btn ${hasVotedInterest ? 'btn-secondary' : 'btn-primary'}`}
-                style={{
-                  display: 'inline-flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  gap: '0.5rem',
-                  padding: '0.85rem clamp(0.65rem, 3vw, 2.25rem)',
-                  fontSize: 'clamp(0.8rem, 3.2vw, 1.05rem)',
-                  maxWidth: '100%',
-                  whiteSpace: 'normal',
-                  wordBreak: 'break-word',
-                  textAlign: 'center',
-                  borderRadius: '6px',
-                  backgroundColor: hasVotedInterest ? undefined : '#c06517',
-                  color: '#ffffff'
-                }}
-                disabled={hasVotedInterest}
-              >
-                {hasVotedInterest ? (
-                  <>
-                    <Check size={20} style={{ flexShrink: 0 }} />
-                    <span style={{ fontSize: 'inherit' }}>Interest Registered — Thank You!</span>
-                  </>
-                ) : (
-                  <>
-                    <ThumbsUp size={20} style={{ flexShrink: 0 }} />
-                    <span style={{ fontSize: 'inherit' }}>Vote Yes to Show Interest</span>
-                  </>
-                )}
-              </button>
-            </div>
-
-            <div style={{
-              padding: '1.25rem',
-              borderRadius: 'var(--radius-md)',
-              backgroundColor: 'rgba(192, 101, 23, 0.08)',
-              border: '1px solid rgba(192, 101, 23, 0.2)',
-              fontSize: '0.9rem',
-              color: 'var(--text-primary)',
-              maxWidth: '680px',
-              margin: '0 auto'
-            }}>
-              <p style={{ margin: 0 }}>
-                💡 <strong>Good news!</strong> As an active account member (<strong>{userProfile.email}</strong>), you will automatically receive <strong>100 Bonus Welcome Points</strong> upon official program launch.
-              </p>
-            </div>
-          </div>
+          <RewardsProgramPanel
+            key={searchParams.get('panel') === 'shop' ? 'shop' : 'overview'}
+            initialPanel={searchParams.get('panel') === 'shop' ? 'shop' : 'overview'}
+          />
         )}
 
         {/* Tab 4: Account Profile & Saved Shipping Address File (2 Columns Equal Height) */}
