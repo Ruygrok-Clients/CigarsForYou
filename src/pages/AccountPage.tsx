@@ -437,7 +437,7 @@ export const AccountPage: React.FC = () => {
       </nav>
 
       <div className="account-content-band">
-      <div className="container account-content">
+      <div className="account-content">
 
         {/* Tab 1: Orders History */}
         {activeTab === 'orders' && (
@@ -530,10 +530,10 @@ export const AccountPage: React.FC = () => {
         {activeTab === 'notify' && (
           <div>
             <div style={{ marginBottom: '1.5rem' }}>
-              <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>
+              <h3 style={{ fontSize: '1.5rem', color: '#2f0d0e' }}>
                 Notify Me When Available Products
               </h3>
-              <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.3rem' }}>
+              <p style={{ color: '#5c3537', fontSize: '0.9rem', marginTop: '0.3rem' }}>
                 Track out-of-stock items you've requested notifications for. We will email you the moment new stock arrives.
               </p>
             </div>
@@ -764,7 +764,7 @@ export const AccountPage: React.FC = () => {
               </div>
             </div>
 
-            <div className="card" style={{ padding: '2rem', background: '#fff' }}>
+            <div className="card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
                 <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', margin: 0 }}>Loyalty Program</h3>
                 <span className="badge badge-green"> {tierLabel(tier)} active</span>
@@ -777,8 +777,8 @@ export const AccountPage: React.FC = () => {
                 <p style={{ margin: 0 }}>You can jump up more than one tier. If you fall short, you drop one tier at a time.</p>
               </div>
               <div style={{ marginTop: '1.25rem', padding: '1rem 1.1rem', borderRadius: '12px', background: '#f3faf6', border: '1px solid #d7efe0' }}>
-                <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '1.05rem' }}>{spendable} points available</strong>
-                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Linked with {userProfile.email}</span>
+                <strong style={{ display: 'block', color: '#2f0d0e', fontSize: '1.05rem' }}>{spendable} points available</strong>
+                <span style={{ color: '#5c3537', fontSize: '0.85rem' }}>Linked with {userProfile.email}</span>
               </div>
               <button type="button" className="btn btn-secondary" style={{ marginTop: '1rem' }} onClick={() => chooseTab('loyalty')}>
                 Open Loyalty Program
@@ -1036,9 +1036,9 @@ export const AccountPage: React.FC = () => {
 
         {activeTab === 'special' && (
           <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', background: '#fff' }}>
-            <Mail size={40} style={{ color: 'var(--text-muted)', marginBottom: '0.75rem' }} />
-            <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.4rem' }}>Special Email</h3>
-            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Coming soon.</p>
+            <Mail size={40} style={{ color: '#5c3537', marginBottom: '0.75rem' }} />
+            <h3 style={{ color: '#2f0d0e', marginBottom: '0.4rem' }}>Special Email</h3>
+            <p style={{ color: '#5c3537', margin: 0 }}>Coming soon.</p>
           </div>
         )}
       </div>

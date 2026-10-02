@@ -116,55 +116,71 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
 
   return (
     <div>
-      <div style={{ marginBottom: '1.5rem' }}>
-        <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', margin: '0 0 0.4rem' }}>
+      <div
+        className="card"
+        style={{
+          marginBottom: '1.5rem',
+          padding: '1.75rem 1.5rem',
+          background: 'var(--color-dark-red)',
+          borderColor: 'transparent',
+          color: '#fff'
+        }}
+      >
+        <h2 style={{ fontSize: '2rem', color: '#fff', margin: '0 0 0.5rem' }}>
           Loyalty Program
         </h2>
-        <p style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: '640px', lineHeight: 1.6 }}>
-          Earn 1 point for every whole dollar you spend on products after coupons, before shipping. Your tier is based on points earned in the last 30 days. Higher tiers unlock more rewards and lower point prices. Redeeming rewards does not change your tier.
+        <p style={{ color: 'rgba(255, 255, 255, 0.88)', margin: '0 0 1.25rem', maxWidth: '640px', lineHeight: 1.6 }}>
+          Earn 1 point for every whole dollar spent on products after coupons, before shipping. Your tier follows points earned in the last 30 days — higher tiers unlock more rewards at lower point prices. Redeeming rewards never changes your tier.
         </p>
-      </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.5rem' }}>
-        <button
-          type="button"
-          className={`btn btn-sm ${panel === 'overview' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setPanel('overview')}
-        >
-          Overview
-        </button>
-        <button
-          type="button"
-          className={`btn btn-sm ${panel === 'shop' ? 'btn-primary' : 'btn-secondary'}`}
-          onClick={() => setPanel('shop')}
-        >
-          Loyalty Shop
-        </button>
+        <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => setPanel('overview')}
+            style={
+              panel === 'overview'
+                ? { background: '#fff', color: 'var(--color-dark-red)', borderColor: '#fff' }
+                : { background: 'transparent', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.55)' }
+            }
+          >
+            Overview
+          </button>
+          <button
+            type="button"
+            className="btn btn-sm"
+            onClick={() => setPanel('shop')}
+            style={
+              panel === 'shop'
+                ? { background: '#fff', color: 'var(--color-dark-red)', borderColor: '#fff' }
+                : { background: 'transparent', color: '#fff', border: '1px solid rgba(255, 255, 255, 0.55)' }
+            }
+          >
+            Loyalty Shop
+          </button>
+        </div>
       </div>
 
       {panel === 'overview' && (
-        <div className="card" style={{ padding: '2rem' }}>
+        <div className="card" style={{ padding: '2rem', background: 'var(--color-dark-red)', borderColor: 'transparent', color: '#fff' }}>
           <span className={`badge ${tierBadge}`} style={{ marginBottom: '0.85rem' }}>{tierLabel(tier)}</span>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block' }}>
+          <span style={{ color: 'rgba(255, 255, 255, 0.7)', fontSize: '0.8rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block' }}>
             Available points
           </span>
           <div style={{ fontSize: '3rem', fontWeight: 700, color: 'var(--accent-gold)', lineHeight: 1.1, margin: '0.35rem 0 0.75rem' }}>
             {spendable}
           </div>
           {balance < 0 && (
-            <p style={{ color: 'var(--text-secondary)', marginTop: 0 }}>
+            <p style={{ color: 'rgba(255, 255, 255, 0.88)', marginTop: 0 }}>
               Your balance is {balance} after points were taken back from a cancelled or refunded order. You can redeem again once it is above zero.
             </p>
           )}
-          <div style={{ display: 'grid', gap: '0.85rem', color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+          <div style={{ display: 'grid', gap: '0.85rem', color: 'rgba(255, 255, 255, 0.88)', fontSize: '0.95rem', lineHeight: 1.6 }}>
             {loyaltyStatusLines(tier, windowPoints, silverThreshold, goldThreshold).map((line) => (
               <p key={line} style={{ margin: 0 }}>{line}</p>
             ))}
             <p style={{ margin: 0 }}>
-              A $1.99 order earns 1 point. A $0.50 order earns none. A $321.20 order earns 321 points. Shipping is not included.
-            </p>
-            <p style={{ margin: 0 }}>
-              Points are added when an order is paid, and removed if that order is later cancelled or refunded. Everyone starts at Bronze.
+              Points are credited when an order is paid, and reversed if it is cancelled or refunded. Every member starts at Bronze.
             </p>
           </div>
           <button type="button" className="btn btn-primary" style={{ marginTop: '1.5rem' }} onClick={() => setPanel('shop')}>

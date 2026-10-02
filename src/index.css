@@ -1191,7 +1191,10 @@ select.form-control option {
 }
 
 .account-content {
-  padding: 1.75rem 0 4rem;
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 1.75rem 1.5rem 4rem;
 }
 
 .account-summary-grid,
@@ -1211,9 +1214,10 @@ select.form-control option {
   gap: 0.75rem;
   width: 100%;
   text-align: left;
-  background: #fff;
-  border: 1px solid var(--border-color);
-  border-radius: var(--radius-md);
+  background-color: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+  border-radius: var(--radius-lg);
+  box-shadow: var(--shadow-sm);
   padding: 1rem 1.1rem;
   cursor: pointer;
   color: var(--text-secondary);
@@ -1233,6 +1237,10 @@ select.form-control option {
 
   .account-tabs-inner {
     padding: 0 1rem;
+  }
+
+  .account-content {
+    padding: 1.75rem 1rem 4rem;
   }
 
   .account-banner-name {

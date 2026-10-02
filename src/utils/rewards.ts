@@ -113,17 +113,30 @@ export function loyaltyStatusLines(
   const silver = Math.max(1, Math.floor(silverThreshold) || DEFAULT_SILVER_THRESHOLD);
   const gold = Math.max(silver + 1, Math.floor(goldThreshold) || DEFAULT_GOLD_THRESHOLD);
   const next = applyLoyaltyTierTransition(current, suggestedLoyaltyTier(points, silver, gold));
-  const lines = [`${points} points earned in the last 30 days.`];
+  const pointsLabel = points === 1 ? '1 point' : `${points} points`;
+  const lines = [
+    points === 0
+      ? 'No points earned in the last 30 days yet.'
+      : `You've earned ${pointsLabel} in the last 30 days.`
+  ];
   if (next !== current) {
-    lines.push(`On the next check you move to ${tierLabel(next)}. You can jump up more than one tier, and you only drop one tier at a time.`);
+    lines.push(
+      `You're on track to move to ${tierLabel(next)} on the next check. You can jump up more than one tier at once, but you only drop one tier at a time.`
+    );
     return lines;
   }
   if (current === 'bronze') {
-    lines.push(`Silver starts at ${silver} points in 30 days. Gold starts at ${gold}. You can jump straight to Gold.`);
+    lines.push(
+      `Hit ${silver} points in any 30-day window for Silver, or ${gold} for Gold — you can skip straight to Gold if you reach that threshold.`
+    );
   } else if (current === 'silver') {
-    lines.push(`Stay at or above ${silver} points in any 30 days to keep Silver. ${gold} moves you to Gold. Below ${silver}, you move to Bronze.`);
+    lines.push(
+      `Hold ${silver}+ points in any 30-day window to stay Silver. Reach ${gold} for Gold. Drop below ${silver} and you move to Bronze.`
+    );
   } else {
-    lines.push(`Stay at or above ${gold} points in any 30 days to keep Gold. Below that, you move to Silver.`);
+    lines.push(
+      `Hold ${gold}+ points in any 30-day window to stay Gold. Drop below that and you move to Silver.`
+    );
   }
   return lines;
 }

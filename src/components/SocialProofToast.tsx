@@ -9,7 +9,7 @@ import './SocialProofToast.css';
 const POLL_MS = 30_000;
 const VISIBLE_MS = 8_000;
 const EXIT_MS = 280;
-const GAP_MS = 15_000;
+const GAP_MS = 30_000;
 const VIEWERS_COOLDOWN_MS = 5 * 60 * 1000;
 
 type Phase = 'hidden' | 'in' | 'out';
