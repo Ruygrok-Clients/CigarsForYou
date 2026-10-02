@@ -78,6 +78,12 @@ service cloud.firestore {
       allow create, update, delete: if true;
     }
 
+    // Live site-wide presence (anonymous storefront visitors)
+    match /sitePresence/{sessionId} {
+      allow read: if true;
+      allow create, update, delete: if true;
+    }
+
     // Social proof toast feed (written only by Cloud Functions / Admin SDK)
     match /social_proof/{id} {
       allow read: if true;

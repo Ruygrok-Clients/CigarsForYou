@@ -1,11 +1,12 @@
 .social-proof {
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
   --ease-smooth: cubic-bezier(0.25, 1, 0.5, 1);
+  --verified-blue: #2f80ed;
   position: fixed;
   left: 24px;
   bottom: 24px;
   z-index: 900;
-  width: min(392px, calc(100vw - 32px));
+  width: min(400px, calc(100vw - 32px));
   pointer-events: none;
 }
 
@@ -16,11 +17,11 @@
   align-items: stretch;
   background: #fff;
   color: #2f0d0e;
-  border-radius: 14px;
+  border-radius: 22px;
   overflow: hidden;
   box-shadow:
-    0 14px 34px rgba(47, 13, 14, 0.14),
-    0 2px 8px rgba(47, 13, 14, 0.08);
+    0 16px 40px rgba(47, 13, 14, 0.14),
+    0 2px 10px rgba(47, 13, 14, 0.06);
 }
 
 .social-proof__card--in {
@@ -32,73 +33,101 @@
 }
 
 .social-proof__media {
-  width: 86px;
+  width: 92px;
   flex-shrink: 0;
-  background: #111;
+  background: #f6f0d8;
   display: flex;
-  align-items: flex-end;
+  align-items: center;
   justify-content: center;
+  padding: 10px 8px;
 }
 
 .social-proof__media img {
   width: 100%;
   height: 100%;
+  max-height: 110px;
   object-fit: contain;
-  object-position: center bottom;
+  object-position: center;
 }
 
 .social-proof__body {
   flex: 1;
   min-width: 0;
-  padding: 12px 36px 12px 14px;
+  display: flex;
+  flex-direction: column;
+  padding: 12px 14px 10px;
 }
 
 .social-proof__verified {
-  display: inline-block;
-  margin-bottom: 4px;
-  font-size: 0.65rem;
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  margin-bottom: 6px;
+  font-size: 0.68rem;
   font-weight: 700;
-  letter-spacing: 0.06em;
+  letter-spacing: 0.04em;
   text-transform: uppercase;
-  color: #b45309;
+  color: var(--verified-blue);
+  line-height: 1;
+}
+
+.social-proof__verified-icon {
+  width: 14px;
+  height: 14px;
+  flex-shrink: 0;
+  color: var(--verified-blue);
+  display: block;
 }
 
 .social-proof__copy {
   margin: 0;
   font-size: 0.9rem;
   line-height: 1.35;
+  color: #3a3a3c;
+}
+
+.social-proof__line {
+  display: block;
 }
 
 .social-proof__copy strong {
   font-weight: 700;
+  color: #1f1f21;
 }
 
 .social-proof__product {
   font-weight: 700;
-  color: inherit;
+  color: #1f1f21;
   text-decoration: underline;
   text-underline-offset: 2px;
 }
 
+.social-proof__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin-top: 8px;
+}
+
 .social-proof__time {
-  margin: 6px 0 0;
+  margin: 0;
   font-size: 0.75rem;
-  color: #7a655c;
+  color: #8b8b90;
 }
 
 .social-proof__dismiss {
-  position: absolute;
-  top: 8px;
-  right: 8px;
-  width: 24px;
-  height: 24px;
+  width: 22px;
+  height: 22px;
   border: 0;
   border-radius: 6px;
   background: transparent;
-  color: #7a655c;
+  color: #a0a0a6;
   cursor: pointer;
-  font-size: 16px;
+  font-size: 18px;
   line-height: 1;
+  padding: 0;
+  flex-shrink: 0;
 }
 
 .social-proof__dismiss:hover {
@@ -139,39 +168,55 @@
 
 @media (max-width: 640px) {
   .social-proof {
-    width: min(300px, calc(100vw - 24px));
+    width: min(310px, calc(100vw - 24px));
     bottom: calc(10px + env(safe-area-inset-bottom));
   }
 
+  .social-proof__card {
+    border-radius: 18px;
+  }
+
   .social-proof__media {
-    width: 54px;
+    width: 64px;
+    padding: 8px 6px;
+  }
+
+  .social-proof__media img {
+    max-height: 84px;
   }
 
   .social-proof__body {
-    padding: 8px 28px 8px 10px;
+    padding: 10px 12px 8px;
   }
 
   .social-proof__verified {
-    margin-bottom: 2px;
-    font-size: 0.58rem;
+    margin-bottom: 4px;
+    font-size: 0.6rem;
+    gap: 4px;
+  }
+
+  .social-proof__verified-icon {
+    width: 13px;
+    height: 13px;
   }
 
   .social-proof__copy {
-    font-size: 0.75rem;
+    font-size: 0.78rem;
     line-height: 1.3;
   }
 
+  .social-proof__meta {
+    margin-top: 6px;
+  }
+
   .social-proof__time {
-    margin-top: 3px;
     font-size: 0.68rem;
   }
 
   .social-proof__dismiss {
-    top: 4px;
-    right: 4px;
     width: 20px;
     height: 20px;
-    font-size: 14px;
+    font-size: 16px;
   }
 }
 

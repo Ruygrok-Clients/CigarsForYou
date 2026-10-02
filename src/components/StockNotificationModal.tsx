@@ -13,12 +13,15 @@ interface StockNotificationModalProps {
 
 export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ product, onClose }) => {
   const { currentUser, userProfile } = useAuth();
+  const [name, setName] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [email, setEmail] = useState(currentUser?.email || userProfile?.email || '');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { showToast } = useToast();
 
   useEffect(() => {
+    const nextName = userProfile?.displayName || currentUser?.displayName || '';
+    if (nextName) setName(nextName);
     if (currentUser?.email || userProfile?.email) {
       setEmail(currentUser?.email || userProfile?.email || '');
     }
@@ -28,6 +31,10 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (!name.trim()) {
+      showToast('Please enter your name', 'error');
+      return;
+    }
     if (!email || !email.includes('@')) {
       showToast('Please enter a valid email address', 'error');
       return;
@@ -39,6 +46,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         productId: product.id || product.slug,
         productName: product.name,
         productBrand: product.brand,
+        name: name.trim(),
         email: email.trim(),
         userId: currentUser?.uid || null,
         customerId: currentUser?.uid || null,
@@ -119,6 +127,18 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
           </div>
         ) : (
           <form onSubmit={handleSubmit}>
+            <div className="form-group">
+              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Name</label>
+              <input
+                type="text"
+                required
+                className="form-control"
+                placeholder="Your name"
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                autoComplete="name"
+              />
+            </div>
             <div className="form-group">
               <label className="form-label" style={{ color: 'var(--text-primary)' }}>Email Address</label>
               <input

@@ -18,6 +18,7 @@ import { LoadingScreen } from './components/LoadingScreen';
 import { ScrollToTop } from './components/ScrollToTop';
 import { SocialProofToast } from './components/SocialProofToast';
 import { useAgeGate } from './context/AgeGateContext';
+import { useSitePresence } from './hooks/useSitePresence';
 
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
@@ -54,6 +55,9 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const { isAgeVerified } = useAgeGate();
   const isAdminPath = location.pathname.startsWith('/admin');
   const [showLoading, setShowLoading] = useState(true);
+  const trackSitePresence = !isAdminPath && !showLoading && isAgeVerified;
+
+  useSitePresence(trackSitePresence);
 
   React.useEffect(() => {
     let scrollTimer: ReturnType<typeof setTimeout>;

@@ -39,7 +39,14 @@ function mapDoc(id: string, data: Record<string, unknown>): SocialProofItem | nu
       : null;
   if (displayAtMs == null) return null;
 
-  const source: SocialProofSource = data.source === 'order' ? 'order' : 'generated';
+  const rawSource = asString(data.source);
+  const source: SocialProofSource =
+    rawSource === 'order'
+    || rawSource === 'newsletter'
+    || rawSource === 'stock_notify'
+    || rawSource === 'site_viewers'
+      ? rawSource
+      : 'generated';
   const viewerCount = typeof data.viewerCount === 'number' ? data.viewerCount : undefined;
 
   return {
@@ -55,38 +62,22 @@ function mapDoc(id: string, data: Record<string, unknown>): SocialProofItem | nu
   };
 }
 
-function devPreviewItem(nowMs: number): SocialProofItem {
-  return {
-    id: 'dev-preview',
-    eventType: 'site_viewers',
-    firstName: '',
-    location: '',
-    productName: '',
-    productSlug: '',
-    viewerCount: 24,
-    displayAtMs: nowMs - 2 * 60_000,
-    source: 'generated',
-  };
-}
-
 export async function fetchSocialProofItems(nowMs = Date.now()): Promise<SocialProofItem[]> {
-  const feedQuery = query(
-    collection(db, 'social_proof'),
-    where('displayAt', '>=', Timestamp.fromMillis(nowMs - SOCIAL_PROOF_VISIBLE_MS)),
-    where('displayAt', '<=', Timestamp.fromMillis(nowMs)),
-    orderBy('displayAt', 'desc'),
-    limit(40),
-  );
+  try {
+    const feedQuery = query(
+      collection(db, 'social_proof'),
+      where('displayAt', '>=', Timestamp.fromMillis(nowMs - SOCIAL_PROOF_VISIBLE_MS)),
+      where('displayAt', '<=', Timestamp.fromMillis(nowMs)),
+      orderBy('displayAt', 'desc'),
+      limit(40),
+    );
 
-  const snap = await getDocs(feedQuery);
-  const items = snap.docs
-    .map((docSnap) => mapDoc(docSnap.id, docSnap.data() as Record<string, unknown>))
-    .filter((item): item is SocialProofItem => item != null)
-    .filter((item) => isSocialProofActive(item.displayAtMs, nowMs));
-
-  if (items.length === 0 && import.meta.env.DEV) {
-    return [devPreviewItem(nowMs)];
+    const snap = await getDocs(feedQuery);
+    return snap.docs
+      .map((docSnap) => mapDoc(docSnap.id, docSnap.data() as Record<string, unknown>))
+      .filter((item): item is SocialProofItem => item != null)
+      .filter((item) => isSocialProofActive(item.displayAtMs, nowMs));
+  } catch {
+    return [];
   }
-
-  return items;
 }

@@ -216,6 +216,9 @@ export const ProductDetailPage: React.FC = () => {
 
   // Stock check for currently selected packaging option
   const selectedOptionAvailable = selectedPackaging ? isOptionAvailable(selectedPackaging.id, product.stock) : false;
+  const selectedVariantRemaining = selectedPackaging
+    ? getMaxQuantityForOption(selectedPackaging.id, product.stock)
+    : 0;
   const isMainProductOutOfStock = product.stock <= 0;
 
   const handleAddToCart = () => {
@@ -440,7 +443,7 @@ export const ProductDetailPage: React.FC = () => {
                 </span>
               </div>
 
-              {product.stock > 0 && product.stock <= 20 && (
+              {selectedVariantRemaining > 0 && selectedVariantRemaining < 20 && (
                 <p style={{
                   color: '#c06517',
                   fontSize: '0.9rem',
@@ -448,7 +451,7 @@ export const ProductDetailPage: React.FC = () => {
                   margin: '0 0 0.35rem',
                   letterSpacing: '0.01em'
                 }}>
-                  {product.stock} Remaining Stock Left
+                  {selectedVariantRemaining} Remaining
                 </p>
               )}
 
@@ -515,11 +518,11 @@ export const ProductDetailPage: React.FC = () => {
                           <div style={{ fontSize: '0.72rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
                             Out of Stock
                           </div>
-                        ) : (
-                          <div style={{ fontSize: '0.7rem', color: '#6e6e73', marginTop: '0.2rem' }}>
-                            {maxQtyForOpt} pack{maxQtyForOpt > 1 ? 's' : ''} available
+                        ) : maxQtyForOpt < 20 ? (
+                          <div style={{ fontSize: '0.7rem', color: '#c06517', marginTop: '0.2rem', fontWeight: 600 }}>
+                            {maxQtyForOpt} Remaining
                           </div>
-                        )}
+                        ) : null}
                       </button>
                     );
                   })}

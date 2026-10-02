@@ -2,7 +2,12 @@ export const SOCIAL_PROOF_VISIBLE_MINUTES = 59;
 export const SOCIAL_PROOF_VISIBLE_MS = SOCIAL_PROOF_VISIBLE_MINUTES * 60 * 1000;
 
 export type SocialProofEventType = 'order' | 'newsletter' | 'stock_notify' | 'site_viewers';
-export type SocialProofSource = 'generated' | 'order';
+export type SocialProofSource =
+  | 'generated'
+  | 'order'
+  | 'newsletter'
+  | 'stock_notify'
+  | 'site_viewers';
 
 export interface SocialProofItem {
   id: string;

@@ -12,6 +12,25 @@ const GAP_MS = 16_000;
 
 type Phase = 'hidden' | 'in' | 'out';
 
+function VerifiedBadge() {
+  return (
+    <div className="social-proof__verified">
+      <svg className="social-proof__verified-icon" viewBox="0 0 16 16" aria-hidden="true">
+        <circle cx="8" cy="8" r="8" fill="currentColor" />
+        <path
+          d="M4.4 8.15 6.7 10.4l4.9-5"
+          fill="none"
+          stroke="#fff"
+          strokeWidth="1.7"
+          strokeLinecap="round"
+          strokeLinejoin="round"
+        />
+      </svg>
+      <span>Data Verified</span>
+    </div>
+  );
+}
+
 function ProductName({ item }: { item: SocialProofItem }) {
   if (!item.productName) return null;
   if (item.productSlug) {
@@ -38,7 +57,10 @@ function ToastCopy({ item }: { item: SocialProofItem }) {
   if (item.eventType === 'newsletter') {
     return (
       <p className="social-proof__copy">
-        <strong>{item.firstName}</strong> from {item.location} signed up for our newsletter drop
+        <span className="social-proof__line">
+          <strong>{item.firstName}</strong> from {item.location}
+        </span>
+        <span className="social-proof__line">signed up for our newsletter drop</span>
       </p>
     );
   }
@@ -46,14 +68,24 @@ function ToastCopy({ item }: { item: SocialProofItem }) {
   if (item.eventType === 'stock_notify') {
     return (
       <p className="social-proof__copy">
-        <strong>{item.firstName}</strong> from {item.location} asked to be notified when <ProductName item={item} /> becomes back in stock
+        <span className="social-proof__line">
+          <strong>{item.firstName}</strong> from {item.location}
+        </span>
+        <span className="social-proof__line">
+          asked to be notified when <ProductName item={item} /> becomes back in stock
+        </span>
       </p>
     );
   }
 
   return (
     <p className="social-proof__copy">
-      <strong>{item.firstName}</strong> from {item.location} just ordered <ProductName item={item} />
+      <span className="social-proof__line">
+        <strong>{item.firstName}</strong> from {item.location}
+      </span>
+      <span className="social-proof__line">
+        just ordered <ProductName item={item} />
+      </span>
     </p>
   );
 }
@@ -168,17 +200,19 @@ export function SocialProofToast() {
           <img src={socialProofImage} alt="" />
         </div>
         <div className="social-proof__body">
-          <span className="social-proof__verified">Data Verified</span>
+          <VerifiedBadge />
           <ToastCopy item={item} />
-          <p className="social-proof__time">{formatTimeAgo(item.displayAtMs, nowMs)}</p>
-          <button
-            type="button"
-            className="social-proof__dismiss"
-            aria-label="Dismiss notification"
-            onClick={dismiss}
-          >
-            ×
-          </button>
+          <div className="social-proof__meta">
+            <p className="social-proof__time">{formatTimeAgo(item.displayAtMs, nowMs)}</p>
+            <button
+              type="button"
+              className="social-proof__dismiss"
+              aria-label="Dismiss notification"
+              onClick={dismiss}
+            >
+              ×
+            </button>
+          </div>
         </div>
       </div>
     </aside>

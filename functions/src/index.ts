@@ -13,8 +13,11 @@ import {
 } from "./email";
 import {
   cleanupExpiredSocialProof,
-  generateDailySocialProofFeed,
+  generateMinuteSocialProofFeed,
+  publishLiveSiteViewersSocialProof,
+  writeNewsletterSocialProof,
   writeOrderSocialProof,
+  writeStockNotifySocialProof,
 } from "./socialProof";
 
 admin.initializeApp();
@@ -174,18 +177,19 @@ export const onOrderCreated = onDocumentCreated(
 );
 
 /**
- * Daily synthetic social-proof feed (01:00 Australia/Sydney).
- * Idempotent per Sydney calendar day via social_proof_runs/{YYYY-MM-DD}.
+ * Generated base social-proof feed. Independent draws each minute so
+ * hourly expectations stay ~2 orders / ~1 newsletter / ~3 stock-notify
+ * plus viewer snapshots of 5–15. Real events still write on top.
  */
-export const generateDailySocialProof = onSchedule(
+export const generateMinuteSocialProof = onSchedule(
   {
-    schedule: "0 1 * * *",
+    schedule: "every 1 minutes",
     timeZone: "Australia/Sydney",
-    retryCount: 1,
+    retryCount: 0,
   },
   async () => {
-    const result = await generateDailySocialProofFeed();
-    logger.info("Daily social proof generate finished.", result);
+    const result = await generateMinuteSocialProofFeed();
+    logger.info("Minute social proof generate finished.", result);
   }
 );
 
@@ -204,10 +208,24 @@ export const cleanupSocialProof = onSchedule(
 );
 
 /**
- * Manual seed / recovery for the daily social-proof feed.
- * Still respects the Sydney-day run lock.
+ * Sample live site presence and publish a real site_viewers social-proof toast.
  */
-export const runDailySocialProof = onCall(async (request) => {
+export const publishLiveSiteViewers = onSchedule(
+  {
+    schedule: "every 10 minutes",
+    timeZone: "Australia/Sydney",
+    retryCount: 0,
+  },
+  async () => {
+    const result = await publishLiveSiteViewersSocialProof();
+    logger.info("Live site viewers social proof publish finished.", result);
+  }
+);
+
+/**
+ * Manual one-shot of the minute social-proof injector (admin / member).
+ */
+export const runMinuteSocialProof = onCall(async (request) => {
   const authUid = request.auth?.uid;
   if (!authUid) {
     throw new HttpsError("unauthenticated", "User must be authenticated");
@@ -219,7 +237,7 @@ export const runDailySocialProof = onCall(async (request) => {
     throw new HttpsError("permission-denied", "Only admin or staff members can seed social proof");
   }
 
-  return generateDailySocialProofFeed();
+  return generateMinuteSocialProofFeed();
 });
 
 /**
@@ -281,6 +299,32 @@ export const onStockNotificationCreated = onDocumentCreated(
       await sendStockNotificationAdminAlert(notifData);
     } catch (err) {
       logger.error("Failed to process Resend stock notification request email:", err);
+    }
+
+    try {
+      await writeStockNotifySocialProof(notifData);
+      logger.info(`Social proof stock_notify entry written for ${notifData.productName}.`);
+    } catch (err) {
+      logger.error("Failed to write social proof entry for stock notification:", err);
+    }
+  }
+);
+
+/**
+ * FIRESTORE TRIGGER: NEW EMAIL SUBSCRIBER
+ * Writes a real newsletter social-proof toast when someone joins the launch list.
+ */
+export const onEmailSubscriberCreated = onDocumentCreated(
+  { document: "emailSubscribers/{subscriberId}" },
+  async (event) => {
+    const subscriberData = event.data?.data();
+    if (!subscriberData) return;
+
+    try {
+      await writeNewsletterSocialProof(subscriberData);
+      logger.info(`Social proof newsletter entry written for subscriber ${event.params.subscriberId}.`);
+    } catch (err) {
+      logger.error("Failed to write social proof entry for email subscriber:", err);
     }
   }
 );
