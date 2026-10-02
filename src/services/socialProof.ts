@@ -76,6 +76,7 @@ export async function fetchSocialProofItems(nowMs = Date.now()): Promise<SocialP
     return snap.docs
       .map((docSnap) => mapDoc(docSnap.id, docSnap.data() as Record<string, unknown>))
       .filter((item): item is SocialProofItem => item != null)
+      .filter((item) => item.eventType !== 'site_viewers')
       .filter((item) => isSocialProofActive(item.displayAtMs, nowMs));
   } catch {
     return [];

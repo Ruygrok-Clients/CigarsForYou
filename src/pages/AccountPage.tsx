@@ -6,8 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { RewardsProgramPanel } from '../components/RewardsProgramPanel';
-import type { Order, StockNotification, Product, Address, LoyaltyTier } from '../types';
-import { normalizeLoyaltyTier, spendablePoints, tierLabel } from '../utils/rewards';
+import type { Order, StockNotification, Product, Address } from '../types';
+import { normalizeLoyaltyTier, spendablePoints, tierLabel, TIER_COLORS } from '../utils/rewards';
 import { 
   User as UserIcon, 
   Package, 
@@ -29,12 +29,6 @@ import {
 } from 'lucide-react';
 
 type AccountTab = 'account' | 'loyalty' | 'orders' | 'notify' | 'special';
-
-const TIER_BANNER: Record<LoyaltyTier, string> = {
-  bronze: '#6B3F24',
-  silver: '#5E6770',
-  gold: '#8A6A12'
-};
 
 function accountTabFromQuery(value: string | null): AccountTab | null {
   if (value === 'profile') return 'account';
@@ -394,13 +388,17 @@ export const AccountPage: React.FC = () => {
 
   return (
     <div className="account-page">
-      <header className="account-banner" style={{ backgroundColor: TIER_BANNER[tier] }}>
-        <div className="container account-banner-inner">
+      <header className="account-banner" style={{ backgroundColor: TIER_COLORS[tier] }}>
+        <div className="account-banner-inner">
           <div className="account-banner-identity">
-            <div className="account-avatar" aria-hidden="true">{initial}</div>
-            <div style={{ minWidth: 0 }}>
-              <div className="account-banner-eyebrow">Customer Portal</div>
-              <div className="account-banner-tier">{tierLabel(tier)} member</div>
+            <div className="account-banner-top">
+              <div className="account-avatar" aria-hidden="true">{initial}</div>
+              <div className="account-banner-titles">
+                <div className="account-banner-eyebrow">Customer Portal</div>
+                <div className="account-banner-tier">{tierLabel(tier)} member</div>
+              </div>
+            </div>
+            <div className="account-banner-details">
               <h1 className="account-banner-name">{displayName}</h1>
               <div className="account-banner-meta">
                 <span><Mail size={14} /> {userProfile.email}</span>
@@ -419,7 +417,7 @@ export const AccountPage: React.FC = () => {
       </header>
 
       <nav className="account-tabs" aria-label="Account sections">
-        <div className="container account-tabs-inner">
+        <div className="account-tabs-inner">
           <button type="button" className={`account-tab ${activeTab === 'account' ? 'active' : ''}`} onClick={() => chooseTab('account')}>
             <UserIcon size={16} /> Account
           </button>
@@ -532,9 +530,6 @@ export const AccountPage: React.FC = () => {
         {activeTab === 'notify' && (
           <div>
             <div style={{ marginBottom: '1.5rem' }}>
-              <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
-                Waitlist & Back In Stock
-              </span>
               <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)' }}>
                 Notify Me When Available Products
               </h3>
@@ -657,9 +652,6 @@ export const AccountPage: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
                   <div>
-                    <span className="badge badge-gold" style={{ marginBottom: '0.3rem', display: 'inline-block' }}>
-                      Account Identity
-                    </span>
                     <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', margin: 0 }}>
                       Personal Profile
                     </h3>
@@ -812,9 +804,6 @@ export const AccountPage: React.FC = () => {
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
                   <div>
-                    <span className="badge badge-gold" style={{ marginBottom: '0.3rem', display: 'inline-block' }}>
-                      Shipping File
-                    </span>
                     <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', display: 'flex', alignItems: 'center', gap: '0.5rem', margin: 0 }}>
                       <MapPin size={20} style={{ color: '#c06517' }} /> Saved Shipping Addresses ({savedAddressesList.length})
                     </h3>

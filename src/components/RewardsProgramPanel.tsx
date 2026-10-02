@@ -117,10 +117,7 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
   return (
     <div>
       <div style={{ marginBottom: '1.5rem' }}>
-        <span className="badge badge-gold" style={{ marginBottom: '0.4rem', display: 'inline-flex', alignItems: 'center', gap: '0.35rem' }}>
-          <Award size={14} /> Rewards
-        </span>
-        <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', margin: '0.2rem 0 0.4rem' }}>
+        <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', margin: '0 0 0.4rem' }}>
           Loyalty Program
         </h2>
         <p style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: '640px', lineHeight: 1.6 }}>

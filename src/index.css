@@ -1055,17 +1055,36 @@ select.form-control option {
 }
 
 .account-banner-inner {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
   display: flex;
   justify-content: space-between;
-  align-items: center;
+  align-items: flex-start;
   gap: 1.5rem;
-  padding: 2.25rem 0;
+  padding: 2.25rem 1.5rem;
 }
 
 .account-banner-identity {
   display: flex;
+  flex-direction: column;
+  gap: 0.85rem;
+  min-width: 0;
+  flex: 1;
+}
+
+.account-banner-top {
+  display: flex;
   align-items: center;
-  gap: 1.15rem;
+  gap: 0.9rem;
+  min-width: 0;
+}
+
+.account-banner-titles {
+  min-width: 0;
+}
+
+.account-banner-details {
   min-width: 0;
 }
 
@@ -1077,7 +1096,7 @@ select.form-control option {
   display: flex;
   align-items: center;
   justify-content: center;
-  background: rgba(255, 255, 255, 0.16);
+  background: var(--color-primary);
   border: 2px solid rgba(255, 255, 255, 0.4);
   color: #fff;
   font-size: 1.75rem;
@@ -1100,7 +1119,7 @@ select.form-control option {
 }
 
 .account-banner-name {
-  margin: 0.15rem 0 0.35rem;
+  margin: 0 0 0.35rem;
   color: #fff;
   font-size: 2rem;
   line-height: 1.15;
@@ -1131,13 +1150,18 @@ select.form-control option {
   padding: 0.55rem 0.95rem;
   cursor: pointer;
   white-space: nowrap;
+  flex-shrink: 0;
 }
 
 .account-tabs {
-  background: #c06517;
+  background: var(--color-dark-red);
 }
 
 .account-tabs-inner {
+  width: 100%;
+  max-width: 1320px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
   display: flex;
   gap: 0.15rem;
   overflow-x: auto;
@@ -1203,8 +1227,12 @@ select.form-control option {
 @media (max-width: 720px) {
   .account-banner-inner {
     flex-direction: column;
-    align-items: flex-start;
-    padding: 1.5rem 0;
+    align-items: stretch;
+    padding: 1.5rem 1rem;
+  }
+
+  .account-tabs-inner {
+    padding: 0 1rem;
   }
 
   .account-banner-name {
@@ -1215,6 +1243,16 @@ select.form-control option {
     width: 56px;
     height: 56px;
     font-size: 1.35rem;
+  }
+
+  .account-signout {
+    align-self: flex-start;
+  }
+}
+
+@media (min-width: 721px) {
+  .account-banner-inner {
+    padding: 2.25rem 1.5rem;
   }
 }
 

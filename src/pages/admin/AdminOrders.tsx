@@ -193,7 +193,7 @@ export const AdminOrders: React.FC = () => {
         patch.refundAmount = order.totalAmount;
       }
 
-      await updateDoc(doc(db, 'orders', order.id), patch);
+      await updateDoc(doc(db, 'orders', order.id!), patch);
 
       const stockCollection = order.source === 'Reward' ? 'rewardProducts' : 'products';
       for (let idx = 0; idx < order.items.length; idx++) {

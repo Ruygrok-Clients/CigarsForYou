@@ -19,48 +19,6 @@ const FIRST_NAMES = [
   "Ben", "Rachel", "Tom", "Jessica", "Alex", "Megan", "Sam", "Lauren",
 ];
 
-const NSW_LOCATIONS = [
-  "Sydney, NSW",
-  "Newcastle, NSW",
-  "Wollongong, NSW",
-  "Parramatta, NSW",
-  "Bondi, NSW",
-  "Manly, NSW",
-  "Surry Hills, NSW",
-  "Newtown, NSW",
-  "Bondi Junction, NSW",
-  "Chatswood, NSW",
-  "Penrith, NSW",
-  "Cronulla, NSW",
-  "Mosman, NSW",
-  "Paddington, NSW",
-  "Darlinghurst, NSW",
-  "Randwick, NSW",
-  "Coogee, NSW",
-  "Balmain, NSW",
-  "Leichhardt, NSW",
-  "Marrickville, NSW",
-  "Burwood, NSW",
-  "Strathfield, NSW",
-  "Hornsby, NSW",
-  "Ryde, NSW",
-  "Liverpool, NSW",
-  "Campbelltown, NSW",
-  "Gosford, NSW",
-  "Coffs Harbour, NSW",
-  "Port Macquarie, NSW",
-  "Byron Bay, NSW",
-  "Orange, NSW",
-  "Bathurst, NSW",
-  "Wagga Wagga, NSW",
-  "Albury, NSW",
-  "Dubbo, NSW",
-  "Tamworth, NSW",
-  "Lismore, NSW",
-  "Nowra, NSW",
-  "Katoomba, NSW",
-];
-
 type EventType = "order" | "newsletter" | "stock_notify" | "site_viewers";
 
 type CatalogProduct = {
@@ -75,11 +33,10 @@ export type SocialProofGenerateResult = {
 };
 
 /** Expected generated writes per hour, applied independently each minute. */
-const MINUTE_RATES: Record<EventType, number> = {
+const MINUTE_RATES: Record<Exclude<EventType, "site_viewers">, number> = {
   order: 2 / 60,
   newsletter: 1 / 60,
   stock_notify: 3 / 60,
-  site_viewers: 6 / 60,
 };
 
 function getDb() {
@@ -94,37 +51,13 @@ export function firstNameFromFullName(name: unknown): string {
   return token.charAt(0).toUpperCase() + token.slice(1).toLowerCase();
 }
 
-function titleCase(value: string): string {
-  return value
-    .trim()
-    .split(/\s+/)
-    .filter(Boolean)
-    .map((word) => word.charAt(0).toUpperCase() + word.slice(1).toLowerCase())
-    .join(" ");
-}
-
-/** Coarse NSW label only. Other states are never shown. */
-export function formatNswSocialProofLocation(address: unknown): string {
-  if (!address || typeof address !== "object") return "NSW";
-  const record = address as Record<string, unknown>;
-  const state = typeof record.state === "string" ? record.state.trim().toUpperCase() : "";
-  const suburbRaw = typeof record.suburb === "string"
-    ? record.suburb
-    : typeof record.city === "string"
-      ? record.city
-      : "";
-  const suburb = titleCase(suburbRaw);
-  const isNsw = state === "" || state === "NSW" || state === "NEW SOUTH WALES";
-  if (!isNsw || !suburb) return "NSW";
-  return `${suburb}, NSW`;
+/** Order toasts only show the state — never suburb / city detail. */
+export function formatNswSocialProofLocation(_address?: unknown): string {
+  return "NSW";
 }
 
 function pick<T>(items: T[]): T {
   return items[Math.floor(Math.random() * items.length)];
-}
-
-function randomInt(min: number, max: number): number {
-  return Math.floor(Math.random() * (max - min + 1)) + min;
 }
 
 async function loadCatalogProducts(
@@ -200,8 +133,8 @@ function blankGeneratedEntry(
 /**
  * One minute of generated base social proof.
  * Independent Bernoulli draws so hourly expectations are ~2 orders,
- * ~1 newsletter, ~3 stock-notify, and ~6 site-viewer snapshots (count 5–15).
- * Empty product pools skip that draw instead of inventing a product.
+ * ~1 newsletter, and ~3 stock-notify. Viewer counts are live presence
+ * (not historical feed rows). Empty product pools skip that draw.
  */
 export async function generateMinuteSocialProofFeed(now = Date.now()): Promise<SocialProofGenerateResult> {
   const deletedExpired = await cleanupExpiredSocialProof(now);
@@ -210,13 +143,14 @@ export async function generateMinuteSocialProofFeed(now = Date.now()): Promise<S
   const db = getDb();
   const written: EventType[] = [];
 
-  const shouldWrite = (eventType: EventType) => Math.random() < MINUTE_RATES[eventType];
+  const shouldWrite = (eventType: keyof typeof MINUTE_RATES) =>
+    Math.random() < MINUTE_RATES[eventType];
 
   if (shouldWrite("order") && inStockProducts.length > 0) {
     const product = pick(inStockProducts);
     const entry = blankGeneratedEntry("order", now);
     entry.firstName = pick(FIRST_NAMES);
-    entry.location = pick(NSW_LOCATIONS);
+    entry.location = "NSW";
     entry.productName = product.name;
     entry.productSlug = product.slug;
     await db.collection("social_proof").add(entry);
@@ -226,7 +160,7 @@ export async function generateMinuteSocialProofFeed(now = Date.now()): Promise<S
   if (shouldWrite("newsletter")) {
     const entry = blankGeneratedEntry("newsletter", now);
     entry.firstName = pick(FIRST_NAMES);
-    entry.location = pick(NSW_LOCATIONS);
+    entry.location = "";
     await db.collection("social_proof").add(entry);
     written.push("newsletter");
   }
@@ -235,18 +169,11 @@ export async function generateMinuteSocialProofFeed(now = Date.now()): Promise<S
     const product = pick(outOfStockProducts);
     const entry = blankGeneratedEntry("stock_notify", now);
     entry.firstName = pick(FIRST_NAMES);
-    entry.location = pick(NSW_LOCATIONS);
+    entry.location = "";
     entry.productName = product.name;
     entry.productSlug = product.slug;
     await db.collection("social_proof").add(entry);
     written.push("stock_notify");
-  }
-
-  if (shouldWrite("site_viewers")) {
-    const entry = blankGeneratedEntry("site_viewers", now);
-    entry.viewerCount = randomInt(5, 15);
-    await db.collection("social_proof").add(entry);
-    written.push("site_viewers");
   }
 
   logger.info(`Minute social proof wrote ${written.length} entries.`, { written, deletedExpired });
@@ -316,13 +243,10 @@ async function resolvePersonFromUserOrEmail(
       if (snap.exists) {
         const data = snap.data() ?? {};
         const firstName = firstNameFromFullName(data.displayName);
-        const addresses = Array.isArray(data.addresses) ? data.addresses : [];
-        const address = data.address
-          ?? addresses.find((entry) => entry && typeof entry === "object" && (entry as { isDefault?: boolean }).isDefault)
-          ?? addresses[0];
         return {
           firstName: firstName !== "Someone" ? firstName : firstNameFromEmail(email),
-          location: formatNswSocialProofLocation(address),
+          // Newsletter / stock-notify toasts do not show location.
+          location: "",
         };
       }
     } catch (err) {
@@ -332,7 +256,7 @@ async function resolvePersonFromUserOrEmail(
 
   return {
     firstName: firstNameFromEmail(email),
-    location: "NSW",
+    location: "",
   };
 }
 
@@ -409,12 +333,17 @@ export async function writeStockNotifySocialProof(
 
 const SITE_PRESENCE_STALE_MS = 90_000;
 
+/**
+ * Prune stale site-presence docs. Viewer toasts read live presence on the
+ * client as a single current count — they are not historical social_proof rows.
+ */
 export async function publishLiveSiteViewersSocialProof(
   now = Date.now(),
-): Promise<{ written: boolean; viewerCount: number }> {
+): Promise<{ written: boolean; viewerCount: number; deletedStale: number }> {
   const db = getDb();
   const snap = await db.collection("sitePresence").get();
   let viewerCount = 0;
+  let deletedStale = 0;
   let batch = db.batch();
   let pending = 0;
 
@@ -432,6 +361,7 @@ export async function publishLiveSiteViewersSocialProof(
 
     batch.delete(docSnap.ref);
     pending += 1;
+    deletedStale += 1;
     if (pending >= BATCH_LIMIT) {
       await batch.commit();
       batch = db.batch();
@@ -441,21 +371,5 @@ export async function publishLiveSiteViewersSocialProof(
 
   if (pending > 0) await batch.commit();
 
-  if (viewerCount < 1) {
-    return { written: false, viewerCount: 0 };
-  }
-
-  await db.collection("social_proof").add({
-    eventType: "site_viewers",
-    firstName: "",
-    location: "",
-    productName: "",
-    productSlug: "",
-    viewerCount,
-    displayAt: admin.firestore.Timestamp.fromMillis(now),
-    source: "site_viewers",
-    createdAt: admin.firestore.FieldValue.serverTimestamp(),
-  });
-
-  return { written: true, viewerCount };
+  return { written: false, viewerCount, deletedStale };
 }

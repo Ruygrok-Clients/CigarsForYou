@@ -213,8 +213,9 @@ export const onOrderCreated = onDocumentCreated(
 
 /**
  * Generated base social-proof feed. Independent draws each minute so
- * hourly expectations stay ~2 orders / ~1 newsletter / ~3 stock-notify
- * plus viewer snapshots of 5–15. Real events still write on top.
+ * hourly expectations stay ~2 orders / ~1 newsletter / ~3 stock-notify.
+ * Viewer counts are live presence on the client, not feed snapshots.
+ * Real events still write on top.
  */
 export const generateMinuteSocialProof = onSchedule(
   {
@@ -243,7 +244,8 @@ export const cleanupSocialProof = onSchedule(
 );
 
 /**
- * Sample live site presence and publish a real site_viewers social-proof toast.
+ * Prune stale site-presence sessions. Viewer toasts poll live presence
+ * as a single current count (not historical social_proof entries).
  */
 export const publishLiveSiteViewers = onSchedule(
   {
@@ -253,7 +255,7 @@ export const publishLiveSiteViewers = onSchedule(
   },
   async () => {
     const result = await publishLiveSiteViewersSocialProof();
-    logger.info("Live site viewers social proof publish finished.", result);
+    logger.info("Live site viewers presence cleanup finished.", result);
   }
 );
 

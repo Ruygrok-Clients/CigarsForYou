@@ -19,6 +19,7 @@ import { useLocationSelection } from '../context/LocationContext';
 import { useClosingSoon } from '../context/ClosingSoonContext';
 import { AUSTRALIAN_STATES } from '../constants/locations';
 import { CIGAR_CATALOG } from '../data/cigarCatalog';
+import { normalizeLoyaltyTier, TIER_COLORS } from '../utils/rewards';
 
 const CLOSING_BANNER_HEIGHT = 36;
 
@@ -38,6 +39,8 @@ export const Navbar: React.FC = () => {
   const { selectedLocation, setSelectedLocation } = useLocationSelection();
   const { isClosingSoon, isClerkGrace, isFinalCall, formattedCountdown } = useClosingSoon();
   const showCountdown = isClosingSoon || isClerkGrace || isFinalCall;
+  const loyaltyTier = normalizeLoyaltyTier(userProfile?.loyaltyTier);
+  const profileAvatarBg = currentUser ? TIER_COLORS[loyaltyTier] : '#c06517';
   const countdownLabel = isFinalCall
     ? `Final call — order in ${formattedCountdown}`
     : isClerkGrace
@@ -613,7 +616,7 @@ export const Navbar: React.FC = () => {
                     width: '32px',
                     height: '32px',
                     borderRadius: '50%',
-                    backgroundColor: '#c06517',
+                    backgroundColor: profileAvatarBg,
                     color: '#ffffff',
                     display: 'flex',
                     alignItems: 'center',
@@ -886,7 +889,7 @@ export const Navbar: React.FC = () => {
                   width: '38px',
                   height: '38px',
                   borderRadius: '50%',
-                  backgroundColor: currentUser ? '#c06517' : '#faf6f5',
+                  backgroundColor: currentUser ? profileAvatarBg : '#faf6f5',
                   border: '1px solid rgba(47, 13, 14, 0.1)',
                   display: 'flex',
                   alignItems: 'center',

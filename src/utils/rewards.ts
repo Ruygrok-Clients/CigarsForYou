@@ -19,6 +19,13 @@ export function tierLabel(tier: LoyaltyTier): string {
   return normalized.charAt(0).toUpperCase() + normalized.slice(1);
 }
 
+/** Banner / avatar background colours for each loyalty tier */
+export const TIER_COLORS: Record<LoyaltyTier, string> = {
+  bronze: '#6B3F24',
+  silver: '#5E6770',
+  gold: '#8A6A12'
+};
+
 export function suggestedLoyaltyTier(
   windowPoints: number,
   silverThreshold: number,
