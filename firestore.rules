@@ -24,17 +24,23 @@ service cloud.firestore {
       return isAuthenticated() && (getUserData().role == 'admin' || getUserData().role == 'member');
     }
 
-    function rewardsPointsUntouched() {
-      return !request.resource.data.diff(resource.data).affectedKeys().hasAny(['rewardsPoints']);
+    function loyaltyFieldsUntouched() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'rewardsPoints',
+        'loyaltyTier',
+        'loyaltyWindowPoints',
+        'loyaltyTierUpdatedAt'
+      ]);
     }
 
     // User profiles collection
-    // rewardsPoints is written only by Cloud Functions (Admin SDK bypasses these rules).
+    // rewardsPoints and loyalty tier fields are written only by Cloud Functions (Admin SDK bypasses these rules).
     match /users/{userId} {
       allow read: if isOwner(userId) || isMemberOrAdmin();
       allow create: if isAuthenticated() && request.auth.uid == userId
-        && (!request.resource.data.keys().hasAny(['rewardsPoints']) || request.resource.data.rewardsPoints == 0);
-      allow update: if (isOwner(userId) || isAdmin()) && rewardsPointsUntouched();
+        && (!request.resource.data.keys().hasAny(['rewardsPoints']) || request.resource.data.rewardsPoints == 0)
+        && !request.resource.data.keys().hasAny(['loyaltyTier', 'loyaltyWindowPoints', 'loyaltyTierUpdatedAt']);
+      allow update: if (isOwner(userId) || isAdmin()) && loyaltyFieldsUntouched();
       allow delete: if isAdmin();
     }
 
@@ -68,6 +74,12 @@ service cloud.firestore {
     // Rewards shop catalog (separate from store products)
     match /rewardProducts/{productId} {
       allow read: if true;
+      allow write: if isMemberOrAdmin();
+    }
+
+    // Tier thresholds. Staff write; signed-in customers read for progress copy.
+    match /settings/{docId} {
+      allow read: if isAuthenticated();
       allow write: if isMemberOrAdmin();
     }
 

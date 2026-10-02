@@ -2,6 +2,17 @@ import * as admin from "firebase-admin";
 import { HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
 import { estimateImmediateDispatchFee } from "./immediateDispatchFee";
+import {
+  normalizeLoyaltyTier,
+  productVisibleForTier,
+  reevaluateLoyaltyTiers,
+  reevaluateUserLoyalty,
+  resolveMinTier,
+  resolveProductPointsCost,
+  tierLabel,
+} from "./loyalty";
+
+export { reevaluateLoyaltyTiers };
 
 function db() {
   return admin.firestore();
@@ -31,6 +42,7 @@ function rewardOrdersEnabled(): boolean {
  */
 export async function syncOrderRewards(orderId: string): Promise<void> {
   const orderRef = db().collection("orders").doc(orderId);
+  let reevaluateUserId = "";
 
   await db().runTransaction(async (tx) => {
     const orderSnap = await tx.get(orderRef);
@@ -89,6 +101,7 @@ export async function syncOrderRewards(orderId: string): Promise<void> {
           createdAt: new Date().toISOString(),
         });
         tx.update(orderRef, { pointsClawedBack: true });
+        if (userSnap?.exists) reevaluateUserId = customerId;
       }
       return;
     }
@@ -108,10 +121,15 @@ export async function syncOrderRewards(orderId: string): Promise<void> {
         reason: "earn",
         createdAt: new Date().toISOString(),
       });
+      reevaluateUserId = customerId;
     }
 
     tx.update(orderRef, { pointsEarned: earned });
   });
+
+  if (reevaluateUserId) {
+    await reevaluateUserLoyalty(reevaluateUserId);
+  }
 }
 
 interface RedeemItemInput {
@@ -218,6 +236,9 @@ export async function placeRewardOrderForUser(
 
     pointsSpent = 0;
 
+    const userData = userSnap.data() || {};
+    const tier = normalizeLoyaltyTier(userData.loyaltyTier);
+
     productSnaps.forEach((snap, index) => {
       const productId = productRefs[index].id;
       const quantity = merged.get(productId) || 0;
@@ -228,11 +249,18 @@ export async function placeRewardOrderForUser(
       if (product.active === false) {
         throw new HttpsError("failed-precondition", `${product.name || "A reward"} is not available.`);
       }
+      if (!productVisibleForTier(product, tier)) {
+        const required = tierLabel(resolveMinTier(product));
+        throw new HttpsError(
+          "failed-precondition",
+          `${product.name || "A reward"} is available to ${required} members and above.`
+        );
+      }
       const stock = Number(product.stock) || 0;
       if (quantity > stock) {
         throw new HttpsError("failed-precondition", `${product.name || "A reward"} does not have enough stock.`);
       }
-      const pointsCost = Math.floor(Number(product.pointsCost) || 0);
+      const pointsCost = resolveProductPointsCost(product, tier);
       if (pointsCost <= 0) {
         throw new HttpsError("failed-precondition", `${product.name || "A reward"} does not have a points price.`);
       }
@@ -249,7 +277,7 @@ export async function placeRewardOrderForUser(
       tx.update(productRefs[index], { stock: stock - quantity });
     });
 
-    const currentPoints = Number(userSnap.data()?.rewardsPoints || 0);
+    const currentPoints = Number(userData.rewardsPoints || 0);
     const spendable = Math.max(0, Math.floor(currentPoints));
     if (pointsSpent > spendable) {
       throw new HttpsError("failed-precondition", "You do not have enough points for this redemption.");

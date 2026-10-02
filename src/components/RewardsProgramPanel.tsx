@@ -1,13 +1,23 @@
 import React, { useEffect, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { collection, getDocs } from 'firebase/firestore';
+import { collection, doc, getDoc, getDocs, query, where } from 'firebase/firestore';
 import { Award, Minus, Plus, ShoppingBag, Trash2 } from 'lucide-react';
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useRewardsCart } from '../context/RewardsCartContext';
 import { useToast } from './Toast';
-import type { RewardProduct } from '../types';
-import { spendablePoints } from '../utils/rewards';
+import type { RewardProduct, RewardsLedgerEntry } from '../types';
+import {
+  DEFAULT_GOLD_THRESHOLD,
+  DEFAULT_SILVER_THRESHOLD,
+  loyaltyStatusLines,
+  normalizeLoyaltyTier,
+  productVisibleForTier,
+  resolveProductPointsCost,
+  rollingEarnPoints,
+  spendablePoints,
+  tierLabel
+} from '../utils/rewards';
 
 type RewardsPanel = 'overview' | 'shop';
 
@@ -19,37 +29,81 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
   const [panel, setPanel] = useState<RewardsPanel>(initialPanel);
   const [products, setProducts] = useState<RewardProduct[]>([]);
   const [loading, setLoading] = useState(true);
+  const [silverThreshold, setSilverThreshold] = useState(DEFAULT_SILVER_THRESHOLD);
+  const [goldThreshold, setGoldThreshold] = useState(DEFAULT_GOLD_THRESHOLD);
+  const [windowPoints, setWindowPoints] = useState(userProfile?.loyaltyWindowPoints ?? 0);
 
   const balance = Number(userProfile?.rewardsPoints ?? 0);
   const spendable = spendablePoints(balance);
+  const tier = normalizeLoyaltyTier(userProfile?.loyaltyTier);
+  const tierBadge = tier === 'gold' ? 'badge-gold' : tier === 'silver' ? 'badge-gray' : 'badge-orange';
 
   useEffect(() => {
     refreshProfile();
     let cancelled = false;
     (async () => {
       try {
-        const snap = await getDocs(collection(db, 'rewardProducts'));
+        const productSnap = await getDocs(collection(db, 'rewardProducts'));
         if (cancelled) return;
         const list: RewardProduct[] = [];
-        snap.forEach((entry) => {
+        productSnap.forEach((entry) => {
           const product = { id: entry.id, ...entry.data() } as RewardProduct;
           if (product.active) list.push(product);
         });
-        list.sort((a, b) => a.pointsCost - b.pointsCost || a.name.localeCompare(b.name));
+        list.sort((a, b) => resolveProductPointsCost(a, tier) - resolveProductPointsCost(b, tier) || a.name.localeCompare(b.name));
         setProducts(list);
       } catch (err) {
         console.error('Error loading rewards shop:', err);
-        if (!cancelled) showToast('Could not load the rewards shop.', 'error');
+        if (!cancelled) showToast('Could not load the loyalty shop.', 'error');
       } finally {
         if (!cancelled) setLoading(false);
+      }
+
+      try {
+        const settingsSnap = await getDoc(doc(db, 'settings', 'rewards'));
+        if (cancelled || !settingsSnap.exists()) return;
+        const data = settingsSnap.data();
+        const silver = Math.floor(Number(data.silverThreshold));
+        const gold = Math.floor(Number(data.goldThreshold));
+        if (Number.isFinite(silver) && silver >= 1) setSilverThreshold(silver);
+        if (Number.isFinite(gold) && gold > silver) setGoldThreshold(gold);
+      } catch (err) {
+        console.error('Error loading reward thresholds:', err);
       }
     })();
     return () => {
       cancelled = true;
     };
-    // Load the shop once when this tab opens.
+    // Reload when the signed-in customer is known. refreshProfile identity is stable enough for this tab.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  }, [userProfile?.uid]);
+
+  useEffect(() => {
+    const uid = userProfile?.uid;
+    if (!uid) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        const cutoff = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString();
+        const ledgerSnap = await getDocs(query(
+          collection(db, 'rewardsLedger'),
+          where('userId', '==', uid),
+          where('createdAt', '>=', cutoff)
+        ));
+        const ledgerEntries: RewardsLedgerEntry[] = [];
+        ledgerSnap.forEach((entry) => {
+          ledgerEntries.push({ id: entry.id, ...entry.data() } as RewardsLedgerEntry);
+        });
+        if (!cancelled) setWindowPoints(rollingEarnPoints(ledgerEntries));
+      } catch (err) {
+        console.error('Error loading loyalty window:', err);
+        if (!cancelled) setWindowPoints(Number(userProfile?.loyaltyWindowPoints ?? 0));
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [userProfile?.uid, userProfile?.loyaltyWindowPoints]);
 
   const handleAdd = (product: RewardProduct) => {
     const added = rewardsCart.addItem(product, 1, spendable);
@@ -57,7 +111,7 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
       showToast('Not enough points, or that reward is out of stock.', 'error');
       return;
     }
-    showToast(`Added ${product.name} to your rewards checkout`);
+    showToast(`Added ${product.name} to your loyalty checkout`);
   };
 
   return (
@@ -67,10 +121,10 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
           <Award size={14} /> Rewards
         </span>
         <h2 style={{ fontSize: '2rem', color: 'var(--text-primary)', margin: '0.2rem 0 0.4rem' }}>
-          Rewards Program
+          Loyalty Program
         </h2>
         <p style={{ color: 'var(--text-secondary)', margin: 0, maxWidth: '640px', lineHeight: 1.6 }}>
-          Earn 1 point for every whole dollar you spend on products after coupons, before shipping. Spend points in the rewards shop. Redeeming rewards does not earn more points.
+          Earn 1 point for every whole dollar you spend on products after coupons, before shipping. Your tier is based on points earned in the last 30 days. Higher tiers unlock more rewards and lower point prices. Redeeming rewards does not change your tier.
         </p>
       </div>
 
@@ -87,13 +141,14 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
           className={`btn btn-sm ${panel === 'shop' ? 'btn-primary' : 'btn-secondary'}`}
           onClick={() => setPanel('shop')}
         >
-          Rewards Shop
+          Loyalty Shop
         </button>
       </div>
 
       {panel === 'overview' && (
         <div className="card" style={{ padding: '2rem' }}>
-          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', letterSpacing: '0.04em', textTransform: 'uppercase' }}>
+          <span className={`badge ${tierBadge}`} style={{ marginBottom: '0.85rem' }}>{tierLabel(tier)}</span>
+          <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', letterSpacing: '0.04em', textTransform: 'uppercase', display: 'block' }}>
             Available points
           </span>
           <div style={{ fontSize: '3rem', fontWeight: 700, color: 'var(--accent-gold)', lineHeight: 1.1, margin: '0.35rem 0 0.75rem' }}>
@@ -105,15 +160,18 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
             </p>
           )}
           <div style={{ display: 'grid', gap: '0.85rem', color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.6 }}>
+            {loyaltyStatusLines(tier, windowPoints, silverThreshold, goldThreshold).map((line) => (
+              <p key={line} style={{ margin: 0 }}>{line}</p>
+            ))}
             <p style={{ margin: 0 }}>
               A $1.99 order earns 1 point. A $0.50 order earns none. A $321.20 order earns 321 points. Shipping is not included.
             </p>
             <p style={{ margin: 0 }}>
-              Points are added when an order is paid, and removed if that order is later cancelled or refunded.
+              Points are added when an order is paid, and removed if that order is later cancelled or refunded. Everyone starts at Bronze.
             </p>
           </div>
           <button type="button" className="btn btn-primary" style={{ marginTop: '1.5rem' }} onClick={() => setPanel('shop')}>
-            Browse the rewards shop
+            Browse the loyalty shop
           </button>
         </div>
       )}
@@ -123,15 +181,22 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
           <div>
             {loading ? (
               <div style={{ padding: '2rem 0', color: 'var(--text-muted)' }}>Loading rewards...</div>
-            ) : products.length === 0 ? (
+            ) : products.filter((product) => productVisibleForTier(product, tier)).length === 0 ? (
               <div className="card" style={{ padding: '2.5rem 1.5rem', textAlign: 'center' }}>
                 <ShoppingBag size={40} style={{ color: 'var(--text-muted)', marginBottom: '0.75rem' }} />
-                <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.4rem' }}>The shop is empty</h3>
-                <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Reward products will show up here once they are published.</p>
+                <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.4rem' }}>
+                  {products.length === 0 ? 'The shop is empty' : 'No rewards for your tier yet'}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', margin: 0 }}>
+                  {products.length === 0
+                    ? 'Reward products will show up here once they are published.'
+                    : 'Higher tiers unlock more rewards. Keep earning points to move up.'}
+                </p>
               </div>
             ) : (
               <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-                {products.map((product) => {
+                {products.filter((product) => productVisibleForTier(product, tier)).map((product) => {
+                  const price = resolveProductPointsCost(product, tier);
                   const inCart = rewardsCart.items.find((item) => item.product.id === product.id)?.quantity || 0;
                   const outOfStock = product.stock <= 0;
                   return (
@@ -150,7 +215,7 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
                         )}
                       </div>
                       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: 'auto' }}>
-                        <strong style={{ color: 'var(--accent-gold)' }}>{product.pointsCost} pts</strong>
+                        <strong style={{ color: 'var(--accent-gold)' }}>{price} pts</strong>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           {outOfStock ? 'Out of stock' : `${product.stock} left`}
                         </span>
@@ -161,7 +226,7 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
                         disabled={outOfStock || inCart >= product.stock}
                         onClick={() => handleAdd(product)}
                       >
-                        {inCart > 0 ? `Add another (${inCart})` : 'Add to rewards'}
+                        {inCart > 0 ? `Add another (${inCart})` : 'Add to loyalty'}
                       </button>
                     </div>
                   );
@@ -171,7 +236,7 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
           </div>
 
           <div className="card" style={{ padding: '1.25rem', position: 'sticky', top: '96px' }}>
-            <h3 style={{ margin: '0 0 0.35rem', color: 'var(--text-primary)' }}>Rewards checkout</h3>
+            <h3 style={{ margin: '0 0 0.35rem', color: 'var(--text-primary)' }}>Loyalty checkout</h3>
             <p style={{ margin: '0 0 1rem', color: 'var(--text-muted)', fontSize: '0.85rem' }}>
               {spendable} points available
             </p>
@@ -183,7 +248,7 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
                   <div key={item.product.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'center' }}>
                     <div style={{ minWidth: 0 }}>
                       <div style={{ color: 'var(--text-primary)', fontWeight: 600, fontSize: '0.9rem' }}>{item.product.name}</div>
-                      <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{item.product.pointsCost} pts each</div>
+                      <div style={{ color: 'var(--text-muted)', fontSize: '0.75rem' }}>{resolveProductPointsCost(item.product, tier)} pts each</div>
                     </div>
                     <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}>
                       <button type="button" className="btn btn-secondary btn-sm" onClick={() => rewardsCart.updateQuantity(item.product.id || '', item.quantity - 1, spendable)} aria-label="Decrease quantity">

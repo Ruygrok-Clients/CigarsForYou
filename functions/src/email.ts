@@ -2,14 +2,18 @@ import { Resend } from "resend";
 import * as logger from "firebase-functions/logger";
 import * as admin from "firebase-admin";
 
+const NOREPLY_FROM_EMAIL =
+  "CigarsForYou <noreply@cigarsforyou.com.au>";
+
 export const NOTIFICATIONS_FROM_EMAIL =
   process.env.RESEND_NOTIFICATIONS_FROM_EMAIL ||
   process.env.RESEND_FROM_EMAIL ||
-  "CigarsForYou Notifications <notifications@cigarsforyou.com.au>";
+  NOREPLY_FROM_EMAIL;
 
 export const ORDERS_FROM_EMAIL =
   process.env.RESEND_ORDERS_FROM_EMAIL ||
-  "CigarsForYou Orders <orders@cigarsforyou.com.au>";
+  process.env.RESEND_FROM_EMAIL ||
+  NOREPLY_FROM_EMAIL;
 
 const DEFAULT_ADMIN_FALLBACK_EMAIL = "notifications@cigarsforyou.com.au";
 
@@ -229,7 +233,7 @@ function wrapAdminEmailTemplate(title: string, bodyContent: string): string {
     <div class="container">
       <div class="header">
         <h1>CigarsForYou</h1>
-        <p>Admin Notification System • notifications@cigarsforyou.com.au</p>
+        <p>Admin Notification System • noreply@cigarsforyou.com.au</p>
       </div>
       <div class="content">
         ${bodyContent}
@@ -438,7 +442,7 @@ function wrapCustomerEmailTemplate(title: string, bodyContent: string): string {
 
 /**
  * 1. Send Notification Email to Admin Staff for NEW ORDER
- * From: notifications@cigarsforyou.com.au
+ * From: noreply@cigarsforyou.com.au
  */
 export async function sendNewOrderAdminNotification(order: any) {
   const staffEmails = await getAdminStaffEmails();
@@ -523,7 +527,7 @@ export async function sendNewOrderAdminNotification(order: any) {
 
 /**
  * 2. Send Notification Email to Admin Staff when PRODUCT GOES OUT OF STOCK
- * From: notifications@cigarsforyou.com.au
+ * From: noreply@cigarsforyou.com.au
  */
 export async function sendOutOfStockAdminAlert(product: any, productId: string) {
   const staffEmails = await getAdminStaffEmails();
@@ -578,7 +582,7 @@ export async function sendOutOfStockAdminAlert(product: any, productId: string) 
 
 /**
  * 3. Send Notification Email to Admin Staff when A NEW STOCK NOTIFICATION REQUEST IS CREATED
- * From: notifications@cigarsforyou.com.au
+ * From: noreply@cigarsforyou.com.au
  */
 export async function sendStockNotificationAdminAlert(notification: any) {
   const staffEmails = await getAdminStaffEmails();
@@ -625,7 +629,7 @@ export async function sendStockNotificationAdminAlert(notification: any) {
 
 /**
  * 4. Send Order Confirmation Email to Customer upon SUCCESSFUL PURCHASE
- * From: orders@cigarsforyou.com.au
+ * From: noreply@cigarsforyou.com.au
  */
 export async function sendCustomerOrderConfirmationEmail(order: any) {
   const customerEmail = order.customerEmail;
@@ -766,7 +770,7 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
 
 /**
  * 5. Send Test Email Notification for Admin Portal Verification
- * From: notifications@cigarsforyou.com.au
+ * From: noreply@cigarsforyou.com.au
  */
 export async function sendTestAdminNotification(targetEmails?: string[]) {
   const staffEmails =
@@ -781,20 +785,66 @@ export async function sendTestAdminNotification(targetEmails?: string[]) {
     
     <div class="info-box">
       <p style="margin: 0 0 10px 0; color: #e5e7eb; font-size: 14px;">
-        ✓ <strong>Admin Alerts:</strong> Configured to send under <code style="color: #d4af37;">notifications@cigarsforyou.com.au</code> for new orders, out of stock alerts, and customer back-in-stock notifications.
+        ✓ <strong>From Address:</strong> All automated emails send from <code style="color: #d4af37;">noreply@cigarsforyou.com.au</code>.
+      </p>
+      <p style="margin: 0 0 10px 0; color: #e5e7eb; font-size: 14px;">
+        ✓ <strong>Admin Alerts:</strong> New orders, out of stock alerts, and customer back-in-stock notifications.
       </p>
       <p style="margin: 0; color: #e5e7eb; font-size: 14px;">
-        ✓ <strong>Customer Confirmations:</strong> Configured to send under <code style="color: #d4af37;">orders@cigarsforyou.com.au</code> upon successful order placement with complete receipt details.
+        ✓ <strong>Customer Confirmations:</strong> Itemized receipt on successful order placement (replies go to orders@cigarsforyou.com.au).
       </p>
     </div>
   `;
 
-  const subject = "🧪 Resend Email Test Notification - CigarsForYou Admin Portal";
-  const html = wrapAdminEmailTemplate("Resend Integration Test", bodyContent);
+  const subject = "CigarsForYou Resend Email System Test";
+  const html = wrapAdminEmailTemplate("Resend Email System Test", bodyContent);
 
   return sendResendEmail({
     from: NOTIFICATIONS_FROM_EMAIL,
     to: staffEmails,
+    subject,
+    html,
+  });
+}
+
+export async function sendLoyaltyTierEmail(input: {
+  to: string;
+  name?: string;
+  previous: string;
+  next: string;
+  windowPoints: number;
+  upgraded: boolean;
+}) {
+  const to = (input.to || "").trim();
+  if (!to.includes("@")) {
+    logger.warn("Skipping loyalty tier email: no valid customer email.");
+    return { success: false, reason: "No valid customer email" };
+  }
+
+  const previous = input.previous.charAt(0).toUpperCase() + input.previous.slice(1);
+  const next = input.next.charAt(0).toUpperCase() + input.next.slice(1);
+  const greeting = input.name?.trim() || "there";
+  const subject = input.upgraded
+    ? `You're now a ${next} member`
+    : `Your loyalty tier is now ${next}`;
+  const detail = input.upgraded
+    ? `${next} unlocks more rewards in the loyalty shop, and the same rewards cost fewer points than they do on ${previous}.`
+    : `Your points earned in the last 30 days are below the ${previous} threshold, so your status moves down one tier to ${next}.`;
+
+  const html = `
+    <div style="font-family: Georgia, serif; color: #2f0d0e; max-width: 560px; margin: 0 auto; padding: 24px;">
+      <p style="letter-spacing: 0.12em; text-transform: uppercase; font-size: 12px; color: #c06517;">Cigars For You Loyalty Program</p>
+      <h1 style="font-size: 28px; margin: 0 0 12px;">${subject}</h1>
+      <p>Hi ${greeting},</p>
+      <p>Your tier changed from <strong>${previous}</strong> to <strong>${next}</strong>. You have earned ${input.windowPoints} points in the last 30 days.</p>
+      <p>${detail}</p>
+      <p>Redeeming points does not change your tier. Everyone starts at Bronze.</p>
+    </div>
+  `;
+
+  return sendResendEmail({
+    from: NOTIFICATIONS_FROM_EMAIL,
+    to: [to],
     subject,
     html,
   });

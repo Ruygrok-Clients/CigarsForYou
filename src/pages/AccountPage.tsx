@@ -6,7 +6,8 @@ import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { RewardsProgramPanel } from '../components/RewardsProgramPanel';
-import type { Order, StockNotification, Product, Address } from '../types';
+import type { Order, StockNotification, Product, Address, LoyaltyTier } from '../types';
+import { normalizeLoyaltyTier, spendablePoints, tierLabel } from '../utils/rewards';
 import { 
   User as UserIcon, 
   Package, 
@@ -22,13 +23,23 @@ import {
   ShoppingCart,
   Edit2,
   X,
-  Plus
+  Plus,
+  Mail,
+  Phone
 } from 'lucide-react';
 
-type AccountTab = 'orders' | 'notify' | 'rewards' | 'profile';
+type AccountTab = 'account' | 'loyalty' | 'orders' | 'notify' | 'special';
+
+const TIER_BANNER: Record<LoyaltyTier, string> = {
+  bronze: '#6B3F24',
+  silver: '#5E6770',
+  gold: '#8A6A12'
+};
 
 function accountTabFromQuery(value: string | null): AccountTab | null {
-  if (value === 'orders' || value === 'notify' || value === 'rewards' || value === 'profile') return value;
+  if (value === 'profile') return 'account';
+  if (value === 'rewards') return 'loyalty';
+  if (value === 'account' || value === 'loyalty' || value === 'orders' || value === 'notify' || value === 'special') return value;
   return null;
 }
 
@@ -38,12 +49,12 @@ export const AccountPage: React.FC = () => {
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
-  const activeTab = accountTabFromQuery(searchParams.get('tab')) ?? 'orders';
+  const activeTab = accountTabFromQuery(searchParams.get('tab')) ?? 'account';
 
   const chooseTab = (tab: AccountTab) => {
     const next = new URLSearchParams(searchParams);
     next.set('tab', tab);
-    if (tab !== 'rewards') next.delete('panel');
+    if (tab !== 'loyalty') next.delete('panel');
     navigate({ pathname: '/account', search: next.toString() }, { replace: true });
   };
   
@@ -206,7 +217,8 @@ export const AccountPage: React.FC = () => {
     try {
       await updateUserProfile({
         displayName: editDisplayName.trim(),
-        email: editEmail.trim()
+        email: editEmail.trim(),
+        phone: phone.trim()
       });
       setEditingIdentity(false);
       showToast('Account identity updated successfully!');
@@ -375,69 +387,59 @@ export const AccountPage: React.FC = () => {
 
   if (!currentUser || !userProfile) return null;
 
+  const tier = normalizeLoyaltyTier(userProfile.loyaltyTier);
+  const spendable = spendablePoints(userProfile.rewardsPoints);
+  const displayName = userProfile.displayName || userProfile.email;
+  const initial = (displayName.trim().charAt(0) || 'C').toUpperCase();
+
   return (
-    <div style={{ padding: '3rem 0 6rem 0' }}>
-      <div className="container">
-        {/* Header */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2.5rem', flexWrap: 'wrap', gap: '1rem' }}>
-          <div>
-            <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
-              Customer Portal
-            </span>
-            <h1 style={{ fontSize: '2.5rem', color: 'var(--text-primary)' }}>
-              Welcome, {userProfile.displayName || userProfile.email}
-            </h1>
+    <div className="account-page">
+      <header className="account-banner" style={{ backgroundColor: TIER_BANNER[tier] }}>
+        <div className="container account-banner-inner">
+          <div className="account-banner-identity">
+            <div className="account-avatar" aria-hidden="true">{initial}</div>
+            <div style={{ minWidth: 0 }}>
+              <div className="account-banner-eyebrow">Customer Portal</div>
+              <div className="account-banner-tier">{tierLabel(tier)} member</div>
+              <h1 className="account-banner-name">{displayName}</h1>
+              <div className="account-banner-meta">
+                <span><Mail size={14} /> {userProfile.email}</span>
+                {userProfile.phone && <span><Phone size={14} /> {userProfile.phone}</span>}
+              </div>
+            </div>
           </div>
-          <button 
-            className="btn btn-secondary btn-sm"
+          <button
+            className="account-signout"
             onClick={() => logOut().then(() => navigate('/'))}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            type="button"
           >
             <LogOut size={16} /> Sign Out
           </button>
         </div>
+      </header>
 
-        {/* Navigation Tabs */}
-        <div style={{
-          display: 'flex',
-          gap: '0.75rem',
-          marginBottom: '2rem',
-          borderBottom: '1px solid var(--border-subtle)',
-          paddingBottom: '1rem',
-          overflowX: 'auto'
-        }}>
-          <button
-            onClick={() => chooseTab('orders')}
-            className={`btn ${activeTab === 'orders' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
-          >
-            <Package size={18} /> Order History ({orders.length})
+      <nav className="account-tabs" aria-label="Account sections">
+        <div className="container account-tabs-inner">
+          <button type="button" className={`account-tab ${activeTab === 'account' ? 'active' : ''}`} onClick={() => chooseTab('account')}>
+            <UserIcon size={16} /> Account
           </button>
-
-          <button
-            onClick={() => chooseTab('notify')}
-            className={`btn ${activeTab === 'notify' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
-          >
-            <Bell size={18} /> Notify me When Available ({notifications.length})
+          <button type="button" className={`account-tab ${activeTab === 'loyalty' ? 'active' : ''}`} onClick={() => chooseTab('loyalty')}>
+            <Award size={16} /> Loyalty Program
           </button>
-
-          <button
-            onClick={() => chooseTab('rewards')}
-            className={`btn ${activeTab === 'rewards' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
-          >
-            <Award size={18} /> Rewards Program
+          <button type="button" className={`account-tab ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => chooseTab('orders')}>
+            <Package size={16} /> Orders
           </button>
-
-          <button
-            onClick={() => chooseTab('profile')}
-            className={`btn ${activeTab === 'profile' ? 'btn-primary' : 'btn-secondary'}`}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', whiteSpace: 'nowrap' }}
-          >
-            <UserIcon size={18} /> Account Profile
+          <button type="button" className={`account-tab ${activeTab === 'notify' ? 'active' : ''}`} onClick={() => chooseTab('notify')}>
+            <Bell size={16} /> Stock Notify
+          </button>
+          <button type="button" className={`account-tab ${activeTab === 'special' ? 'active' : ''}`} onClick={() => chooseTab('special')}>
+            <Mail size={16} /> Special Email
           </button>
         </div>
+      </nav>
+
+      <div className="account-content-band">
+      <div className="container account-content">
 
         {/* Tab 1: Orders History */}
         {activeTab === 'orders' && (
@@ -640,22 +642,16 @@ export const AccountPage: React.FC = () => {
           </div>
         )}
 
-        {/* Tab 3: Rewards Program */}
-        {activeTab === 'rewards' && (
+        {activeTab === 'loyalty' && (
           <RewardsProgramPanel
             key={searchParams.get('panel') === 'shop' ? 'shop' : 'overview'}
             initialPanel={searchParams.get('panel') === 'shop' ? 'shop' : 'overview'}
           />
         )}
 
-        {/* Tab 4: Account Profile & Saved Shipping Address File (2 Columns Equal Height) */}
-        {activeTab === 'profile' && (
-          <div style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '2rem',
-            alignItems: 'stretch'
-          }}>
+        {activeTab === 'account' && (
+          <>
+          <div className="account-summary-grid">
             {/* Left Column: Account Identity (Editable Name & Email) */}
             <div className="card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div>
@@ -665,7 +661,7 @@ export const AccountPage: React.FC = () => {
                       Account Identity
                     </span>
                     <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', margin: 0 }}>
-                      Account & Regulatory Info
+                      Personal Profile
                     </h3>
                   </div>
                   <button
@@ -675,7 +671,7 @@ export const AccountPage: React.FC = () => {
                     style={{ display: 'flex', alignItems: 'center', gap: '0.35rem' }}
                   >
                     {editingIdentity ? <X size={14} /> : <Edit2 size={14} />}
-                    {editingIdentity ? 'Cancel' : 'Edit Identity'}
+                    {editingIdentity ? 'Cancel' : 'Edit Profile'}
                   </button>
                 </div>
 
@@ -705,6 +701,17 @@ export const AccountPage: React.FC = () => {
                       />
                     </div>
 
+                    <div className="form-group" style={{ margin: 0 }}>
+                      <label className="form-label" style={{ color: 'var(--text-primary)' }}>Contact Phone</label>
+                      <input
+                        type="tel"
+                        className="form-control"
+                        placeholder="04xx xxx xxx"
+                        value={phone}
+                        onChange={(e) => setPhone(e.target.value)}
+                      />
+                    </div>
+
                     <div style={{ display: 'flex', gap: '0.75rem', marginTop: '0.5rem' }}>
                       <button
                         type="submit"
@@ -726,13 +733,18 @@ export const AccountPage: React.FC = () => {
                 ) : (
                   <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem', fontSize: '0.95rem' }}>
                     <div>
-                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem' }}>Account Name</span>
+                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', letterSpacing: '0.04em' }}>DISPLAY NAME</span>
                       <strong style={{ color: 'var(--text-primary)', fontSize: '1.1rem' }}>{userProfile.displayName || 'Not Provided'}</strong>
                     </div>
 
                     <div>
-                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem' }}>Email Address</span>
+                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', letterSpacing: '0.04em' }}>EMAIL ADDRESS</span>
                       <strong style={{ color: 'var(--text-primary)' }}>{userProfile.email}</strong>
+                    </div>
+
+                    <div>
+                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem', letterSpacing: '0.04em' }}>CONTACT PHONE</span>
+                      <strong style={{ color: 'var(--text-primary)' }}>{userProfile.phone || 'Not provided'}</strong>
                     </div>
 
                     <div>
@@ -760,7 +772,42 @@ export const AccountPage: React.FC = () => {
               </div>
             </div>
 
-            {/* Right Column: Multi-Address Shipping File */}
+            <div className="card" style={{ padding: '2rem', background: '#fff' }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: '0.75rem', marginBottom: '0.75rem' }}>
+                <h3 style={{ fontSize: '1.5rem', color: 'var(--text-primary)', margin: 0 }}>Loyalty Program</h3>
+                <span className="badge badge-green"> {tierLabel(tier)} active</span>
+              </div>
+              <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6, marginTop: 0 }}>
+                Earn 1 point for every whole dollar spent on products after coupons, before shipping. Your tier follows points earned in the last 30 days.
+              </p>
+              <div style={{ display: 'grid', gap: '0.7rem', color: 'var(--text-secondary)', fontSize: '0.95rem', lineHeight: 1.5 }}>
+                <p style={{ margin: 0 }}>Higher tiers unlock more rewards and lower point prices.</p>
+                <p style={{ margin: 0 }}>You can jump up more than one tier. If you fall short, you drop one tier at a time.</p>
+              </div>
+              <div style={{ marginTop: '1.25rem', padding: '1rem 1.1rem', borderRadius: '12px', background: '#f3faf6', border: '1px solid #d7efe0' }}>
+                <strong style={{ display: 'block', color: 'var(--text-primary)', fontSize: '1.05rem' }}>{spendable} points available</strong>
+                <span style={{ color: 'var(--text-secondary)', fontSize: '0.85rem' }}>Linked with {userProfile.email}</span>
+              </div>
+              <button type="button" className="btn btn-secondary" style={{ marginTop: '1rem' }} onClick={() => chooseTab('loyalty')}>
+                Open Loyalty Program
+              </button>
+            </div>
+          </div>
+
+          <div className="account-stats">
+            <button type="button" className="account-stat" onClick={() => chooseTab('orders')}>
+              <Package size={18} />
+              <strong>{ordersLoading ? '…' : orders.length}</strong>
+              <span>Orders</span>
+            </button>
+            <button type="button" className="account-stat" onClick={() => chooseTab('loyalty')}>
+              <Award size={18} />
+              <strong>{spendable}</strong>
+              <span>Points</span>
+            </button>
+          </div>
+
+            {/* Saved shipping addresses */}
             <div className="card" style={{ padding: '2rem', display: 'flex', flexDirection: 'column', justifyContent: 'space-between', height: '100%' }}>
               <div>
                 <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem', flexWrap: 'wrap', gap: '0.5rem' }}>
@@ -995,8 +1042,17 @@ export const AccountPage: React.FC = () => {
                 )}
               </div>
             </div>
+          </>
+        )}
+
+        {activeTab === 'special' && (
+          <div className="card" style={{ padding: '3rem 2rem', textAlign: 'center', background: '#fff' }}>
+            <Mail size={40} style={{ color: 'var(--text-muted)', marginBottom: '0.75rem' }} />
+            <h3 style={{ color: 'var(--text-primary)', marginBottom: '0.4rem' }}>Special Email</h3>
+            <p style={{ color: 'var(--text-secondary)', margin: 0 }}>Coming soon.</p>
           </div>
         )}
+      </div>
       </div>
     </div>
   );

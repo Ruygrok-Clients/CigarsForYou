@@ -23,7 +23,27 @@ export interface UserProfile {
   rewardsProgramVotedAt?: string;
   /** True balance. May go negative after a clawback. Spendable points are max(0, this). */
   rewardsPoints?: number;
+  /** Absent means Bronze. Written only by Cloud Functions. */
+  loyaltyTier?: LoyaltyTier;
+  /** Points earned from purchases in the rolling 30-day window. Written only by Cloud Functions. */
+  loyaltyWindowPoints?: number;
+  loyaltyTierUpdatedAt?: string;
   createdAt: string;
+}
+
+export type LoyaltyTier = 'bronze' | 'silver' | 'gold';
+
+export interface TierPointsCost {
+  bronze: number;
+  silver: number;
+  gold: number;
+}
+
+export interface RewardsSettings {
+  silverThreshold: number;
+  goldThreshold: number;
+  updatedAt?: string;
+  updatedBy?: string;
 }
 
 export interface ProductSpecification {
@@ -81,7 +101,12 @@ export interface RewardProduct {
   name: string;
   description?: string;
   imageUrl: string;
-  pointsCost: number;
+  /** Minimum tier that can see and redeem this reward. Missing means Bronze. */
+  minTier?: LoyaltyTier;
+  /** Point price charged for each tier. Missing costs fall back to pointsCost. */
+  pointsCostByTier?: Partial<TierPointsCost>;
+  /** Legacy single price. Kept in sync with the Bronze cost when saved from admin. */
+  pointsCost?: number;
   stock: number;
   active: boolean;
   createdAt: string;

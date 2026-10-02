@@ -19,7 +19,7 @@ import {
   writeOrderSocialProof,
   writeStockNotifySocialProof,
 } from "./socialProof";
-import { placeRewardOrderForUser, syncOrderRewards } from "./rewards";
+import { placeRewardOrderForUser, reevaluateLoyaltyTiers, syncOrderRewards } from "./rewards";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -158,9 +158,17 @@ export const placeRewardOrder = onCall(async (request) => {
 });
 
 /**
+ * Assigns missing tiers to Bronze (then applies the rolling window), and
+ * re-checks Silver, Gold, and recent earners so inactive members can drop.
+ */
+export const reevaluateLoyaltyTiersDaily = onSchedule("every 24 hours", async () => {
+  await reevaluateLoyaltyTiers();
+});
+
+/**
  * FIRESTORE TRIGGER 1: NEW ORDER CREATED
- * 1. Sends admin notification alert under notifications@cigarsforyou.com.au
- * 2. Sends customer order confirmation receipt under orders@cigarsforyou.com.au
+ * 1. Sends admin notification alert from noreply@cigarsforyou.com.au
+ * 2. Sends customer order confirmation receipt from noreply@cigarsforyou.com.au
  */
 export const onOrderCreated = onDocumentCreated(
   { document: "orders/{orderId}", secrets: ["RESEND_API_KEY"] },
@@ -174,7 +182,7 @@ export const onOrderCreated = onDocumentCreated(
     const orderNumber = orderData.orderNumber || event.params.orderId;
     logger.info(`New order created in Firestore: #${orderNumber}. Dispatching notification & confirmation emails...`);
 
-    // 1. Dispatch Admin Notification Email (From: notifications@cigarsforyou.com.au)
+    // 1. Dispatch Admin Notification Email (From: noreply@cigarsforyou.com.au)
     try {
       const adminResult = await sendNewOrderAdminNotification(orderData);
       logger.info(`Admin notification email dispatch completed for #${orderNumber}:`, adminResult);
@@ -182,7 +190,7 @@ export const onOrderCreated = onDocumentCreated(
       logger.error("Failed to process Resend admin email notification for new order:", err);
     }
 
-    // 2. Dispatch Customer Confirmation Email with Order Details (From: orders@cigarsforyou.com.au)
+    // 2. Dispatch Customer Confirmation Email with Order Details (From: noreply@cigarsforyou.com.au)
     if (orderData.customerEmail) {
       try {
         const customerResult = await sendCustomerOrderConfirmationEmail(orderData);
@@ -270,7 +278,7 @@ export const runMinuteSocialProof = onCall(async (request) => {
 /**
  * FIRESTORE TRIGGER 2: PRODUCT UPDATED (Out-of-Stock & Replenishment Alert)
  * Triggers when a product's stock is updated.
- * - Sends out-of-stock Resend notification to admin staff under notifications@cigarsforyou.com.au if stock drops to <= 0.
+ * - Sends out-of-stock Resend notification to admin staff from noreply@cigarsforyou.com.au if stock drops to <= 0.
  * - Logs pending notifications if stock is replenished > 0.
  */
 export const onProductStockUpdated = onDocumentUpdated(
@@ -312,7 +320,7 @@ export const onProductStockUpdated = onDocumentUpdated(
 
 /**
  * FIRESTORE TRIGGER 3: NEW STOCK NOTIFICATION REQUEST CREATED
- * Sends Resend notification email to admin staff under notifications@cigarsforyou.com.au
+ * Sends Resend notification email to admin staff from noreply@cigarsforyou.com.au
  * when a customer requests to be notified about an out-of-stock product.
  */
 export const onStockNotificationCreated = onDocumentCreated(

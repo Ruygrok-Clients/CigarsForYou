@@ -6,6 +6,12 @@ import { useRewardsCart } from '../context/RewardsCartContext';
 import { useToast } from '../components/Toast';
 import { placeRewardOrder } from '../services/rewards';
 import { FREE_EXPRESS_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
+import {
+  clearLoyaltyTierSnapshot,
+  normalizeLoyaltyTier,
+  rememberLoyaltyTier,
+  resolveProductPointsCost
+} from '../utils/rewards';
 
 const paymentsEnabled = import.meta.env.VITE_PAYMENTS_ENABLED === 'true';
 
@@ -37,7 +43,8 @@ export const CheckoutPage: React.FC = () => {
 
 const RewardsCheckout: React.FC = () => {
   const navigate = useNavigate();
-  const { currentUser, refreshProfile } = useAuth();
+  const { currentUser, userProfile, refreshProfile } = useAuth();
+  const tier = normalizeLoyaltyTier(userProfile?.loyaltyTier);
   const { showToast } = useToast();
   const rewardsCart = useRewardsCart();
   const [placing, setPlacing] = useState(false);
@@ -54,6 +61,7 @@ const RewardsCheckout: React.FC = () => {
       return;
     }
     setPlacing(true);
+    rememberLoyaltyTier(normalizeLoyaltyTier(userProfile?.loyaltyTier));
     try {
       const result = await placeRewardOrder({
         items: rewardsCart.items.map((item) => ({
@@ -75,8 +83,9 @@ const RewardsCheckout: React.FC = () => {
       rewardsCart.clearCart();
       await refreshProfile();
       showToast(`Reward order ${result.orderNumber} placed`);
-      navigate('/account?tab=orders');
+      navigate(`/order-confirmation?orderId=${encodeURIComponent(result.orderId)}&orderNumber=${encodeURIComponent(result.orderNumber)}`);
     } catch (err) {
+      clearLoyaltyTierSnapshot();
       console.error('Reward checkout failed:', err);
       const message = err instanceof Error ? err.message : 'Could not place this reward order.';
       showToast(message, 'error');
@@ -90,7 +99,7 @@ const RewardsCheckout: React.FC = () => {
       <div style={{ padding: '6rem 0', textAlign: 'center' }}>
         <div className="container" style={{ maxWidth: '520px' }}>
           <h1 style={{ fontSize: '2rem', color: 'var(--text-primary)', marginBottom: '0.75rem' }}>Rewards checkout is empty</h1>
-          <Link to="/account?tab=rewards&panel=shop" className="btn btn-primary btn-lg">Back to rewards shop</Link>
+          <Link to="/account?tab=rewards&panel=shop" className="btn btn-primary btn-lg">Back to loyalty shop</Link>
         </div>
       </div>
     );
@@ -109,7 +118,7 @@ const RewardsCheckout: React.FC = () => {
           {rewardsCart.items.map((item) => (
             <div key={item.product.id} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', padding: '0.45rem 0', color: 'var(--text-primary)' }}>
               <span>{item.quantity}x {item.product.name}</span>
-              <strong>{item.product.pointsCost * item.quantity} pts</strong>
+              <strong>{resolveProductPointsCost(item.product, tier) * item.quantity} pts</strong>
             </div>
           ))}
           <div style={{ borderTop: '1px solid var(--border-subtle)', marginTop: '0.75rem', paddingTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>

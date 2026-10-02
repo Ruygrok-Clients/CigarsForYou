@@ -17,6 +17,7 @@ import {
   immediateDispatchHoursMessage
 } from '../utils/deliveryHours';
 import type { DeliveryMethod } from '../types';
+import { normalizeLoyaltyTier, resolveProductPointsCost } from '../utils/rewards';
 import {
   ShoppingBag,
   ShieldAlert,
@@ -66,6 +67,7 @@ export const CustomerDetailsPage: React.FC = () => {
   const isFreeShipping = rewardsMode ? false : productIsFreeShipping;
   const shippingFee = rewardsMode ? rewardsCart.shippingFee : productShippingFee;
   const { currentUser, userProfile, loading: authLoading } = useAuth();
+  const loyaltyTier = normalizeLoyaltyTier(userProfile?.loyaltyTier);
   const { selectedLocation } = useLocationSelection();
   const { showToast } = useToast();
 
@@ -244,7 +246,7 @@ export const CustomerDetailsPage: React.FC = () => {
         }}>
           <Link to={rewardsMode ? rewardsReturnPath : '/cart'} style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-muted)', fontSize: '0.9rem', textDecoration: 'none' }}>
             <span style={{ width: '24px', height: '24px', borderRadius: '50%', backgroundColor: 'rgba(212, 175, 55, 0.2)', color: 'var(--accent-gold)', display: 'inline-flex', alignItems: 'center', justifyContent: 'center', fontSize: '0.75rem', fontWeight: 700 }}>✓</span>
-            <span>{rewardsMode ? '1. Rewards Shop' : '1. Shopping Cart'}</span>
+            <span>{rewardsMode ? '1. Loyalty Shop' : '1. Shopping Cart'}</span>
           </Link>
           <span style={{ color: 'var(--text-muted)' }}>→</span>
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: 'var(--text-primary)', fontWeight: 700, fontSize: '0.95rem' }}>
@@ -260,7 +262,7 @@ export const CustomerDetailsPage: React.FC = () => {
 
         <div style={{ marginBottom: '2rem' }}>
           <Link to={rewardsMode ? rewardsReturnPath : '/cart'} style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-gold)', fontSize: '0.9rem', marginBottom: '0.75rem', textDecoration: 'none' }}>
-            <ChevronLeft size={16} /> {rewardsMode ? 'Return to Rewards Shop' : 'Return to Cart'}
+            <ChevronLeft size={16} /> {rewardsMode ? 'Return to Loyalty Shop' : 'Return to Cart'}
           </Link>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
@@ -508,11 +510,11 @@ export const CustomerDetailsPage: React.FC = () => {
                           {item.product.name}
                         </h5>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
-                          Qty: {item.quantity} × {item.product.pointsCost} pts
+                          Qty: {item.quantity} × {resolveProductPointsCost(item.product, loyaltyTier)} pts
                         </span>
                       </div>
                       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-gold)' }}>
-                        {item.product.pointsCost * item.quantity} pts
+                        {resolveProductPointsCost(item.product, loyaltyTier) * item.quantity} pts
                       </span>
                     </div>
                   )) : cart.map((item) => (

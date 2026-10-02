@@ -137,7 +137,7 @@ export const AdminSettings: React.FC = () => {
       const sendTestEmailFn = httpsCallable(functions, 'sendTestAdminEmail');
       const res: any = await sendTestEmailFn({ type: 'admin_test' });
       if (res.data?.success) {
-        showToast('Admin notification alert sent successfully to staff via notifications@cigarsforyou.com.au!');
+        showToast('Admin notification alert sent successfully to staff via noreply@cigarsforyou.com.au!');
       } else {
         showToast(`Admin alert test complete (${res.data?.reason || res.data?.error || 'simulation mode'})`);
       }
@@ -157,7 +157,7 @@ export const AdminSettings: React.FC = () => {
       const sendTestEmailFn = httpsCallable(functions, 'sendTestAdminEmail');
       const res: any = await sendTestEmailFn({ type: 'customer_sample', email: targetEmail });
       if (res.data?.success) {
-        showToast(`Sample order receipt sent to ${targetEmail} via orders@cigarsforyou.com.au!`);
+        showToast(`Sample order receipt sent to ${targetEmail} via noreply@cigarsforyou.com.au!`);
       } else {
         showToast(`Customer confirmation test complete (${res.data?.reason || res.data?.error || 'simulation mode'})`);
       }
@@ -219,18 +219,18 @@ export const AdminSettings: React.FC = () => {
               <span className="badge badge-gold" style={{ fontSize: '0.65rem' }}>Active & Configured</span>
             </div>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', marginBottom: '1rem', maxWidth: '650px' }}>
-              Automated emails are handled via Resend across two dedicated channel addresses:
+              Automated emails are handled via Resend from a single no-reply address:
             </p>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', fontSize: '0.85rem' }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>Admin Alerts</span>
-                <code style={{ color: 'var(--accent-gold)', fontSize: '0.85rem' }}>notifications@cigarsforyou.com.au</code>
-                <span style={{ color: 'var(--text-muted)' }}>→ New Orders, Out of Stock (0 units), & Customer Restock Requests</span>
+                <span className="badge badge-gold" style={{ fontSize: '0.7rem' }}>From</span>
+                <code style={{ color: 'var(--accent-gold)', fontSize: '0.85rem' }}>noreply@cigarsforyou.com.au</code>
+                <span style={{ color: 'var(--text-muted)' }}>→ Admin alerts & customer order confirmations</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', flexWrap: 'wrap' }}>
-                <span className="badge badge-gray" style={{ fontSize: '0.7rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }}>Customer Receipts</span>
+                <span className="badge badge-gray" style={{ fontSize: '0.7rem', color: '#10b981', borderColor: 'rgba(16, 185, 129, 0.3)' }}>Reply-To</span>
                 <code style={{ color: '#10b981', fontSize: '0.85rem' }}>orders@cigarsforyou.com.au</code>
-                <span style={{ color: 'var(--text-muted)' }}>→ Itemized purchase confirmation & shipping receipt upon payment</span>
+                <span style={{ color: 'var(--text-muted)' }}>→ Customer replies on order confirmation emails</span>
               </div>
             </div>
           </div>
