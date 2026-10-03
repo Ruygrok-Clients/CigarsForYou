@@ -1,4 +1,4 @@
-import type { Product, ProductSpecification, PackagingOption } from '../types';
+import type { Product, ProductSpecification } from '../types';
 
 export const BRAND_HISTORIES: Record<string, {
   title: string;
@@ -157,26 +157,8 @@ The leaves undergo careful harvesting, curing, and aging processes to develop a 
   };
 }
 
-export function getRecCigarUnitPrice(cigar: Product, packId: string): number {
-  if (packId === 'box25') return Math.round(cigar.price * 23.5);
-  if (packId === 'box10') return Math.round(cigar.price * 9.5);
-  return Math.round(cigar.price);
-}
-
-export function getRecCigarPackName(packId: string): string {
-  if (packId === 'box25') return 'Cabinet of 25';
-  if (packId === 'box10') return 'Box of 10';
-  return 'Single Stick';
-}
-
 export function getExtendedProductDetails(product: Product) {
   const brandHist = getBrandHistory(product.brand);
-
-  const defaultPackaging: PackagingOption[] = [
-    { id: 'single', name: 'Single Stick', priceMultiplier: 1, stock: product.stock },
-    { id: 'box10', name: 'Box of 10', priceMultiplier: 9.5, stock: Math.floor(product.stock / 10) },
-    { id: 'box25', name: 'Cabinet of 25', priceMultiplier: 23.5, stock: Math.floor(product.stock / 25) }
-  ];
 
   const genericSpecs: ProductSpecification = {
     vitola: product.specifications?.vitola || 'Robusto / Corona',
@@ -208,7 +190,6 @@ Whether selected for a celebratory occasion or added to your personal humidor ag
 
   return {
     brandHist,
-    packagingOptions: product.packagingOptions || defaultPackaging,
     specifications: genericSpecs,
     tastingNotes: genericNotes,
     expandedDesc,

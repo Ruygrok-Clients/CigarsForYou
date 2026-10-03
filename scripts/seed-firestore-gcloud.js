@@ -120,6 +120,27 @@ function generateSlug(brand, name) {
     .replace(/(^-|-$)/g, '');
 }
 
+function bulkDiscountTiersField() {
+  const tiers = [
+    { id: 'qty1', minQuantity: 1, unitPriceMultiplier: 1 },
+    { id: 'qty10', minQuantity: 10, unitPriceMultiplier: 0.95 },
+    { id: 'qty25', minQuantity: 25, unitPriceMultiplier: 0.93 }
+  ];
+  return {
+    arrayValue: {
+      values: tiers.map((tier) => ({
+        mapValue: {
+          fields: {
+            id: { stringValue: tier.id },
+            minQuantity: { integerValue: String(tier.minQuantity) },
+            unitPriceMultiplier: { doubleValue: tier.unitPriceMultiplier }
+          }
+        }
+      }))
+    }
+  };
+}
+
 async function run() {
   console.log('Obtaining access token from gcloud CLI...');
   const token = execSync('gcloud auth print-access-token', { encoding: 'utf8' }).trim();
@@ -147,11 +168,12 @@ async function run() {
         category: { stringValue: 'cigars' },
         origin: { stringValue: 'Cuban' },
         active: { booleanValue: true },
-        description: { stringValue: description }
+        description: { stringValue: description },
+        bulkDiscountTiers: bulkDiscountTiersField()
       }
     };
 
-    const url = `${firestoreEndpoint}/${slug}?updateMask.fieldPaths=name&updateMask.fieldPaths=brand&updateMask.fieldPaths=slug&updateMask.fieldPaths=price&updateMask.fieldPaths=currency&updateMask.fieldPaths=stock&updateMask.fieldPaths=imageUrl&updateMask.fieldPaths=category&updateMask.fieldPaths=origin&updateMask.fieldPaths=active&updateMask.fieldPaths=description`;
+    const url = `${firestoreEndpoint}/${slug}?updateMask.fieldPaths=name&updateMask.fieldPaths=brand&updateMask.fieldPaths=slug&updateMask.fieldPaths=price&updateMask.fieldPaths=currency&updateMask.fieldPaths=stock&updateMask.fieldPaths=imageUrl&updateMask.fieldPaths=category&updateMask.fieldPaths=origin&updateMask.fieldPaths=active&updateMask.fieldPaths=description&updateMask.fieldPaths=bulkDiscountTiers`;
 
     const res = await fetch(url, {
       method: 'PATCH',

@@ -65,11 +65,12 @@ export interface ProductSpecification {
   smokingTime?: string;
 }
 
-export interface PackagingOption {
+/** Quantity-based bulk pricing for cigars and cigarettes. Accessories do not use this. */
+export interface BulkDiscountTier {
   id: string;
-  name: string; // e.g. "Single Stick", "Box of 10", "Cabinet of 25"
-  priceMultiplier: number; // e.g. 1, 9.5, 23.5
-  stock: number;
+  minQuantity: number;
+  /** Multiplier applied to the product's base unit price. 1 = no discount, 0.95 = 5% off. */
+  unitPriceMultiplier: number;
 }
 
 export type ProductRange = 'cigars' | 'cigarettes' | 'accessories';
@@ -106,7 +107,8 @@ export interface Product {
   tagline?: string;
   tastingNotes?: string[];
   specifications?: ProductSpecification;
-  packagingOptions?: PackagingOption[];
+  /** Cigars and cigarettes only. Accessories must not use bulk tiers. */
+  bulkDiscountTiers?: BulkDiscountTier[];
 }
 
 export interface CartItem {

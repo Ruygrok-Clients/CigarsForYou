@@ -131,6 +131,12 @@ function generateSlug(brand, name) {
     .replace(/(^-|-$)/g, '');
 }
 
+const BULK_DISCOUNT_TIERS = [
+  { id: 'qty1', minQuantity: 1, unitPriceMultiplier: 1 },
+  { id: 'qty10', minQuantity: 10, unitPriceMultiplier: 0.95 },
+  { id: 'qty25', minQuantity: 25, unitPriceMultiplier: 0.93 }
+];
+
 async function seedProducts() {
   console.log(`Starting seed insertion of ${RAW_CATALOG.length} Cuban products...`);
   const productsRef = db.collection('products');
@@ -149,7 +155,8 @@ async function seedProducts() {
       category: 'cigars',
       origin: 'Cuban',
       active: true,
-      description: `Premium hand-rolled ${item.brand} ${item.name} Cuban cigar. Freshly preserved in humidor humidity pouches.`
+      description: `Premium hand-rolled ${item.brand} ${item.name} Cuban cigar. Freshly preserved in humidor humidity pouches.`,
+      bulkDiscountTiers: BULK_DISCOUNT_TIERS
     };
 
     await productsRef.doc(slug).set(docData, { merge: true });

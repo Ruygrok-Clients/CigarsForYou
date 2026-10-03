@@ -1,11 +1,12 @@
 import React, { useState, useEffect } from 'react';
-import { addDoc, collection, deleteDoc, doc, updateDoc } from 'firebase/firestore';
+import { addDoc, collection, deleteDoc, deleteField, doc, updateDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../../firebase';
-import type { CatalogCategory, PackagingOption, Product, ProductRange, ProductSpecification } from '../../types';
+import type { BulkDiscountTier, CatalogCategory, Product, ProductRange, ProductSpecification } from '../../types';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
 import { PRODUCT_RANGES, rangeLabel, slugifyLabel } from '../../constants/productRanges';
+import { DEFAULT_BULK_DISCOUNT_TIERS, isTobaccoRange, percentToMultiplier, savingsPercent } from '../../utils/bulkPricing';
 import {
   ensureDefaultCigarCategories,
   fetchCatalogCategories,
@@ -37,7 +38,7 @@ const emptySpecs = (): ProductSpecification => ({
 });
 
 function blankProduct(range: ProductRange, category?: CatalogCategory): Product {
-  return {
+  const product: Product = {
     name: '',
     brand: category?.name || '',
     catalogCategoryId: category?.id,
@@ -55,15 +56,12 @@ function blankProduct(range: ProductRange, category?: CatalogCategory): Product 
     brandHistory: '',
     tastingNotes: [],
     fbtRanges: [],
-    specifications: emptySpecs(),
-    packagingOptions: range === 'cigars'
-      ? [
-          { id: 'single', name: 'Single Stick', priceMultiplier: 1, stock: 100 },
-          { id: 'box10', name: 'Box of 10', priceMultiplier: 9.5, stock: 10 },
-          { id: 'box25', name: 'Cabinet of 25', priceMultiplier: 23.5, stock: 4 }
-        ]
-      : []
+    specifications: emptySpecs()
   };
+  if (isTobaccoRange(range)) {
+    product.bulkDiscountTiers = DEFAULT_BULK_DISCOUNT_TIERS.map((tier) => ({ ...tier }));
+  }
+  return product;
 }
 
 export const AdminProducts: React.FC = () => {
@@ -167,7 +165,11 @@ export const AdminProducts: React.FC = () => {
           ...product,
           category: (product.category || 'cigars') as ProductRange,
           specifications: { ...emptySpecs(), ...(product.specifications || {}) },
-          packagingOptions: product.packagingOptions ? [...product.packagingOptions] : blankProduct(range).packagingOptions,
+          bulkDiscountTiers: isTobaccoRange(range)
+            ? (product.bulkDiscountTiers && product.bulkDiscountTiers.length > 0
+              ? product.bulkDiscountTiers.map((tier) => ({ ...tier }))
+              : DEFAULT_BULK_DISCOUNT_TIERS.map((tier) => ({ ...tier })))
+            : undefined,
           tastingNotes: product.tastingNotes || []
         }
       : blankProduct(range, rangeCategories[0]);
@@ -194,15 +196,17 @@ export const AdminProducts: React.FC = () => {
     }
     const notes = notesText.split('\n').map((line) => line.trim()).filter(Boolean);
     const specs = draft.specifications || emptySpecs();
-    const packaging = (draft.packagingOptions || [])
-      .filter((option) => option.name.trim())
-      .map((option) => ({
-        ...option,
-        id: option.id || slugifyLabel(option.name),
-        name: option.name.trim(),
-        priceMultiplier: Number(option.priceMultiplier) || 1,
-        stock: Number(option.stock) || 0
-      }));
+    const tobacco = isTobaccoRange(range);
+    const tiers = tobacco
+      ? (draft.bulkDiscountTiers || [])
+          .filter((tier) => tier.minQuantity > 0)
+          .map((tier) => ({
+            id: tier.id || `qty${tier.minQuantity}`,
+            minQuantity: Math.max(1, Math.round(Number(tier.minQuantity) || 1)),
+            unitPriceMultiplier: Math.min(1, Math.max(0, Number(tier.unitPriceMultiplier) || 1))
+          }))
+          .sort((a, b) => a.minQuantity - b.minQuantity)
+      : undefined;
 
     return {
       name: draft.name.trim(),
@@ -225,7 +229,7 @@ export const AdminProducts: React.FC = () => {
       specifications: range === 'cigars'
         ? Object.fromEntries(Object.entries(specs).filter(([, value]) => value !== undefined && value !== ''))
         : {},
-      packagingOptions: range === 'cigars' ? packaging : []
+      ...(tobacco && tiers ? { bulkDiscountTiers: tiers } : {})
     };
   };
 
@@ -236,7 +240,11 @@ export const AdminProducts: React.FC = () => {
     setSaving(true);
     try {
       if (draft.id) {
-        await updateDoc(doc(db, 'products', draft.id), payload as unknown as Record<string, unknown>);
+        await updateDoc(doc(db, 'products', draft.id), {
+          ...(payload as unknown as Record<string, unknown>),
+          packagingOptions: deleteField(),
+          ...(isTobaccoRange(range) ? {} : { bulkDiscountTiers: deleteField() })
+        });
         showToast(`Updated product ${payload.name}`);
       } else {
         await addDoc(collection(db, 'products'), payload);
@@ -384,11 +392,11 @@ export const AdminProducts: React.FC = () => {
     }
   };
 
-  const updatePackaging = (index: number, patch: Partial<PackagingOption>) => {
+  const updateTier = (index: number, patch: Partial<BulkDiscountTier>) => {
     setDraft((current) => {
-      const packagingOptions = [...(current.packagingOptions || [])];
-      packagingOptions[index] = { ...packagingOptions[index], ...patch };
-      return { ...current, packagingOptions };
+      const bulkDiscountTiers = [...(current.bulkDiscountTiers || [])];
+      bulkDiscountTiers[index] = { ...bulkDiscountTiers[index], ...patch };
+      return { ...current, bulkDiscountTiers };
     });
   };
 
@@ -731,20 +739,41 @@ export const AdminProducts: React.FC = () => {
                     <input type="number" min={0} className="form-control" value={draft.stock} onChange={(e) => setDraft({ ...draft, stock: Number(e.target.value) })} />
                   </div>
                 </div>
-                {range === 'cigars' && (
+                {isTobaccoRange(range) && (
                   <div>
-                    <label className="form-label">Packaging options</label>
-                    {(draft.packagingOptions || []).map((option, index) => (
-                      <div key={`${option.id}-${index}`} style={{ display: 'grid', gridTemplateColumns: '1.4fr 0.8fr 0.8fr auto', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <input className="form-control" value={option.name} onChange={(e) => updatePackaging(index, { name: e.target.value })} placeholder="Single Stick" />
-                        <input className="form-control" type="number" step="0.1" value={option.priceMultiplier} onChange={(e) => updatePackaging(index, { priceMultiplier: Number(e.target.value) })} />
-                        <input className="form-control" type="number" value={option.stock} onChange={(e) => updatePackaging(index, { stock: Number(e.target.value) })} />
+                    <label className="form-label">Bulk discount tiers</label>
+                    <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 0 }}>
+                      Cigars and cigarettes only. Min quantity, then percent off the base unit price. Once a threshold is met, every unit uses that rate.
+                    </p>
+                    {(draft.bulkDiscountTiers || []).map((tier, index) => (
+                      <div key={`${tier.id}-${index}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                        <input
+                          className="form-control"
+                          type="number"
+                          min={1}
+                          value={tier.minQuantity}
+                          onChange={(e) => {
+                            const minQuantity = Math.max(1, Number(e.target.value) || 1);
+                            updateTier(index, { minQuantity, id: `qty${minQuantity}` });
+                          }}
+                          placeholder="Min quantity"
+                        />
+                        <input
+                          className="form-control"
+                          type="number"
+                          min={0}
+                          max={100}
+                          step="1"
+                          value={savingsPercent(tier)}
+                          onChange={(e) => updateTier(index, { unitPriceMultiplier: percentToMultiplier(Number(e.target.value) || 0) })}
+                          placeholder="% off"
+                        />
                         <button
                           type="button"
                           className="btn btn-danger btn-sm"
                           onClick={() => setDraft((current) => ({
                             ...current,
-                            packagingOptions: (current.packagingOptions || []).filter((_, itemIndex) => itemIndex !== index)
+                            bulkDiscountTiers: (current.bulkDiscountTiers || []).filter((_, itemIndex) => itemIndex !== index)
                           }))}
                         >
                           <Trash2 size={14} />
@@ -756,13 +785,13 @@ export const AdminProducts: React.FC = () => {
                       className="btn btn-secondary btn-sm"
                       onClick={() => setDraft((current) => ({
                         ...current,
-                        packagingOptions: [
-                          ...(current.packagingOptions || []),
-                          { id: `pack-${Date.now()}`, name: '', priceMultiplier: 1, stock: 0 }
+                        bulkDiscountTiers: [
+                          ...(current.bulkDiscountTiers || []),
+                          { id: `qty-${Date.now()}`, minQuantity: 1, unitPriceMultiplier: 1 }
                         ]
                       }))}
                     >
-                      Add packaging option
+                      Add bulk tier
                     </button>
                   </div>
                 )}

@@ -77,6 +77,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [appliedCoupons]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
+    // Unit price is frozen at add time (bulk discounts are applied on the product page).
+    // Changing quantity in the cart does not re-resolve a bulk tier.
     setCart((prev) => {
       const existingIndex = prev.findIndex(item => item.product.id === product.id);
 

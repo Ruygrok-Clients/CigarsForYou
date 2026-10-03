@@ -2,17 +2,21 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { Product, PackagingOption, ProductRange } from '../types';
+import type { Product, ProductRange } from '../types';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
 import { useProductViewers } from '../hooks/useProductViewers';
-import { 
-  getExtendedProductDetails,
-  getRecCigarUnitPrice,
-  getRecCigarPackName
-} from '../data/productExtraData';
+import { getExtendedProductDetails } from '../data/productExtraData';
+import {
+  getBulkTiers,
+  isTobaccoRange,
+  resolveTier,
+  savingsAmount,
+  savingsPercent,
+  unitPriceForTier
+} from '../utils/bulkPricing';
 import { rangeBasePath, rangeLabel } from '../constants/productRanges';
 import { fetchProducts } from '../services/catalog';
 import { selectFrequentlyBoughtTogether } from '../utils/frequentlyBoughtTogether';
@@ -35,30 +39,10 @@ export const ProductDetailPage: React.FC = () => {
   const [loading, setLoading] = useState(true);
   const [quantity, setQuantity] = useState(1);
   const [notifyModalOpen, setNotifyModalOpen] = useState(false);
-  const [selectedPackaging, setSelectedPackaging] = useState<PackagingOption | null>(null);
-  
-  // Real complementary cigars state & volume selections
+
   const [recommendedCigars, setRecommendedCigars] = useState<Product[]>([]);
   const [selectedBundleItems, setSelectedBundleItems] = useState<Record<string, boolean>>({});
-  const [selectedRecPackagings, setSelectedRecPackagings] = useState<Record<string, string>>({});
   const viewerCount = useProductViewers(product?.id);
-
-  // Function to check if a specific packaging option is in stock based on product stock
-  const getRequiredStockForOption = (optionId: string) => {
-    if (optionId === 'box25') return 25;
-    if (optionId === 'box10') return 10;
-    return 1; // 'single'
-  };
-
-  const isOptionAvailable = (optionId: string, stock: number) => {
-    return stock >= getRequiredStockForOption(optionId);
-  };
-
-  const getMaxQuantityForOption = (optionId: string, stock: number) => {
-    const req = getRequiredStockForOption(optionId);
-    if (stock < req) return 0;
-    return Math.floor(stock / req);
-  };
 
   useEffect(() => {
     const fetchProduct = async () => {
@@ -81,6 +65,7 @@ export const ProductDetailPage: React.FC = () => {
           }
         }
         setProduct(foundProduct);
+        setQuantity(1);
 
         try {
           const catalog = await fetchProducts();
@@ -88,14 +73,11 @@ export const ProductDetailPage: React.FC = () => {
           setRecommendedCigars(shown);
 
           const initialChecked: Record<string, boolean> = {};
-          const initialPacks: Record<string, string> = {};
           shown.forEach(item => {
             const itemKey = item.id || item.slug;
             initialChecked[itemKey] = true;
-            initialPacks[itemKey] = 'single';
           });
           setSelectedBundleItems(initialChecked);
-          setSelectedRecPackagings(initialPacks);
         } catch (err) {
           console.error('Error fetching related products:', err);
           setRecommendedCigars([]);
@@ -116,35 +98,15 @@ export const ProductDetailPage: React.FC = () => {
     return getExtendedProductDetails(product);
   }, [product]);
 
-  // Auto-select initial packaging option (prefer largest in-stock size, or fallback to first option)
-  useEffect(() => {
-    if (!extraDetails || selectedPackaging || !product) return;
-    const cigarProduct = !product.category || product.category === 'cigars';
-    const options = cigarProduct
-      ? extraDetails.packagingOptions
-      : (product.packagingOptions && product.packagingOptions.length > 0
-        ? product.packagingOptions
-        : [{ id: 'single', name: 'Each', priceMultiplier: 1, stock: product.stock }]);
-    const bestAvailable = options.find(opt => isOptionAvailable(opt.id, product.stock)) || options[0];
-    setSelectedPackaging(bestAvailable);
-  }, [extraDetails, selectedPackaging, product]);
-
-  // Max quantity calculation based on product stock and selected packaging option size
   const maxAllowedQuantity = useMemo(() => {
-    if (!product || !selectedPackaging) return 1;
-    const maxQty = getMaxQuantityForOption(selectedPackaging.id, product.stock);
-    return maxQty > 0 ? maxQty : 1;
-  }, [product, selectedPackaging]);
+    if (!product) return 1;
+    return product.stock > 0 ? product.stock : 1;
+  }, [product]);
 
-  // Clamp current quantity if packaging selection changes or stock limits change
   useEffect(() => {
-    if (selectedPackaging && product) {
-      const maxQty = getMaxQuantityForOption(selectedPackaging.id, product.stock);
-      if (maxQty > 0 && quantity > maxQty) {
-        setQuantity(maxQty);
-      }
-    }
-  }, [selectedPackaging, product, quantity]);
+    if (!product || product.stock <= 0) return;
+    if (quantity > product.stock) setQuantity(product.stock);
+  }, [product, quantity]);
 
   if (loading) {
     return (
@@ -172,13 +134,11 @@ export const ProductDetailPage: React.FC = () => {
   }
 
   const isCigar = !product.category || product.category === 'cigars';
+  const usesBulkPricing = isTobaccoRange(product.category);
   const productRange: ProductRange = product.category || 'cigars';
   const rangePath = rangeBasePath(productRange);
-  const packagingOptions = isCigar
-    ? extraDetails.packagingOptions
-    : (product.packagingOptions && product.packagingOptions.length > 0
-      ? product.packagingOptions
-      : [{ id: 'single', name: 'Each', priceMultiplier: 1, stock: product.stock }]);
+  const bulkTiers = getBulkTiers(product);
+  const activeTier = usesBulkPricing ? resolveTier(bulkTiers, quantity) : null;
   const story = isCigar
     ? extraDetails.expandedDesc
     : (product.extendedDescription || product.description || '');
@@ -188,101 +148,61 @@ export const ProductDetailPage: React.FC = () => {
     : (product.tagline || product.description || '');
   const rangeEyebrow = isCigar ? 'CUBAN CIGARS' : rangeLabel(productRange).toUpperCase();
 
-  const currentMultiplier = selectedPackaging ? selectedPackaging.priceMultiplier : 1;
-  const unitPrice = Math.round(product.price * currentMultiplier);
+  const unitPrice = usesBulkPricing
+    ? unitPriceForTier(product.price, activeTier)
+    : Math.round(product.price * 100) / 100;
   const totalLinePrice = unitPrice * quantity;
+  const lineSavings = usesBulkPricing ? savingsAmount(product.price, unitPrice, quantity) : 0;
+  const activeSavingsPercent = activeTier ? savingsPercent(activeTier) : 0;
 
-  // Stock check for currently selected packaging option
-  const selectedOptionAvailable = selectedPackaging ? isOptionAvailable(selectedPackaging.id, product.stock) : false;
-  const selectedVariantRemaining = selectedPackaging
-    ? getMaxQuantityForOption(selectedPackaging.id, product.stock)
-    : 0;
-  const isMainProductOutOfStock = product.stock <= 0;
+  const inStock = product.stock > 0;
+  const selectedVariantRemaining = product.stock;
+
+  const cartProduct = (): Product => ({
+    ...product,
+    price: unitPrice
+  });
 
   const handleAddToCart = () => {
-    if (!selectedOptionAvailable) {
+    if (!inStock) {
       setNotifyModalOpen(true);
       return;
     }
 
-    const itemToAdd: Product = {
-      ...product,
-      name: selectedPackaging && selectedPackaging.id !== 'single' 
-        ? `${product.name} (${selectedPackaging.name})` 
-        : product.name,
-      price: unitPrice
-    };
-
+    const itemToAdd = cartProduct();
     addToCart(itemToAdd, quantity);
     showToast(`Added ${quantity}x ${itemToAdd.name} ($${totalLinePrice.toFixed(2)} AUD) to cart!`);
   };
 
   const handleBuyNow = () => {
-    if (!selectedOptionAvailable) {
+    if (!inStock) {
       setNotifyModalOpen(true);
       return;
     }
 
-    const itemToAdd: Product = {
-      ...product,
-      name: selectedPackaging && selectedPackaging.id !== 'single' 
-        ? `${product.name} (${selectedPackaging.name})` 
-        : product.name,
-      price: unitPrice
-    };
-
-    addToCart(itemToAdd, quantity);
+    addToCart(cartProduct(), quantity);
     navigate('/cart');
   };
 
-  // Frequently Bought Together calculation for recommended cigars
   const checkedRecommendedCigars = recommendedCigars.filter(c => {
     const key = c.id || c.slug;
     return selectedBundleItems[key];
   });
 
-  const extraPrice = (item: Product, packId: string) => {
-    if (!item.category || item.category === 'cigars') return getRecCigarUnitPrice(item, packId);
-    return Math.round(item.price);
+  const companionUnitPrice = (item: Product) => {
+    if (!isTobaccoRange(item.category)) return Math.round(item.price * 100) / 100;
+    return unitPriceForTier(item.price, resolveTier(getBulkTiers(item), 1));
   };
-  const extraPackName = (item: Product, packId: string) => {
-    if (!item.category || item.category === 'cigars') return getRecCigarPackName(packId);
-    return 'Each';
-  };
-  const isCigarItem = (item: Product) => !item.category || item.category === 'cigars';
 
-  const recommendedSubtotal = checkedRecommendedCigars.reduce((sum, c) => {
-    const key = c.id || c.slug;
-    const packId = selectedRecPackagings[key] || 'single';
-    return sum + extraPrice(c, packId);
-  }, 0);
+  const recommendedSubtotal = checkedRecommendedCigars.reduce((sum, c) => sum + companionUnitPrice(c), 0);
 
   const bundleTotalPrice = totalLinePrice + recommendedSubtotal;
 
   const handleAddBundleToCart = () => {
-    // Add main product
-    const itemToAdd: Product = {
-      ...product,
-      name: selectedPackaging && selectedPackaging.id !== 'single' 
-        ? `${product.name} (${selectedPackaging.name})` 
-        : product.name,
-      price: unitPrice
-    };
-    addToCart(itemToAdd, quantity);
+    addToCart(cartProduct(), quantity);
 
-    // Add selected recommended cigars with volume selection
     checkedRecommendedCigars.forEach(cigar => {
-      const key = cigar.id || cigar.slug;
-      const packId = selectedRecPackagings[key] || 'single';
-      const packPrice = extraPrice(cigar, packId);
-      const packName = extraPackName(cigar, packId);
-
-      const cigarToAdd: Product = {
-        ...cigar,
-        name: packId !== 'single' ? `${cigar.name} (${packName})` : cigar.name,
-        price: packPrice
-      };
-      addToCart(cigarToAdd, 1);
+      addToCart({ ...cigar, price: companionUnitPrice(cigar) }, 1);
     });
 
     showToast(`Added bundle (${1 + checkedRecommendedCigars.length} items) to your cart!`);
@@ -467,9 +387,20 @@ export const ProductDetailPage: React.FC = () => {
                   ${totalLinePrice.toFixed(2)}
                 </span>
                 <span style={{ color: '#86868b', fontSize: '0.9rem', fontWeight: 500 }}>
-                  AUD {quantity > 1 ? `(${quantity}x @ $${unitPrice.toFixed(2)} / pack)` : '(Inc. GST)'}
+                  AUD {quantity > 1 ? `(${quantity}x @ $${unitPrice.toFixed(2)} each)` : '(Inc. GST)'}
                 </span>
               </div>
+
+              {lineSavings > 0 && (
+                <p style={{
+                  color: '#c06517',
+                  fontSize: '0.9rem',
+                  fontWeight: 700,
+                  margin: '0 0 0.35rem'
+                }}>
+                  You save ${lineSavings.toFixed(2)} ({activeSavingsPercent}%)
+                </p>
+              )}
 
               {selectedVariantRemaining > 0 && selectedVariantRemaining < 20 && (
                 <p style={{
@@ -499,7 +430,7 @@ export const ProductDetailPage: React.FC = () => {
                 {detailTagline}
               </p>
 
-              {(isCigar || packagingOptions.length > 1) && (
+              {usesBulkPricing && bulkTiers.length > 0 && (
               <div style={{ marginBottom: '2rem' }}>
                 <div style={{
                   fontSize: '0.75rem',
@@ -509,48 +440,53 @@ export const ProductDetailPage: React.FC = () => {
                   color: '#86868b',
                   marginBottom: '0.8rem'
                 }}>
-                  SELECT SIZE / PACKAGING
+                  Buy more, save more
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
-                  {packagingOptions.map((opt) => {
-                    const isSelected = selectedPackaging?.id === opt.id;
-                    const optPrice = Math.round(product.price * opt.priceMultiplier);
-                    const optInStock = isOptionAvailable(opt.id, product.stock);
-                    const maxQtyForOpt = getMaxQuantityForOption(opt.id, product.stock);
+                  {bulkTiers.map((tier) => {
+                    const isSelected = activeTier?.id === tier.id;
+                    const tierUnit = unitPriceForTier(product.price, tier);
+                    const tierSave = savingsPercent(tier);
+                    const tierAvailable = product.stock >= tier.minQuantity;
 
                     return (
                       <button
-                        key={opt.id}
+                        key={tier.id}
                         type="button"
-                        onClick={() => setSelectedPackaging(opt)}
+                        disabled={!tierAvailable}
+                        onClick={() => {
+                          if (!tierAvailable) return;
+                          setQuantity(tier.minQuantity);
+                        }}
                         style={{
-                          minWidth: '130px',
+                          minWidth: '150px',
                           padding: '0.85rem 1.1rem',
                           borderRadius: '8px',
                           border: isSelected ? '2px solid #c06517' : '1px solid #d2d2d7',
                           backgroundColor: isSelected ? '#fff9f5' : '#ffffff',
-                          cursor: 'pointer',
+                          cursor: tierAvailable ? 'pointer' : 'not-allowed',
                           textAlign: 'left',
                           transition: 'all 0.15s ease',
-                          opacity: optInStock ? 1 : 0.65
+                          opacity: tierAvailable ? 1 : 0.55
                         }}
                       >
                         <div style={{ fontSize: '0.9rem', fontWeight: 700, color: '#1d1d1f' }}>
-                          {opt.name}
+                          Buy {tier.minQuantity}+
                         </div>
                         <div style={{ fontSize: '0.85rem', color: isSelected ? '#c06517' : '#6e6e73', marginTop: '0.2rem', fontWeight: 600 }}>
-                          ${optPrice.toFixed(2)}
+                          ${tierUnit.toFixed(2)} each
                         </div>
-                        {!optInStock ? (
+                        {tierSave > 0 && (
+                          <div style={{ fontSize: '0.75rem', color: '#c06517', marginTop: '0.25rem', fontWeight: 700 }}>
+                            Save {tierSave}%
+                          </div>
+                        )}
+                        {!tierAvailable && (
                           <div style={{ fontSize: '0.72rem', color: '#dc2626', marginTop: '0.25rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
-                            Out of Stock
+                            Not enough stock
                           </div>
-                        ) : maxQtyForOpt < 20 ? (
-                          <div style={{ fontSize: '0.7rem', color: '#c06517', marginTop: '0.2rem', fontWeight: 600 }}>
-                            {maxQtyForOpt} Remaining
-                          </div>
-                        ) : null}
+                        )}
                       </button>
                     );
                   })}
@@ -560,7 +496,7 @@ export const ProductDetailPage: React.FC = () => {
 
               {/* Action Buttons: Conditional based on selected option stock */}
               <div style={{ marginBottom: '2.5rem' }}>
-                {!selectedOptionAvailable ? (
+                {!inStock ? (
                   <button
                     type="button"
                     onClick={() => setNotifyModalOpen(true)}
@@ -589,7 +525,7 @@ export const ProductDetailPage: React.FC = () => {
                 ) : (
                   <div>
                     <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', flexWrap: 'wrap' }}>
-                      {/* Quantity Counter bounded strictly by available stock for selected packaging size */}
+                      {/* Quantity Counter bounded by unit stock */}
                       <div style={{
                         display: 'flex',
                         alignItems: 'center',
@@ -698,7 +634,7 @@ export const ProductDetailPage: React.FC = () => {
                     {/* Stock limit notice */}
                     {quantity >= maxAllowedQuantity && (
                       <div style={{ fontSize: '0.78rem', color: '#c06517', marginTop: '0.5rem', fontWeight: 600 }}>
-                        Maximum available stock reached ({maxAllowedQuantity} pack{maxAllowedQuantity > 1 ? 's' : ''})
+                        Maximum available stock reached ({maxAllowedQuantity})
                       </div>
                     )}
                   </div>
@@ -896,7 +832,7 @@ export const ProductDetailPage: React.FC = () => {
       <div style={{ padding: '5rem 0 3rem 0', backgroundColor: '#ffffff' }}>
         <div className="container">
           {/* Main Product Out of Stock (stock <= 0): Display "Explore Other Products In Stock" */}
-          {isMainProductOutOfStock ? (
+          {!inStock ? (
             <div>
               <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                 <h2 style={{
@@ -1061,7 +997,7 @@ export const ProductDetailPage: React.FC = () => {
                         {product.brand} {product.name}
                       </div>
                       <div style={{ fontSize: '0.78rem', color: '#6e6e73', fontWeight: 600 }}>
-                        {selectedPackaging?.name || 'Single Stick'} ({quantity}x)
+                        {quantity} each
                       </div>
                     </div>
 
@@ -1074,8 +1010,7 @@ export const ProductDetailPage: React.FC = () => {
                   {recommendedCigars.map((cigar) => {
                     const cigarKey = cigar.id || cigar.slug;
                     const isChecked = selectedBundleItems[cigarKey];
-                    const selectedPackId = selectedRecPackagings[cigarKey] || 'single';
-                    const packPrice = extraPrice(cigar, selectedPackId);
+                    const companionPrice = companionUnitPrice(cigar);
 
                     return (
                       <React.Fragment key={cigarKey}>
@@ -1124,44 +1059,13 @@ export const ProductDetailPage: React.FC = () => {
                               </div>
                             </Link>
 
-                            {isCigarItem(cigar) ? (
-                            <div style={{ marginTop: '0.5rem' }}>
-                              <select
-                                value={selectedPackId}
-                                onChange={(e) => setSelectedRecPackagings({
-                                  ...selectedRecPackagings,
-                                  [cigarKey]: e.target.value
-                                })}
-                                style={{
-                                  width: '100%',
-                                  padding: '0.45rem 0.6rem',
-                                  borderRadius: '6px',
-                                  border: '1px solid #d2d2d7',
-                                  fontSize: '0.82rem',
-                                  fontWeight: 600,
-                                  backgroundColor: '#ffffff',
-                                  color: '#1d1d1f',
-                                  cursor: 'pointer'
-                                }}
-                              >
-                                <option value="single">Single Stick (${cigar.price.toFixed(2)})</option>
-                                {cigar.stock >= 10 && (
-                                  <option value="box10">Box of 10 (${Math.round(cigar.price * 9.5).toFixed(2)})</option>
-                                )}
-                                {cigar.stock >= 25 && (
-                                  <option value="box25">Cabinet of 25 (${Math.round(cigar.price * 23.5).toFixed(2)})</option>
-                                )}
-                              </select>
+                            <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', fontWeight: 600, color: '#6e6e73' }}>
+                              Each (${companionPrice.toFixed(2)})
                             </div>
-                            ) : (
-                              <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', fontWeight: 600, color: '#6e6e73' }}>
-                                Each (${cigar.price.toFixed(2)})
-                              </div>
-                            )}
                           </div>
 
                           <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1d1d1f', marginTop: '0.75rem' }}>
-                            ${packPrice.toFixed(2)} AUD
+                            ${companionPrice.toFixed(2)} AUD
                           </div>
                         </div>
                       </React.Fragment>
@@ -1183,16 +1087,14 @@ export const ProductDetailPage: React.FC = () => {
                   <label style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'default', fontSize: '0.92rem', color: '#1d1d1f' }}>
                     <input type="checkbox" checked disabled style={{ accentColor: '#c06517', width: '18px', height: '18px' }} />
                     <span>
-                      <strong>This item:</strong> {product.brand} {product.name} ({selectedPackaging?.name || 'Single Stick'}) — <strong style={{ color: '#c06517' }}>${totalLinePrice.toFixed(2)} AUD</strong>
+                      <strong>This item:</strong> {product.brand} {product.name} ({quantity} each) — <strong style={{ color: '#c06517' }}>${totalLinePrice.toFixed(2)} AUD</strong>
                     </span>
                   </label>
 
                   {/* Recommended Cigars Rows */}
                   {recommendedCigars.map((cigar) => {
                     const cigarKey = cigar.id || cigar.slug;
-                    const selectedPackId = selectedRecPackagings[cigarKey] || 'single';
-                    const packPrice = extraPrice(cigar, selectedPackId);
-                    const packName = extraPackName(cigar, selectedPackId);
+                    const companionPrice = companionUnitPrice(cigar);
 
                     return (
                       <label key={cigarKey} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.92rem', color: '#1d1d1f' }}>
@@ -1206,7 +1108,7 @@ export const ProductDetailPage: React.FC = () => {
                           style={{ accentColor: '#c06517', width: '18px', height: '18px' }}
                         />
                         <span>
-                          <strong>Add:</strong> {cigar.brand} {cigar.name} ({packName}) — <strong>${packPrice.toFixed(2)} AUD</strong>
+                          <strong>Add:</strong> {cigar.brand} {cigar.name} (1 each) — <strong>${companionPrice.toFixed(2)} AUD</strong>
                         </span>
                       </label>
                     );
