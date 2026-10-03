@@ -49,13 +49,13 @@ export const AdminAccountGate: React.FC<AdminAccountGateProps> = ({ variant, onC
         <div>
           <h2 style={{
             fontSize: variant === 'modal' ? '1.35rem' : '1.2rem',
-            color: '#2f0d0e',
+            color: 'var(--text-primary)',
             margin: '0 0 0.35rem',
             lineHeight: 1.25
           }}>
             You are signed in as an administrator
           </h2>
-          <p style={{ margin: 0, color: '#2f0d0e', fontSize: '0.9rem', lineHeight: 1.55 }}>
+          <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.55 }}>
             This is an admin account{userProfile?.email ? ` (${userProfile.email})` : ''}, not a customer profile.
             Open the admin portal to manage the store, or sign out and use a customer account for shopping.
           </p>

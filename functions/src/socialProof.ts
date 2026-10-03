@@ -133,8 +133,9 @@ function blankGeneratedEntry(
 /**
  * One minute of generated base social proof.
  * Independent Bernoulli draws so hourly expectations are ~2 orders,
- * ~1 newsletter, and ~3 stock-notify. Viewer counts are live presence
- * (not historical feed rows). Empty product pools skip that draw.
+ * ~1 newsletter, and ~3 stock-notify. Viewer counts are published by
+ * publishLiveSiteViewersSocialProof (not historical feed rows).
+ * Empty product pools skip that draw.
  */
 export async function generateMinuteSocialProofFeed(now = Date.now()): Promise<SocialProofGenerateResult> {
   const deletedExpired = await cleanupExpiredSocialProof(now);
@@ -332,17 +333,52 @@ export async function writeStockNotifySocialProof(
 }
 
 const SITE_PRESENCE_STALE_MS = 90_000;
+const VIEWER_BASE_MIN = 5;
+const VIEWER_BASE_MAX = 12;
+/** How long a pregenerated base stays before the next publish re-rolls it. */
+const VIEWER_BASE_TTL_MS = 60 * 60 * 1000;
+/** Single current count the storefront toast subscribes to (not a feed history row). */
+export const LIVE_SITE_VIEWERS_DOC = "social_proof_live/site_viewers";
+
+function rollViewerBase(): number {
+  return VIEWER_BASE_MIN
+    + Math.floor(Math.random() * (VIEWER_BASE_MAX - VIEWER_BASE_MIN + 1));
+}
+
+function readPersistedViewerBase(
+  data: FirebaseFirestore.DocumentData | undefined,
+  now: number,
+): number | null {
+  if (!data) return null;
+  const base = data.baseCount;
+  if (typeof base !== "number" || !Number.isInteger(base)) return null;
+  if (base < VIEWER_BASE_MIN || base > VIEWER_BASE_MAX) return null;
+  const baseAt = data.baseAt instanceof admin.firestore.Timestamp
+    ? data.baseAt.toMillis()
+    : typeof data.baseAt === "number"
+      ? data.baseAt
+      : null;
+  if (baseAt == null || now - baseAt >= VIEWER_BASE_TTL_MS) return null;
+  return base;
+}
 
 /**
- * Prune stale site-presence docs. Viewer toasts read live presence on the
- * client as a single current count — they are not historical social_proof rows.
+ * Prune stale site-presence docs, then publish display viewer count:
+ * pregenerated base (5–12) + real live presence. Clients read the single
+ * social_proof_live/site_viewers doc — they do not invent the base themselves.
  */
 export async function publishLiveSiteViewersSocialProof(
   now = Date.now(),
-): Promise<{ written: boolean; viewerCount: number; deletedStale: number }> {
+): Promise<{
+  written: boolean;
+  viewerCount: number;
+  baseCount: number;
+  liveCount: number;
+  deletedStale: number;
+}> {
   const db = getDb();
   const snap = await db.collection("sitePresence").get();
-  let viewerCount = 0;
+  let liveCount = 0;
   let deletedStale = 0;
   let batch = db.batch();
   let pending = 0;
@@ -355,7 +391,7 @@ export async function publishLiveSiteViewersSocialProof(
         ? lastSeen
         : null;
     if (seenAt != null && now - seenAt < SITE_PRESENCE_STALE_MS) {
-      viewerCount += 1;
+      liveCount += 1;
       continue;
     }
 
@@ -371,5 +407,27 @@ export async function publishLiveSiteViewersSocialProof(
 
   if (pending > 0) await batch.commit();
 
-  return { written: false, viewerCount, deletedStale };
+  const liveRef = db.doc(LIVE_SITE_VIEWERS_DOC);
+  const existing = await liveRef.get();
+  const persistedBase = readPersistedViewerBase(existing.data(), now);
+  const baseCount = persistedBase ?? rollViewerBase();
+  const viewerCount = baseCount + liveCount;
+
+  await liveRef.set(
+    {
+      eventType: "site_viewers",
+      viewerCount,
+      baseCount,
+      liveCount,
+      baseAt: persistedBase != null
+        ? (existing.data()?.baseAt ?? admin.firestore.Timestamp.fromMillis(now))
+        : admin.firestore.Timestamp.fromMillis(now),
+      displayAt: admin.firestore.Timestamp.fromMillis(now),
+      source: "site_viewers",
+      updatedAt: admin.firestore.FieldValue.serverTimestamp(),
+    },
+    { merge: true },
+  );
+
+  return { written: true, viewerCount, baseCount, liveCount, deletedStale };
 }

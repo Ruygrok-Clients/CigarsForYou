@@ -1157,14 +1157,52 @@ select.form-control option {
   background: var(--color-dark-red);
 }
 
-.account-tabs-inner {
+.account-tabs-rail {
   width: 100%;
   max-width: 1320px;
   margin: 0 auto;
-  padding: 0 1.5rem;
+  display: flex;
+  align-items: stretch;
+}
+
+.account-tabs-scroll {
+  flex: 1;
+  min-width: 0;
+  overflow-x: auto;
+  overflow-y: hidden;
+}
+
+.account-tabs-inner {
   display: flex;
   gap: 0.15rem;
-  overflow-x: auto;
+  padding: 0 1.5rem;
+  width: max-content;
+  min-width: 100%;
+  box-sizing: border-box;
+}
+
+.account-tabs-arrow {
+  display: none;
+  flex-shrink: 0;
+  align-items: center;
+  justify-content: center;
+  width: 1.65rem;
+  margin: 0;
+  padding: 0;
+  border: none;
+  border-radius: 0;
+  background: rgba(0, 0, 0, 0.22);
+  color: #fff;
+  cursor: pointer;
+}
+
+.account-tabs-arrow:hover:not(:disabled) {
+  background: rgba(0, 0, 0, 0.34);
+}
+
+.account-tabs-arrow:disabled {
+  opacity: 0.35;
+  cursor: default;
 }
 
 .account-tab {
@@ -1184,6 +1222,40 @@ select.form-control option {
 .account-tab.active {
   color: #fff;
   border-bottom-color: #fff;
+}
+
+/* Mobile & tablet: flush scrollbar under tabs + side scroll arrows */
+@media (max-width: 1024px) {
+  .account-tabs-rail {
+    max-width: none;
+  }
+
+  .account-tabs-arrow {
+    display: inline-flex;
+  }
+
+  .account-tabs-inner {
+    padding: 0 0.35rem;
+    min-width: unset;
+  }
+
+  .account-tabs-scroll {
+    scrollbar-width: thin;
+    scrollbar-color: rgba(255, 255, 255, 0.65) rgba(0, 0, 0, 0.28);
+  }
+
+  .account-tabs-scroll::-webkit-scrollbar {
+    height: 5px;
+  }
+
+  .account-tabs-scroll::-webkit-scrollbar-track {
+    background: rgba(0, 0, 0, 0.28);
+  }
+
+  .account-tabs-scroll::-webkit-scrollbar-thumb {
+    background: rgba(255, 255, 255, 0.65);
+    border-radius: 0;
+  }
 }
 
 .account-content-band {
@@ -1233,10 +1305,6 @@ select.form-control option {
     flex-direction: column;
     align-items: stretch;
     padding: 1.5rem 1rem;
-  }
-
-  .account-tabs-inner {
-    padding: 0 1rem;
   }
 
   .account-content {

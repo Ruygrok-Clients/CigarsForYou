@@ -1,13 +1,17 @@
 #!/usr/bin/env bash
 # Deploy hosting, rules, and Cloud Functions to Firebase in batches
-# to avoid Cloud Build / Cloud Functions quota limits.
+# to avoid Cloud Run CPU quota limits during revision rollouts.
 set -euo pipefail
 
 ROOT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
 cd "$ROOT_DIR"
 
-BATCH_SIZE="${BATCH_SIZE:-5}"
-PAUSE_SECONDS="${PAUSE_SECONDS:-15}"
+# Gen2 functions share Cloud Run CPU quota per region. Deploying more than
+# one at a time often fails with "Quota exceeded for total allowable CPU".
+BATCH_SIZE="${BATCH_SIZE:-1}"
+PAUSE_SECONDS="${PAUSE_SECONDS:-45}"
+MAX_RETRIES="${MAX_RETRIES:-4}"
+RETRY_PAUSE_SECONDS="${RETRY_PAUSE_SECONDS:-90}"
 SKIP_BUILD=false
 FUNCTIONS_ONLY=false
 HOSTING_ONLY=false
@@ -17,18 +21,19 @@ usage() {
 Usage: scripts/deploy-firebase.sh [options]
 
 Deploys Firestore, Storage, Hosting, then Cloud Functions in batches
-(default: 5 functions per batch, 15s pause between batches).
+(default: 1 function per batch, 45s pause between batches).
 
 Options:
   --skip-build       Skip the frontend Vite build
   --functions-only   Only deploy Cloud Functions (skip rules/hosting)
   --hosting-only     Only build + deploy Hosting (skip rules/functions)
-  --batch-size N     Functions per batch (default: 5)
-  --pause N          Seconds to wait between batches (default: 15)
+  --batch-size N     Functions per batch (default: 1)
+  --pause N          Seconds to wait between batches (default: 45)
+  --retries N        Retries per batch on quota/deploy failure (default: 4)
   -h, --help         Show this help
 
 Environment overrides:
-  BATCH_SIZE, PAUSE_SECONDS
+  BATCH_SIZE, PAUSE_SECONDS, MAX_RETRIES, RETRY_PAUSE_SECONDS
 EOF
 }
 
@@ -43,6 +48,10 @@ while [[ $# -gt 0 ]]; do
       ;;
     --pause)
       PAUSE_SECONDS="$2"
+      shift 2
+      ;;
+    --retries)
+      MAX_RETRIES="$2"
       shift 2
       ;;
     -h|--help) usage; exit 0 ;;
@@ -85,6 +94,8 @@ deploy_function_batch() {
   local -a names=("$@")
   local -a targets=()
   local name
+  local attempt=1
+  local wait_s
 
   for name in "${names[@]}"; do
     targets+=("functions:${name}")
@@ -93,8 +104,22 @@ deploy_function_batch() {
   local joined
   joined="$(IFS=,; echo "${targets[*]}")"
 
-  log "Deploying function batch (${#names[@]}): ${names[*]}"
-  firebase deploy --only "$joined"
+  while true; do
+    log "Deploying function batch (${#names[@]}): ${names[*]} (attempt ${attempt}/${MAX_RETRIES})"
+    if firebase deploy --only "$joined"; then
+      return 0
+    fi
+
+    if ((attempt >= MAX_RETRIES)); then
+      echo "ERROR: Failed to deploy batch after ${MAX_RETRIES} attempts: ${names[*]}" >&2
+      return 1
+    fi
+
+    wait_s=$((RETRY_PAUSE_SECONDS * attempt))
+    log "Batch failed (often Cloud Run CPU quota). Retrying in ${wait_s}s..."
+    sleep "$wait_s"
+    attempt=$((attempt + 1))
+  done
 }
 
 if ! command -v firebase >/dev/null 2>&1; then

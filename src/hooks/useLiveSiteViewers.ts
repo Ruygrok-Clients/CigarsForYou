@@ -1,27 +1,12 @@
 import { useEffect, useState } from 'react';
-import {
-  collection,
-  onSnapshot,
-  type QuerySnapshot,
-} from 'firebase/firestore';
+import { doc, onSnapshot } from 'firebase/firestore';
 import { db } from '../firebase';
 
-const STALE_MS = 90_000;
-const RECOUNT_MS = 15_000;
-
-function countLiveSessions(snap: QuerySnapshot): number {
-  const now = Date.now();
-  let count = 0;
-  snap.forEach((sessionDoc) => {
-    const lastSeen = sessionDoc.data().lastSeen;
-    const seenAt = typeof lastSeen?.toMillis === 'function' ? lastSeen.toMillis() : null;
-    if (typeof seenAt !== 'number') return;
-    if (now - seenAt < STALE_MS) count += 1;
-  });
-  return count;
-}
-
-/** Live site-wide viewer count from current presence — a single current value, not a history feed. */
+/**
+ * Display viewer count published by the publishLiveSiteViewers cloud function
+ * (pregenerated base + real live presence). Clients only subscribe — they do
+ * not invent or boost the number locally.
+ */
 export function useLiveSiteViewers(enabled: boolean): number {
   const [viewerCount, setViewerCount] = useState(0);
 
@@ -31,33 +16,18 @@ export function useLiveSiteViewers(enabled: boolean): number {
       return;
     }
 
-    let latestSnap: QuerySnapshot | null = null;
-    let cancelled = false;
-
-    const apply = () => {
-      if (!latestSnap || cancelled) return;
-      setViewerCount(countLiveSessions(latestSnap));
-    };
-
     const unsubscribe = onSnapshot(
-      collection(db, 'sitePresence'),
+      doc(db, 'social_proof_live', 'site_viewers'),
       (snap) => {
-        latestSnap = snap;
-        apply();
+        const value = snap.data()?.viewerCount;
+        setViewerCount(typeof value === 'number' && value > 0 ? value : 0);
       },
       () => {
-        if (!cancelled) setViewerCount(0);
+        setViewerCount(0);
       },
     );
 
-    // Re-apply stale window so counts drop when sessions age out without a write.
-    const recount = window.setInterval(apply, RECOUNT_MS);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(recount);
-      unsubscribe();
-    };
+    return unsubscribe;
   }, [enabled]);
 
   return viewerCount;

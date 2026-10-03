@@ -144,6 +144,12 @@ service cloud.firestore {
       allow write: if false;
     }
 
+    // Current site-viewer count for the toast (written only by Cloud Functions)
+    match /social_proof_live/{docId} {
+      allow read: if true;
+      allow write: if false;
+    }
+
     // Daily generate idempotency markers — fully private
     match /social_proof_runs/{runId} {
       allow read, write: if false;

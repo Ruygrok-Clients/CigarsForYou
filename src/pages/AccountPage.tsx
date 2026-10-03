@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef, useCallback } from 'react';
 import { useNavigate, Link, useSearchParams } from 'react-router-dom';
 import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -26,7 +26,9 @@ import {
   X,
   Plus,
   Mail,
-  Phone
+  Phone,
+  ChevronLeft,
+  ChevronRight,
 } from 'lucide-react';
 
 type AccountTab = 'account' | 'loyalty' | 'orders' | 'notify' | 'special';
@@ -52,6 +54,47 @@ export const AccountPage: React.FC = () => {
     if (tab !== 'loyalty') next.delete('panel');
     navigate({ pathname: '/account', search: next.toString() }, { replace: true });
   };
+
+  const tabsScrollRef = useRef<HTMLDivElement>(null);
+  const [canScrollTabsLeft, setCanScrollTabsLeft] = useState(false);
+  const [canScrollTabsRight, setCanScrollTabsRight] = useState(false);
+
+  const updateTabsScrollState = useCallback(() => {
+    const el = tabsScrollRef.current;
+    if (!el) {
+      setCanScrollTabsLeft(false);
+      setCanScrollTabsRight(false);
+      return;
+    }
+    const maxScroll = el.scrollWidth - el.clientWidth;
+    setCanScrollTabsLeft(el.scrollLeft > 2);
+    setCanScrollTabsRight(maxScroll > 2 && el.scrollLeft < maxScroll - 2);
+  }, []);
+
+  const scrollAccountTabs = (direction: -1 | 1) => {
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    const amount = Math.max(160, Math.round(el.clientWidth * 0.55));
+    el.scrollBy({ left: direction * amount, behavior: 'smooth' });
+  };
+
+  useEffect(() => {
+    if (isAdmin || !userProfile) return;
+    const el = tabsScrollRef.current;
+    if (!el) return;
+    updateTabsScrollState();
+    el.addEventListener('scroll', updateTabsScrollState, { passive: true });
+    window.addEventListener('resize', updateTabsScrollState);
+    const observer = typeof ResizeObserver !== 'undefined'
+      ? new ResizeObserver(() => updateTabsScrollState())
+      : null;
+    observer?.observe(el);
+    return () => {
+      el.removeEventListener('scroll', updateTabsScrollState);
+      window.removeEventListener('resize', updateTabsScrollState);
+      observer?.disconnect();
+    };
+  }, [updateTabsScrollState, isAdmin, userProfile]);
   
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
@@ -436,21 +479,43 @@ export const AccountPage: React.FC = () => {
       ) : (
       <>
       <nav className="account-tabs" aria-label="Account sections">
-        <div className="account-tabs-inner">
-          <button type="button" className={`account-tab ${activeTab === 'account' ? 'active' : ''}`} onClick={() => chooseTab('account')}>
-            <UserIcon size={16} /> Account
+        <div className="account-tabs-rail">
+          <button
+            type="button"
+            className="account-tabs-arrow account-tabs-arrow--prev"
+            aria-label="Scroll tabs left"
+            onClick={() => scrollAccountTabs(-1)}
+            disabled={!canScrollTabsLeft}
+          >
+            <ChevronLeft size={18} strokeWidth={2.5} aria-hidden="true" />
           </button>
-          <button type="button" className={`account-tab ${activeTab === 'loyalty' ? 'active' : ''}`} onClick={() => chooseTab('loyalty')}>
-            <Award size={16} /> Loyalty Program
-          </button>
-          <button type="button" className={`account-tab ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => chooseTab('orders')}>
-            <Package size={16} /> Orders
-          </button>
-          <button type="button" className={`account-tab ${activeTab === 'notify' ? 'active' : ''}`} onClick={() => chooseTab('notify')}>
-            <Bell size={16} /> Stock Notify
-          </button>
-          <button type="button" className={`account-tab ${activeTab === 'special' ? 'active' : ''}`} onClick={() => chooseTab('special')}>
-            <Mail size={16} /> Special Email
+          <div className="account-tabs-scroll" ref={tabsScrollRef}>
+            <div className="account-tabs-inner">
+              <button type="button" className={`account-tab ${activeTab === 'account' ? 'active' : ''}`} onClick={() => chooseTab('account')}>
+                <UserIcon size={16} /> Account
+              </button>
+              <button type="button" className={`account-tab ${activeTab === 'loyalty' ? 'active' : ''}`} onClick={() => chooseTab('loyalty')}>
+                <Award size={16} /> Loyalty Program
+              </button>
+              <button type="button" className={`account-tab ${activeTab === 'orders' ? 'active' : ''}`} onClick={() => chooseTab('orders')}>
+                <Package size={16} /> Orders
+              </button>
+              <button type="button" className={`account-tab ${activeTab === 'notify' ? 'active' : ''}`} onClick={() => chooseTab('notify')}>
+                <Bell size={16} /> Stock Notify
+              </button>
+              <button type="button" className={`account-tab ${activeTab === 'special' ? 'active' : ''}`} onClick={() => chooseTab('special')}>
+                <Mail size={16} /> Special Email
+              </button>
+            </div>
+          </div>
+          <button
+            type="button"
+            className="account-tabs-arrow account-tabs-arrow--next"
+            aria-label="Scroll tabs right"
+            onClick={() => scrollAccountTabs(1)}
+            disabled={!canScrollTabsRight}
+          >
+            <ChevronRight size={18} strokeWidth={2.5} aria-hidden="true" />
           </button>
         </div>
       </nav>
