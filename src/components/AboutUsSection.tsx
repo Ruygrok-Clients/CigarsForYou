@@ -16,9 +16,9 @@ export const AboutUsSection: React.FC = () => {
       {/* Style for Subtle Truck Motion Animations & Responsive Layouts */}
       <style>{`
         @keyframes truckMove {
-          0% { transform: translate(570px, 344px) rotate(-2deg); }
-          50% { transform: translate(570px, 342.5px) rotate(-1.5deg); }
-          100% { transform: translate(570px, 344px) rotate(-2deg); }
+          0% { transform: translate(-50%, -100%) translateY(0) rotate(-15deg); }
+          50% { transform: translate(-50%, -100%) translateY(-2px) rotate(-13.5deg); }
+          100% { transform: translate(-50%, -100%) translateY(0) rotate(-15deg); }
         }
         @keyframes speedLineDash {
           0% { stroke-dashoffset: 0; opacity: 0.5; }
@@ -33,6 +33,9 @@ export const AboutUsSection: React.FC = () => {
         }
 
         .about-us-svg-desktop {
+          display: none !important;
+        }
+        .about-us-truck {
           display: none !important;
         }
         .about-us-svg-mobile {
@@ -72,6 +75,9 @@ export const AboutUsSection: React.FC = () => {
           .about-us-svg-desktop {
             display: block !important;
           }
+          .about-us-truck {
+            display: block !important;
+          }
           .about-us-svg-mobile {
             display: none !important;
           }
@@ -106,7 +112,7 @@ export const AboutUsSection: React.FC = () => {
         }
       `}</style>
 
-      {/* Dashed Background Curve SVG & Moving Delivery Truck (from 769px) */}
+      {/* Dashed Background Curve SVG (from 769px) — stretched to fill section */}
       <svg
         className="about-us-svg-desktop"
         style={{
@@ -121,8 +127,8 @@ export const AboutUsSection: React.FC = () => {
         viewBox="0 0 1400 600"
         fill="none"
         preserveAspectRatio="none"
+        aria-hidden="true"
       >
-        {/* Dashed Road Line */}
         <path
           d="M -100 450 C 250 580 400 380 620 380 C 840 380 950 160 1450 60"
           stroke="#d1d5db"
@@ -131,41 +137,49 @@ export const AboutUsSection: React.FC = () => {
           fill="none"
           opacity="0.85"
         />
+      </svg>
 
-        {/* Moving Delivery Truck Group - Wheels rest exactly on Y=380 on the dotted path */}
-        <g className="truck-motion-group">
-          {/* Motion / Speed Lines behind the truck */}
-          <g className="speed-line-animated">
-            <line x1="-75" y1="18" x2="-12" y2="18" stroke="#c06517" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
-            <line x1="-105" y1="26" x2="-22" y2="26" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
-            <line x1="-60" y1="34" x2="-10" y2="34" stroke="#c06517" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
-            <line x1="-120" y1="18" x2="-85" y2="18" stroke="#c06517" strokeWidth="1.5" strokeLinecap="round" opacity="0.45" />
-          </g>
+      {/* Delivery truck as its own SVG so tablet stretch (preserveAspectRatio=none on the path) does not squash it.
+          Positioned at the flat mid-path point (~viewBox 570,380 → 40.7% / 63.3%). */}
+      <svg
+        className="about-us-truck truck-motion-group"
+        style={{
+          position: 'absolute',
+          left: '40.7%',
+          top: '63.3%',
+          width: 'clamp(260px, 32vw, 400px)',
+          height: 'auto',
+          overflow: 'visible',
+          pointerEvents: 'none',
+          zIndex: 1
+        }}
+        viewBox="-125 0 220 34"
+        fill="none"
+        preserveAspectRatio="xMidYMax meet"
+        aria-hidden="true"
+      >
+        <g className="speed-line-animated">
+          <line x1="-75" y1="18" x2="-12" y2="18" stroke="#c06517" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+          <line x1="-105" y1="26" x2="-22" y2="26" stroke="#9ca3af" strokeWidth="2" strokeLinecap="round" strokeDasharray="6 4" opacity="0.75" />
+          <line x1="-60" y1="34" x2="-10" y2="34" stroke="#c06517" strokeWidth="2.5" strokeLinecap="round" opacity="0.9" />
+          <line x1="-120" y1="18" x2="-85" y2="18" stroke="#c06517" strokeWidth="1.5" strokeLinecap="round" opacity="0.45" />
+        </g>
 
-          {/* Wind / Airflow Swooshes ahead of cab */}
-          <path d="M 48 4 C 62 1 76 6 86 12" stroke="#c06517" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.85" />
-          <line x1="54" y1="32" x2="76" y2="32" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3" opacity="0.7" />
+        <path d="M 48 4 C 62 1 76 6 86 12" stroke="#c06517" strokeWidth="2" strokeLinecap="round" fill="none" opacity="0.85" />
+        <line x1="54" y1="32" x2="76" y2="32" stroke="#9ca3af" strokeWidth="1.5" strokeLinecap="round" strokeDasharray="4 3" opacity="0.7" />
 
-          {/* Speed Dust Particles */}
-          <circle cx="-16" cy="38" r="2.5" fill="#c06517" opacity="0.85" />
-          <circle cx="-30" cy="39" r="1.8" fill="#9ca3af" opacity="0.65" />
-          <circle cx="-46" cy="40" r="1.2" fill="#c06517" opacity="0.45" />
+        <circle cx="-16" cy="38" r="2.5" fill="#c06517" opacity="0.85" />
+        <circle cx="-30" cy="39" r="1.8" fill="#9ca3af" opacity="0.65" />
+        <circle cx="-46" cy="40" r="1.2" fill="#c06517" opacity="0.45" />
 
-          {/* Detailed Delivery Truck Icon - Wheels sitting directly ON the dotted line */}
-          <g transform="translate(0, 2) scale(1.65)">
-            {/* Truck Cargo Body */}
-            <rect x="2" y="5" width="13" height="11" rx="1.5" fill="#2f0d0e" stroke="#2f0d0e" strokeWidth="1" />
-            {/* Cab */}
-            <path d="M 15 8 H 19 L 22 12 V 16 H 15 Z" fill="#c06517" stroke="#2f0d0e" strokeWidth="1" />
-            {/* Cab Window */}
-            <path d="M 16 9.5 H 18.5 L 20.5 12 H 16 Z" fill="#ffffff" opacity="0.9" />
-            {/* Rear Wheel resting on Y=19 (344 + 2 + 19*1.65 = 377..380px) */}
-            <circle cx="6.5" cy="16.5" r="2.8" fill="#2f0d0e" stroke="#ffffff" strokeWidth="0.8" />
-            <circle cx="6.5" cy="16.5" r="1.2" fill="#c06517" />
-            {/* Front Wheel resting on Y=19 */}
-            <circle cx="18.5" cy="16.5" r="2.8" fill="#2f0d0e" stroke="#ffffff" strokeWidth="0.8" />
-            <circle cx="18.5" cy="16.5" r="1.2" fill="#c06517" />
-          </g>
+        <g transform="translate(0, 2) scale(1.65)">
+          <rect x="2" y="5" width="13" height="11" rx="1.5" fill="#2f0d0e" stroke="#2f0d0e" strokeWidth="1" />
+          <path d="M 15 8 H 19 L 22 12 V 16 H 15 Z" fill="#c06517" stroke="#2f0d0e" strokeWidth="1" />
+          <path d="M 16 9.5 H 18.5 L 20.5 12 H 16 Z" fill="#ffffff" opacity="0.9" />
+          <circle cx="6.5" cy="16.5" r="2.8" fill="#2f0d0e" stroke="#ffffff" strokeWidth="0.8" />
+          <circle cx="6.5" cy="16.5" r="1.2" fill="#c06517" />
+          <circle cx="18.5" cy="16.5" r="2.8" fill="#2f0d0e" stroke="#ffffff" strokeWidth="0.8" />
+          <circle cx="18.5" cy="16.5" r="1.2" fill="#c06517" />
         </g>
       </svg>
 
