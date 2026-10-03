@@ -33,14 +33,24 @@ service cloud.firestore {
       ]);
     }
 
+    function ageVerificationFieldsUntouched() {
+      return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
+        'ageVerified',
+        'ageVerificationStatus',
+        'diditSessionId',
+        'ageVerifiedAt'
+      ]);
+    }
+
     // User profiles collection
     // rewardsPoints and loyalty tier fields are written only by Cloud Functions (Admin SDK bypasses these rules).
     match /users/{userId} {
       allow read: if isOwner(userId) || isMemberOrAdmin();
       allow create: if isAuthenticated() && request.auth.uid == userId
         && (!request.resource.data.keys().hasAny(['rewardsPoints']) || request.resource.data.rewardsPoints == 0)
-        && !request.resource.data.keys().hasAny(['loyaltyTier', 'loyaltyWindowPoints', 'loyaltyTierUpdatedAt']);
-      allow update: if (isOwner(userId) || isAdmin()) && loyaltyFieldsUntouched();
+        && !request.resource.data.keys().hasAny(['loyaltyTier', 'loyaltyWindowPoints', 'loyaltyTierUpdatedAt'])
+        && !request.resource.data.keys().hasAny(['ageVerified', 'ageVerificationStatus', 'diditSessionId', 'ageVerifiedAt']);
+      allow update: if (isOwner(userId) || isAdmin()) && loyaltyFieldsUntouched() && ageVerificationFieldsUntouched();
       allow delete: if isAdmin();
     }
 
@@ -136,6 +146,19 @@ service cloud.firestore {
 
     // Daily generate idempotency markers — fully private
     match /social_proof_runs/{runId} {
+      allow read, write: if false;
+    }
+
+    // Didit age verification. Written only by Cloud Functions (Admin SDK).
+    match /ageVerifications/{sessionId} {
+      allow read, write: if false;
+    }
+
+    match /pendingSignups/{signupId} {
+      allow read, write: if false;
+    }
+
+    match /diditWebhookEvents/{eventId} {
       allow read, write: if false;
     }
   }

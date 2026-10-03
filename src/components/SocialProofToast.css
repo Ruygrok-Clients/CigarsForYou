@@ -51,11 +51,12 @@
 }
 
 .social-proof__body {
+  position: relative;
   flex: 1;
   min-width: 0;
   display: flex;
   flex-direction: column;
-  padding: 12px 14px 10px;
+  padding: 12px 28px 10px 14px;
 }
 
 .social-proof__verified {
@@ -116,7 +117,10 @@
   color: #8b8b90;
 }
 
-  .social-proof__dismiss {
+.social-proof__dismiss {
+  position: absolute;
+  top: 8px;
+  right: 8px;
   width: 22px;
   height: 22px;
   border: 0;
@@ -128,7 +132,9 @@
   line-height: 1;
   padding: 0;
   flex-shrink: 0;
-  margin-left: auto;
+  display: flex;
+  align-items: center;
+  justify-content: center;
 }
 
 .social-proof__dismiss:hover {
@@ -187,7 +193,7 @@
   }
 
   .social-proof__body {
-    padding: 10px 12px 8px;
+    padding: 10px 26px 8px 12px;
   }
 
   .social-proof__verified {

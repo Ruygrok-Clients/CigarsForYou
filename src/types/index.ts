@@ -25,6 +25,11 @@ export interface UserProfile {
   rewardsPoints?: number;
   /** Absent means Bronze. Written only by Cloud Functions. */
   loyaltyTier?: LoyaltyTier;
+  /** Written only by Cloud Functions after a Didit approval. */
+  ageVerified?: boolean;
+  ageVerificationStatus?: string;
+  diditSessionId?: string;
+  ageVerifiedAt?: string;
   /** Points earned from purchases in the rolling 30-day window. Written only by Cloud Functions. */
   loyaltyWindowPoints?: number;
   loyaltyTierUpdatedAt?: string;
@@ -179,6 +184,7 @@ export interface Order {
   paymentMethod: 'PayPal' | 'Pending' | 'Other';
   deliveryAddress: Address;
   ageConfirmed: boolean;
+  diditSessionId?: string;
   createdAt: string;
   paidAt?: string;
   refundedAt?: string;

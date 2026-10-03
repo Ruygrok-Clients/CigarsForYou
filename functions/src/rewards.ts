@@ -163,10 +163,6 @@ export async function placeRewardOrderForUser(
     );
   }
 
-  if (!input.ageConfirmed) {
-    throw new HttpsError("failed-precondition", "Age confirmation is required.");
-  }
-
   const deliveryMethod = input.deliveryMethod;
   if (deliveryMethod !== "immediate" && deliveryMethod !== "express") {
     throw new HttpsError("invalid-argument", "Choose Immediate Dispatch or Express Dispatch.");
@@ -237,6 +233,9 @@ export async function placeRewardOrderForUser(
     pointsSpent = 0;
 
     const userData = userSnap.data() || {};
+    if (userData.ageVerified !== true) {
+      throw new HttpsError("failed-precondition", "Age verification is required before checkout.");
+    }
     const tier = normalizeLoyaltyTier(userData.loyaltyTier);
 
     productSnaps.forEach((snap, index) => {
@@ -316,6 +315,7 @@ export async function placeRewardOrderForUser(
         country: (address.country || "Australia").trim() || "Australia",
       },
       ageConfirmed: true,
+      diditSessionId: typeof userData.diditSessionId === "string" ? userData.diditSessionId : null,
       createdAt: now,
       paidAt: now,
       pointsEarned: 0,

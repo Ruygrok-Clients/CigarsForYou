@@ -209,7 +209,7 @@ export const Footer: React.FC = () => {
             WARNING: TOBACCO SMOKE CAUSES FATAL DISEASES AND DISABILITY.
           </p>
           <p style={{ color: 'rgba(245, 235, 230, 0.8)', fontSize: '0.8rem', marginTop: '0.4rem', marginBottom: 0 }}>
-            Strictly 18+. Proof of age with government-issued photo ID is required upon delivery.
+            Strictly 18+. Age is verified when you create an account, or at checkout if you are not logged in.
           </p>
         </div>
 

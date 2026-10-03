@@ -21,6 +21,8 @@ import {
 } from "./socialProof";
 import { placeRewardOrderForUser, reevaluateLoyaltyTiers, syncOrderRewards } from "./rewards";
 
+export { createDiditSession, getDiditStatus, claimDiditForUser, completeSignup, diditWebhook } from "./didit";
+
 admin.initializeApp();
 const db = admin.firestore();
 

@@ -740,9 +740,9 @@ export const AccountPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem' }}>Verified Date of Birth</span>
+                      <span style={{ color: 'var(--text-muted)', display: 'block', fontSize: '0.8rem' }}>Age verification</span>
                       <strong style={{ color: 'var(--accent-gold)', display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '1.05rem', marginTop: '0.2rem' }}>
-                        <ShieldCheck size={18} /> {userProfile.dateOfBirth ? new Date(userProfile.dateOfBirth).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Verified 18+'}
+                        <ShieldCheck size={18} /> {userProfile.ageVerified ? 'Age verified' : userProfile.dateOfBirth ? new Date(userProfile.dateOfBirth).toLocaleDateString('en-AU', { day: 'numeric', month: 'long', year: 'numeric' }) : 'Not verified'}
                       </strong>
                     </div>
 

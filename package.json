@@ -13,6 +13,7 @@
     "deploy:hosting": "bash scripts/deploy-firebase.sh --hosting-only"
   },
   "dependencies": {
+    "@didit-protocol/sdk-web": "^0.4.0",
     "@tanstack/react-query": "^5.102.3",
     "@types/three": "^0.185.4",
     "canvas-confetti": "^1.9.4",

@@ -18,9 +18,10 @@ import {
 } from '../utils/deliveryHours';
 import type { DeliveryMethod } from '../types';
 import { normalizeLoyaltyTier, resolveProductPointsCost } from '../utils/rewards';
+import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
+import { ensureAgeVerified } from '../lib/didit';
 import {
   ShoppingBag,
-  ShieldAlert,
   Tag,
   ChevronLeft,
   User,
@@ -66,7 +67,7 @@ export const CustomerDetailsPage: React.FC = () => {
   const setImmediateDispatchFee = rewardsMode ? rewardsCart.setImmediateDispatchFee : setProductImmediateDispatchFee;
   const isFreeShipping = rewardsMode ? false : productIsFreeShipping;
   const shippingFee = rewardsMode ? rewardsCart.shippingFee : productShippingFee;
-  const { currentUser, userProfile, loading: authLoading } = useAuth();
+  const { currentUser, userProfile, loading: authLoading, refreshProfile } = useAuth();
   const loyaltyTier = normalizeLoyaltyTier(userProfile?.loyaltyTier);
   const { selectedLocation } = useLocationSelection();
   const { showToast } = useToast();
@@ -81,8 +82,9 @@ export const CustomerDetailsPage: React.FC = () => {
   const [country] = useState('Australia');
   const [couponCode, setCouponCode] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
-  const [ageConfirmed, setAgeConfirmed] = useState(false);
   const [openInfo, setOpenInfo] = useState<DeliveryMethod | null>('immediate');
+  const [verifyingAge, setVerifyingAge] = useState(false);
+  const [ageBlockMessage, setAgeBlockMessage] = useState('');
   const [now, setNow] = useState(() => new Date());
   const profileStamp = [
     currentUser?.uid ?? '',
@@ -187,27 +189,49 @@ export const CustomerDetailsPage: React.FC = () => {
     setOpenInfo(method);
   };
 
-  const handleContinueRewards = () => {
-    if (!name.trim() || !email.trim() || !phone.trim() || !street.trim() || !suburb.trim() || !postcodeReady || !ageConfirmed) {
-      showToast('Please complete your details and confirm you are 18 or older.', 'error');
+  const handleContinue = async (destination: 'rewards' | 'checkout') => {
+    if (verifyingAge || authLoading) return;
+    if (!name.trim() || !email.trim() || !phone.trim() || !street.trim() || !suburb.trim() || !postcodeReady) {
+      showToast('Please complete your contact and delivery details.', 'error');
       return;
     }
     if (deliveryMethod === 'immediate' && !immediateAvailable) {
       showToast('Immediate Dispatch is not available for this address.', 'error');
       return;
     }
-    rewardsCart.setCheckoutDraft({
-      name: name.trim(),
-      email: email.trim(),
-      phone: phone.trim(),
-      street: street.trim(),
-      suburb: suburb.trim(),
-      state: stateVal,
-      postcode: postcode.trim(),
-      country,
-      ageConfirmed: true
-    });
-    navigate('/checkout?mode=rewards');
+
+    setVerifyingAge(true);
+    setAgeBlockMessage('');
+    try {
+      const result = await ensureAgeVerified({
+        mode: currentUser ? 'account' : 'guest',
+        alreadyVerified: userProfile?.ageVerified === true
+      });
+      if (!result.ok) {
+        if (result.hardBlock) setAgeBlockMessage(result.message);
+        showToast(result.message, 'error');
+        return;
+      }
+      if (currentUser) await refreshProfile();
+      if (destination === 'rewards') {
+        rewardsCart.setCheckoutDraft({
+          name: name.trim(),
+          email: email.trim(),
+          phone: phone.trim(),
+          street: street.trim(),
+          suburb: suburb.trim(),
+          state: stateVal,
+          postcode: postcode.trim(),
+          country,
+          ageConfirmed: true
+        });
+        navigate('/checkout?mode=rewards');
+        return;
+      }
+      navigate('/checkout');
+    } finally {
+      setVerifyingAge(false);
+    }
   };
 
   const rewardsReturnPath = '/account?tab=rewards&panel=shop';
@@ -266,7 +290,6 @@ export const CustomerDetailsPage: React.FC = () => {
           </Link>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', flexWrap: 'wrap', gap: '1rem' }}>
             <div>
-              <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>Delivery Details</span>
               <h1 style={{ fontSize: '2.4rem', color: 'var(--text-primary)', margin: 0 }}>Customer & Delivery Details</h1>
             </div>
             {currentUser && (
@@ -467,27 +490,6 @@ export const CustomerDetailsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="card" style={{
-                padding: '1.5rem',
-                backgroundColor: ageConfirmed ? 'rgba(46, 125, 50, 0.08)' : 'rgba(220, 38, 38, 0.08)',
-                border: ageConfirmed ? '1px solid rgba(76, 175, 80, 0.4)' : '1px solid rgba(220, 38, 38, 0.3)'
-              }}>
-                <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'flex-start' }}>
-                  <input
-                    type="checkbox"
-                    id="checkoutAgeCheck"
-                    checked={ageConfirmed}
-                    onChange={(e) => setAgeConfirmed(e.target.checked)}
-                    style={{ width: '20px', height: '20px', marginTop: '0.15rem', cursor: 'pointer', accentColor: 'var(--accent-gold)' }}
-                  />
-                  <label htmlFor="checkoutAgeCheck" style={{ cursor: 'pointer', fontSize: '0.9rem', color: 'var(--text-primary)', lineHeight: 1.5 }}>
-                    <strong style={{ color: ageConfirmed ? '#4caf50' : 'var(--accent-gold)', display: 'block', marginBottom: '0.25rem' }}>
-                      Age Verification & Delivery Requirements Confirmation <span style={{ color: '#dc2626' }}>*</span>
-                    </strong>
-                    I confirm that I am <strong>18 years of age or older</strong> and agree that valid government-issued photo ID must be presented upon delivery.
-                  </label>
-                </div>
-              </div>
             </div>
 
             <div>
@@ -618,34 +620,28 @@ export const CustomerDetailsPage: React.FC = () => {
                   </div>
                 </div>
 
-                <div style={{ padding: '0.75rem', backgroundColor: '#f5f5f7', borderRadius: '6px', border: '1px solid rgba(0,0,0,0.06)', fontSize: '0.775rem', color: '#86868b', marginBottom: '1.25rem', display: 'flex', gap: '0.5rem', alignItems: 'center' }}>
-                  <ShieldAlert size={16} style={{ color: '#dc2626', flexShrink: 0 }} />
-                  <span>Mandatory 18+ photo ID is verified by delivery personnel upon arrival.</span>
+                <div style={{ marginBottom: '1.25rem' }}>
+                  <AgeVerificationNotice loggedIn={Boolean(currentUser)} ageVerified={userProfile?.ageVerified === true} />
                 </div>
-
-                {rewardsMode ? (
-                  <button
-                    type="button"
-                    className="btn btn-primary btn-lg btn-full"
-                    onClick={handleContinueRewards}
-                  >
-                    Continue to checkout
-                  </button>
-                ) : (
-                  <button
-                    type="button"
-                    disabled
-                    aria-disabled="true"
-                    className="btn btn-primary btn-lg btn-full"
-                    style={{ display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem', opacity: 0.55, cursor: 'not-allowed' }}
-                  >
-                    Payment unavailable
-                  </button>
+                {ageBlockMessage && (
+                  <p style={{ color: '#dc2626', fontSize: '0.85rem', lineHeight: 1.5, margin: '0 0 1rem' }}>{ageBlockMessage}</p>
                 )}
+
+                <button
+                  type="button"
+                  className="btn btn-primary btn-lg btn-full"
+                  onClick={() => handleContinue(rewardsMode ? 'rewards' : 'checkout')}
+                  disabled={verifyingAge || authLoading}
+                >
+                  {verifyingAge ? 'Verifying age...' : 'Continue to checkout'}
+                </button>
+                <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.75rem 0 0 0', lineHeight: 1.5 }}>
+                  If you are not already age verified, continuing opens a secure age check.
+                </p>
                 <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.75rem 0 0 0', lineHeight: 1.5 }}>
                   {rewardsMode
                     ? 'Delivery is added on the next step. Online payment is still paused, so the reward order will not be placed yet.'
-                    : 'Online payment is temporarily unavailable. You can review these details, but orders cannot be placed right now.'}
+                    : 'Online payment is temporarily unavailable. Age verification still runs before checkout, but the order will not be placed yet.'}
                 </p>
               </div>
             </div>

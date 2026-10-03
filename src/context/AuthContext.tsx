@@ -3,12 +3,12 @@ import {
   type User as FirebaseUser,
   onAuthStateChanged,
   signInWithEmailAndPassword,
-  createUserWithEmailAndPassword,
   signOut as firebaseSignOut,
   sendPasswordResetEmail
 } from 'firebase/auth';
-import { doc, getDoc, setDoc, updateDoc } from 'firebase/firestore';
+import { doc, getDoc, updateDoc } from 'firebase/firestore';
 import { auth, db } from '../firebase';
+import { completeDiditSignup, diditErrorMessage } from '../lib/didit';
 import type { UserProfile } from '../types';
 
 interface AuthContextType {
@@ -17,23 +17,17 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   isMemberOrAdmin: boolean;
-  signUp: (email: string, pass: string, name: string, dateOfBirth: string) => Promise<void>;
+  signUp: (
+    email: string,
+    pass: string,
+    name: string,
+    verification: { pendingSignupId?: string; sessionId?: string }
+  ) => Promise<void>;
   logIn: (email: string, pass: string) => Promise<void>;
   logOut: () => Promise<void>;
   resetPassword: (email: string) => Promise<void>;
   updateUserProfile: (data: Partial<UserProfile>) => Promise<void>;
   refreshProfile: () => Promise<void>;
-}
-
-export function calculateAge(dateOfBirth: string): number {
-  const birthDate = new Date(dateOfBirth);
-  const today = new Date();
-  let age = today.getFullYear() - birthDate.getFullYear();
-  const m = today.getMonth() - birthDate.getMonth();
-  if (m < 0 || (m === 0 && today.getDate() < birthDate.getDate())) {
-    age--;
-  }
-  return age;
 }
 
 const AuthContext = createContext<AuthContextType | undefined>(undefined);
@@ -72,38 +66,31 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     return unsubscribe;
   }, []);
 
-  const signUp = async (email: string, pass: string, name: string, dateOfBirth: string) => {
-    // Hard age validation
-    const age = calculateAge(dateOfBirth);
-    if (isNaN(age) || age < 18) {
-      throw new Error('You must be 18 years of age or older to register an account.');
+  const signUp = async (
+    email: string,
+    pass: string,
+    name: string,
+    verification: { pendingSignupId?: string; sessionId?: string }
+  ) => {
+    try {
+      await completeDiditSignup({
+        email,
+        password: pass,
+        displayName: name,
+        pendingSignupId: verification.pendingSignupId,
+        sessionId: verification.sessionId
+      });
+    } catch (err) {
+      throw new Error(diditErrorMessage(err, 'Could not create the account.'));
     }
 
-    const res = await createUserWithEmailAndPassword(auth, email, pass);
-    const newProfile: UserProfile = {
-      uid: res.user.uid,
-      email: email,
-      displayName: name,
-      dateOfBirth: dateOfBirth,
-      role: 'customer',
-      createdAt: new Date().toISOString(),
-      addresses: []
-    };
-
-    await setDoc(doc(db, 'users', res.user.uid), newProfile);
-    setUserProfile(newProfile);
+    const res = await signInWithEmailAndPassword(auth, email, pass);
+    await fetchProfile(res.user.uid);
   };
 
   const logIn = async (email: string, pass: string) => {
     const res = await signInWithEmailAndPassword(auth, email, pass);
-    const profile = await fetchProfile(res.user.uid);
-    if (profile?.dateOfBirth) {
-      const age = calculateAge(profile.dateOfBirth);
-      if (age < 18) {
-        await firebaseSignOut(auth);
-        throw new Error('Account restricted. Age is under 18 years old.');
-      }
-    }
+    await fetchProfile(res.user.uid);
   };
 
   const logOut = async () => {

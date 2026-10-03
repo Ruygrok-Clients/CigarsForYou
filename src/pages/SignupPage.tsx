@@ -1,8 +1,16 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useAuth, calculateAge } from '../context/AuthContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
-import { ShieldCheck, UserPlus, Lock, Mail, Calendar, User, Eye, EyeOff } from 'lucide-react';
+import {
+  clearCachedDiditApproval,
+  createDiditSession,
+  diditErrorMessage,
+  openDiditAndWait,
+  readCachedDiditApproval,
+  writeCachedDiditApproval
+} from '../lib/didit';
+import { ShieldCheck, UserPlus, Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
 
 export const SignupPage: React.FC = () => {
   const { signUp } = useAuth();
@@ -13,30 +21,55 @@ export const SignupPage: React.FC = () => {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [showPassword, setShowPassword] = useState(false);
-  const [dateOfBirth, setDateOfBirth] = useState('');
   const [loading, setLoading] = useState(false);
+  const [hasCachedApproval] = useState(() => Boolean(readCachedDiditApproval()));
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (!dateOfBirth) {
-      showToast('Date of Birth is mandatory for 18+ verification', 'error');
-      return;
-    }
-
-    const calculatedAge = calculateAge(dateOfBirth);
-    if (isNaN(calculatedAge) || calculatedAge < 18) {
-      showToast('Registration rejected. You must be 18 years of age or older.', 'error');
-      return;
-    }
-
     setLoading(true);
     try {
-      await signUp(email, password, name, dateOfBirth);
+      const cached = readCachedDiditApproval();
+      if (cached) {
+        try {
+          await signUp(email, password, name, { sessionId: cached.sessionId });
+          clearCachedDiditApproval();
+          showToast('Account successfully created!');
+          navigate('/account');
+          return;
+        } catch (err) {
+          const message = diditErrorMessage(err, 'Could not create the account.');
+          if (message.toLowerCase().includes('already exists')) {
+            showToast(message, 'error');
+            return;
+          }
+          clearCachedDiditApproval();
+        }
+      }
+
+      const session = await createDiditSession({
+        mode: 'signup',
+        email: email.trim(),
+        displayName: name.trim()
+      });
+      const status = await openDiditAndWait(session.url, session.sessionId);
+      if (status === 'Declined') {
+        clearCachedDiditApproval();
+        showToast('Age verification was declined. An account was not created.', 'error');
+        return;
+      }
+      if (status !== 'Approved') {
+        showToast('Age verification was not approved. An account was not created.', 'error');
+        return;
+      }
+
+      writeCachedDiditApproval(session.sessionId);
+      await signUp(email, password, name, { pendingSignupId: session.pendingSignupId, sessionId: session.sessionId });
+      clearCachedDiditApproval();
       showToast('Account successfully created!');
       navigate('/account');
-    } catch (err: any) {
+    } catch (err) {
       console.error('Signup error:', err);
-      showToast(err.message || 'Failed to create account', 'error');
+      showToast(diditErrorMessage(err, 'Failed to create account'), 'error');
     } finally {
       setLoading(false);
     }
@@ -54,7 +87,7 @@ export const SignupPage: React.FC = () => {
               Create Your Account
             </h1>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.9rem', marginTop: '0.5rem' }}>
-              Enjoy fast checkout, order tracking, and exclusive connoisseur offers.
+              Enjoy fast checkout, order tracking, and exclusive connoisseur offers. Creating an account opens a secure age check. Your account is created only after that check is approved.
             </p>
           </div>
 
@@ -89,27 +122,6 @@ export const SignupPage: React.FC = () => {
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
-            </div>
-
-            {/* Mandatory Date of Birth Field */}
-            <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--text-primary)' }}>
-                Date of Birth (Mandatory 18+ Check)
-              </label>
-              <div style={{ position: 'relative' }}>
-                <Calendar size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--color-primary)' }} />
-                <input
-                  type="date"
-                  required
-                  className="form-control"
-                  style={{ paddingLeft: '2.5rem', color: dateOfBirth ? '#000000' : '#666666', backgroundColor: '#ffffff' }}
-                  value={dateOfBirth}
-                  onChange={(e) => setDateOfBirth(e.target.value)}
-                />
-              </div>
-              <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.2rem' }}>
-                Must be at least 18 years old. Stored securely for legal audit compliance.
-              </span>
             </div>
 
             <div className="form-group">
@@ -156,7 +168,7 @@ export const SignupPage: React.FC = () => {
               disabled={loading}
               style={{ marginTop: '1.5rem', display: 'flex', alignItems: 'center', justifyContent: 'center', gap: '0.5rem' }}
             >
-              <UserPlus size={18} /> {loading ? 'Verifying & Registering...' : 'Create 18+ Verified Account'}
+              <UserPlus size={18} /> {loading ? 'Verifying & Registering...' : hasCachedApproval ? 'Create account' : 'Verify age & create account'}
             </button>
           </form>
 

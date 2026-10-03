@@ -1,13 +1,14 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
+import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
+import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import {
   ShoppingBag,
   Trash2,
-  ShieldAlert,
   Tag,
   ChevronLeft,
   Loader2
@@ -15,6 +16,7 @@ import {
 
 export const CartPage: React.FC = () => {
   const { cart, removeFromCart, updateQuantity, clearCart, appliedCoupons, applyCoupon, removeCoupon, subtotal, discountAmount, shippingFee, totalAmount, isFreeShipping, deliveryMethod } = useCart();
+  const { currentUser, userProfile } = useAuth();
   const { showToast } = useToast();
   const [couponCode, setCouponCode] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
@@ -69,7 +71,6 @@ export const CartPage: React.FC = () => {
       <div className="container">
         <div className="cart-header">
           <div>
-            <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>Checkout Preparation</span>
             <h1 style={{ fontSize: '2.5rem', color: 'var(--text-primary)' }}>Your Shopping Cart</h1>
           </div>
           <button className="btn btn-secondary btn-sm cart-clear-btn" onClick={clearCart}>
@@ -275,21 +276,8 @@ export const CartPage: React.FC = () => {
                 </div>
               </div>
 
-              {/* 18+ Warning Pill */}
-              <div style={{
-                padding: '0.85rem',
-                backgroundColor: '#f5f5f7',
-                borderRadius: '6px',
-                border: '1px solid rgba(0,0,0,0.06)',
-                fontSize: '0.8rem',
-                color: '#86868b',
-                marginBottom: '1.5rem',
-                display: 'flex',
-                gap: '0.5rem',
-                alignItems: 'center'
-              }}>
-                <ShieldAlert size={16} style={{ color: '#dc2626', flexShrink: 0 }} />
-                <span>Government-issued 18+ photo ID is checked upon delivery.</span>
+              <div style={{ marginBottom: '1.5rem' }}>
+                <AgeVerificationNotice loggedIn={Boolean(currentUser)} ageVerified={userProfile?.ageVerified === true} />
               </div>
 
               <Link
