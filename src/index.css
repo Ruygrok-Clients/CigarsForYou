@@ -856,6 +856,15 @@ select.form-control option {
   border-color: #c06517;
 }
 
+.medicart-pill-btn--specials {
+  font-weight: 700;
+  color: #d97706;
+}
+
+.medicart-pill-btn--specials:hover {
+  color: #ffffff;
+}
+
 .medicart-hero-pill-primary {
   background-color: #c06517;
   color: #ffffff;

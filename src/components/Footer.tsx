@@ -1,6 +1,6 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { CIGAR_BRANDS } from './Navbar';
+import { useCigarCategories } from '../hooks/useCigarCategories';
 
 const MARQUEE_ITEMS = [
   'IMMEDIATE DISPATCH',
@@ -10,6 +10,7 @@ const MARQUEE_ITEMS = [
 ];
 
 export const Footer: React.FC = () => {
+  const cigarCategories = useCigarCategories();
   return (
     <footer style={{
       backgroundColor: 'var(--bg-surface)',
@@ -158,7 +159,8 @@ export const Footer: React.FC = () => {
               <li><Link to="/news" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>News</Link></li>
               <li><Link to="/contact" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Contact Us</Link></li>
               <li><Link to="/shop" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Shop All Cigars</Link></li>
-              <li><Link to="/cigarettes" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Cigarettes (Coming Soon)</Link></li>
+              <li><Link to="/cigarettes" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Cigarettes</Link></li>
+              <li><Link to="/accessories" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Accessories</Link></li>
               <li><Link to="/cart" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Shopping Cart</Link></li>
               <li><Link to="/account" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>My Account</Link></li>
             </ul>
@@ -168,7 +170,7 @@ export const Footer: React.FC = () => {
           <div className="footer-col">
             <h4 style={{ fontSize: '1.05rem', marginBottom: '1rem', color: 'var(--text-primary)', fontWeight: 600 }}>Cuban Brands</h4>
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: 0, margin: 0 }}>
-              {CIGAR_BRANDS.map(brand => (
+              {cigarCategories.map(brand => (
                 <li key={brand.slug}>
                   <Link to={`/shop/${brand.slug}`} style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>
                     {brand.name}

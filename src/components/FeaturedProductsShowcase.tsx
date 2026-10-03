@@ -6,121 +6,6 @@ import { OptionWheel } from './OptionWheel';
 import { useCart } from '../context/CartContext';
 import { useToast } from './Toast';
 
-const FALLBACK_PRODUCTS: Product[] = [
-  {
-    id: 'cohiba-robustos',
-    name: 'Robustos',
-    brand: 'Cohiba',
-    slug: 'cohiba-robustos',
-    price: 127,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'The archetype of the Robusto format. Rich tones of cocoa, cedar, and subtle roasted nuts deliver a full-bodied smoking experience revered worldwide.'
-  },
-  {
-    id: 'partagas-serie-d-4',
-    name: 'Serie D No.4',
-    brand: 'Partagas',
-    slug: 'partagas-serie-d-4',
-    price: 62,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'A benchmark Robusto with deep earth, leather, and pepper notes. Renowned for its robust character and consistent draw.'
-  },
-  {
-    id: 'romeo-y-julieta-churchills',
-    name: 'Churchills',
-    brand: 'Romeo y Julieta',
-    slug: 'romeo-y-julieta-churchills',
-    price: 89,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'The signature cigar named in honor of Sir Winston Churchill. Smooth aromatic smoke featuring vanilla, oak, and delicate floral notes.'
-  },
-  {
-    id: 'montecristo-no-2',
-    name: 'Montecristo No.2',
-    brand: 'Montecristo',
-    slug: 'montecristo-no-2',
-    price: 95,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'The king of torpedoes. Perfectly tapered with a creamy profile of espresso, spice, and natural sweetness.'
-  },
-  {
-    id: 'hoyo-de-monterrey-epicure-2',
-    name: 'Epicure No.2',
-    brand: 'Hoyo De Monterrey',
-    slug: 'hoyo-de-monterrey-epicure-2',
-    price: 65,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'Mild to medium-bodied elegance. Silky smooth notes of cream, light cinnamon, and sweet wood.'
-  },
-  {
-    id: 'h-upmann-half-corona',
-    name: 'Half Corona',
-    brand: 'H. Upmann',
-    slug: 'h-upmann-half-corona',
-    price: 33,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'Compact yet intensely flavorful. Excellent 20-minute smoke packed with toasted nuts, coffee, and gentle spice.'
-  },
-  {
-    id: 'cohiba-siglo-vi',
-    name: 'Siglo VI',
-    brand: 'Cohiba',
-    slug: 'cohiba-siglo-vi',
-    price: 189,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'The crown jewel of the Linea 1492. Generous ring gauge delivering complex layers of honey, cedar, and buttery leather.'
-  },
-  {
-    id: 'partagas-serie-p-2',
-    name: 'Serie P No.2',
-    brand: 'Partagas',
-    slug: 'partagas-serie-p-2',
-    price: 72,
-    currency: 'AUD',
-    stock: 100,
-    imageUrl: '',
-    category: 'cigars',
-    origin: 'Cuban',
-    active: true,
-    description: 'A classic Piramide showcasing Partagas spice and rich wood aromas with an exceptionally satisfying draw.'
-  }
-];
-
 interface FeaturedProductsShowcaseProps {
   products: Product[];
   loading?: boolean;
@@ -137,7 +22,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
   loading = false,
   onOpenNotifyModal
 }) => {
-  const displayProducts = products && products.length > 0 ? products : FALLBACK_PRODUCTS;
+  const displayProducts = products || [];
 
   const [selectedIndex, setSelectedIndex] = useState<number>(() => {
     return getDefaultFourthItemIndex(displayProducts);
@@ -147,18 +32,21 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
 
 
   useEffect(() => {
-    const activeList = products && products.length > 0 ? products : FALLBACK_PRODUCTS;
+    const activeList = products || [];
     const defaultIdx = getDefaultFourthItemIndex(activeList);
     setSelectedIndex(defaultIdx);
   }, [products]);
 
-  const activeIndex = Math.min(Math.max(selectedIndex, 0), displayProducts.length - 1);
-  const activeProduct = displayProducts[activeIndex] || displayProducts[0];
+  const activeIndex = displayProducts.length === 0
+    ? 0
+    : Math.min(Math.max(selectedIndex, 0), displayProducts.length - 1);
+  const activeProduct = displayProducts[activeIndex];
 
   const wheelItems = displayProducts.map(p => `${p.brand} ${p.name}`);
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();
+    if (!activeProduct) return;
     if (activeProduct.stock <= 0) {
       if (onOpenNotifyModal) onOpenNotifyModal(activeProduct);
       return;
@@ -171,10 +59,19 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
     if (p.description && p.description.trim().length > 10) {
       return p.description;
     }
-    const match = FALLBACK_PRODUCTS.find(f => f.brand.toLowerCase() === p.brand?.toLowerCase() || f.name.toLowerCase() === p.name?.toLowerCase());
-    if (match && match.description) return match.description;
-    return `Hand-crafted in Havana with 100% Vuelta Abajo long-filler tobacco leaves. Aged under optimal humidity to deliver rich cedar notes, leather undertones, and a smooth draw.`;
+    return p.description?.trim() || 'Published catalogue item.';
   };
+
+  if (!loading && displayProducts.length === 0) return null;
+  if (loading || !activeProduct) {
+    return (
+      <section className="featured-products-section">
+        <div className="container" style={{ textAlign: 'center', padding: '4rem 0', color: '#8e7362' }}>
+          Loading humidor inventory...
+        </div>
+      </section>
+    );
+  }
 
   return (
     <section className="featured-products-section">
@@ -217,7 +114,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
             backgroundColor: '#ffffff',
             fontWeight: 600
           }}>
-            View All Catalog ({displayProducts.length > 8 ? displayProducts.length : '60+'}) <ChevronRight size={16} />
+            View All Catalog ({displayProducts.length}) <ChevronRight size={16} />
           </Link>
         </div>
 

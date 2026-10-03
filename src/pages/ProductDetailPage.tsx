@@ -2,7 +2,7 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { Product, PackagingOption } from '../types';
+import type { Product, PackagingOption, ProductRange } from '../types';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { StockNotificationModal } from '../components/StockNotificationModal';
@@ -10,10 +10,12 @@ import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBa
 import { useProductViewers } from '../hooks/useProductViewers';
 import { 
   getExtendedProductDetails,
-  getRecommendedCigarsForProduct,
   getRecCigarUnitPrice,
   getRecCigarPackName
 } from '../data/productExtraData';
+import { rangeBasePath, rangeLabel } from '../constants/productRanges';
+import { fetchProducts } from '../services/catalog';
+import { selectFrequentlyBoughtTogether } from '../utils/frequentlyBoughtTogether';
 import { 
   Bell, 
   Flame, 
@@ -76,54 +78,18 @@ export const ProductDetailPage: React.FC = () => {
           if (!snapId.empty) {
             const docData = snapId.docs[0];
             foundProduct = { id: docData.id, ...docData.data() } as Product;
-          } else {
-            // Fallback product generator if DB is missing this slug
-            const formattedName = slug.split('-').map(w => w.charAt(0).toUpperCase() + w.slice(1)).join(' ');
-            foundProduct = {
-              id: slug,
-              name: formattedName,
-              brand: slug.toLowerCase().includes('cohiba') ? 'Cohiba' :
-                     slug.toLowerCase().includes('montecristo') ? 'Montecristo' :
-                     slug.toLowerCase().includes('partagas') ? 'Partagas' :
-                     slug.toLowerCase().includes('romeo') ? 'Romeo y Julieta' :
-                     slug.toLowerCase().includes('hoyo') ? 'Hoyo De Monterrey' :
-                     slug.toLowerCase().includes('upmann') ? 'H. Upmann' : 'Habanos',
-              slug: slug,
-              price: 85,
-              currency: 'AUD',
-              stock: 50,
-              imageUrl: '',
-              category: 'cigars',
-              origin: 'Cuban',
-              active: true,
-              description: `Authentic hand-rolled Cuban cigar featuring premium Vuelta Abajo aged tobacco leaves.`
-            };
           }
         }
         setProduct(foundProduct);
 
-        // Fetch real IN-STOCK recommended cigars from DB or fallback catalog
         try {
-          const recQuery = query(collection(db, 'products'), where('active', '==', true), limit(8));
-          const recSnap = await getDocs(recQuery);
-          let recList: Product[] = [];
-          recSnap.forEach(doc => {
-            const data = { id: doc.id, ...doc.data() } as Product;
-            if (data.slug !== slug && data.stock > 0) {
-              recList.push(data);
-            }
-          });
-
-          if (recList.length < 2) {
-            recList = getRecommendedCigarsForProduct(slug);
-          } else {
-            recList = recList.slice(0, 2);
-          }
-          setRecommendedCigars(recList);
+          const catalog = await fetchProducts();
+          const shown = foundProduct ? selectFrequentlyBoughtTogether(foundProduct, catalog) : [];
+          setRecommendedCigars(shown);
 
           const initialChecked: Record<string, boolean> = {};
           const initialPacks: Record<string, string> = {};
-          recList.forEach(item => {
+          shown.forEach(item => {
             const itemKey = item.id || item.slug;
             initialChecked[itemKey] = true;
             initialPacks[itemKey] = 'single';
@@ -131,17 +97,8 @@ export const ProductDetailPage: React.FC = () => {
           setSelectedBundleItems(initialChecked);
           setSelectedRecPackagings(initialPacks);
         } catch (err) {
-          const fallbackRecs = getRecommendedCigarsForProduct(slug);
-          setRecommendedCigars(fallbackRecs);
-          const initialChecked: Record<string, boolean> = {};
-          const initialPacks: Record<string, string> = {};
-          fallbackRecs.forEach(item => {
-            const itemKey = item.id || item.slug;
-            initialChecked[itemKey] = true;
-            initialPacks[itemKey] = 'single';
-          });
-          setSelectedBundleItems(initialChecked);
-          setSelectedRecPackagings(initialPacks);
+          console.error('Error fetching related products:', err);
+          setRecommendedCigars([]);
         }
 
       } catch (err) {
@@ -161,11 +118,15 @@ export const ProductDetailPage: React.FC = () => {
 
   // Auto-select initial packaging option (prefer largest in-stock size, or fallback to first option)
   useEffect(() => {
-    if (extraDetails && extraDetails.packagingOptions.length > 0 && !selectedPackaging && product) {
-      const bestAvailable = extraDetails.packagingOptions.find(opt => isOptionAvailable(opt.id, product.stock)) 
-                         || extraDetails.packagingOptions[0];
-      setSelectedPackaging(bestAvailable);
-    }
+    if (!extraDetails || selectedPackaging || !product) return;
+    const cigarProduct = !product.category || product.category === 'cigars';
+    const options = cigarProduct
+      ? extraDetails.packagingOptions
+      : (product.packagingOptions && product.packagingOptions.length > 0
+        ? product.packagingOptions
+        : [{ id: 'single', name: 'Each', priceMultiplier: 1, stock: product.stock }]);
+    const bestAvailable = options.find(opt => isOptionAvailable(opt.id, product.stock)) || options[0];
+    setSelectedPackaging(bestAvailable);
   }, [extraDetails, selectedPackaging, product]);
 
   // Max quantity calculation based on product stock and selected packaging option size
@@ -198,9 +159,9 @@ export const ProductDetailPage: React.FC = () => {
     return (
       <div style={{ backgroundColor: '#ffffff', minHeight: '80vh', padding: '6rem 0', textAlign: 'center' }}>
         <div className="container">
-          <h2 style={{ color: '#2f0d0e', marginBottom: '1rem', fontFamily: 'var(--font-serif)', fontSize: '2rem' }}>Cigar Not Found</h2>
+          <h2 style={{ color: '#2f0d0e', marginBottom: '1rem', fontFamily: 'var(--font-serif)', fontSize: '2rem' }}>Product Not Found</h2>
           <p style={{ color: '#5c3537', marginBottom: '2rem' }}>
-            The requested product could not be located in our humidor catalog.
+            The requested product could not be located in our catalogue.
           </p>
           <Link to="/shop" className="btn btn-primary">
             Return to Shop Catalog
@@ -209,6 +170,23 @@ export const ProductDetailPage: React.FC = () => {
       </div>
     );
   }
+
+  const isCigar = !product.category || product.category === 'cigars';
+  const productRange: ProductRange = product.category || 'cigars';
+  const rangePath = rangeBasePath(productRange);
+  const packagingOptions = isCigar
+    ? extraDetails.packagingOptions
+    : (product.packagingOptions && product.packagingOptions.length > 0
+      ? product.packagingOptions
+      : [{ id: 'single', name: 'Each', priceMultiplier: 1, stock: product.stock }]);
+  const story = isCigar
+    ? extraDetails.expandedDesc
+    : (product.extendedDescription || product.description || '');
+  const tastingNotes = isCigar ? extraDetails.tastingNotes : (product.tastingNotes || []);
+  const detailTagline = isCigar
+    ? extraDetails.tagline
+    : (product.tagline || product.description || '');
+  const rangeEyebrow = isCigar ? 'CUBAN CIGARS' : rangeLabel(productRange).toUpperCase();
 
   const currentMultiplier = selectedPackaging ? selectedPackaging.priceMultiplier : 1;
   const unitPrice = Math.round(product.price * currentMultiplier);
@@ -263,10 +241,20 @@ export const ProductDetailPage: React.FC = () => {
     return selectedBundleItems[key];
   });
 
+  const extraPrice = (item: Product, packId: string) => {
+    if (!item.category || item.category === 'cigars') return getRecCigarUnitPrice(item, packId);
+    return Math.round(item.price);
+  };
+  const extraPackName = (item: Product, packId: string) => {
+    if (!item.category || item.category === 'cigars') return getRecCigarPackName(packId);
+    return 'Each';
+  };
+  const isCigarItem = (item: Product) => !item.category || item.category === 'cigars';
+
   const recommendedSubtotal = checkedRecommendedCigars.reduce((sum, c) => {
     const key = c.id || c.slug;
     const packId = selectedRecPackagings[key] || 'single';
-    return sum + getRecCigarUnitPrice(c, packId);
+    return sum + extraPrice(c, packId);
   }, 0);
 
   const bundleTotalPrice = totalLinePrice + recommendedSubtotal;
@@ -286,8 +274,8 @@ export const ProductDetailPage: React.FC = () => {
     checkedRecommendedCigars.forEach(cigar => {
       const key = cigar.id || cigar.slug;
       const packId = selectedRecPackagings[key] || 'single';
-      const packPrice = getRecCigarUnitPrice(cigar, packId);
-      const packName = getRecCigarPackName(packId);
+      const packPrice = extraPrice(cigar, packId);
+      const packName = extraPackName(cigar, packId);
 
       const cigarToAdd: Product = {
         ...cigar,
@@ -297,7 +285,7 @@ export const ProductDetailPage: React.FC = () => {
       addToCart(cigarToAdd, 1);
     });
 
-    showToast(`Added bundle (${1 + checkedRecommendedCigars.length} cigars) to your cart!`);
+    showToast(`Added bundle (${1 + checkedRecommendedCigars.length} items) to your cart!`);
   };
 
   const brandHist = extraDetails.brandHist;
@@ -316,6 +304,29 @@ export const ProductDetailPage: React.FC = () => {
           width: 100% !important;
         }
 
+        /* Frequently Bought Together: stack cards + pluses on mobile */
+        .fbt-product-chain {
+          display: flex;
+          flex-direction: column;
+          align-items: center;
+          gap: 0.75rem;
+        }
+        .fbt-product-card {
+          width: 100% !important;
+          max-width: 280px;
+          box-sizing: border-box;
+        }
+        .fbt-plus {
+          display: flex;
+          align-items: center;
+          justify-content: center;
+          width: 100%;
+          line-height: 1;
+        }
+        .fbt-bundle-box {
+          padding: 1.25rem !important;
+        }
+
         @media (min-width: 769px) {
           .product-detail-grid {
             grid-template-columns: repeat(auto-fit, minmax(320px, 1fr)) !important;
@@ -327,6 +338,23 @@ export const ProductDetailPage: React.FC = () => {
             align-self: start !important;
             width: auto !important;
           }
+          .fbt-product-chain {
+            flex-direction: row;
+            flex-wrap: wrap;
+            align-items: stretch;
+            justify-content: center;
+            gap: 1.5rem;
+          }
+          .fbt-product-card {
+            width: 230px !important;
+            max-width: none;
+          }
+          .fbt-plus {
+            width: auto;
+          }
+          .fbt-bundle-box {
+            padding: 2rem !important;
+          }
         }
       `}</style>
 
@@ -334,9 +362,9 @@ export const ProductDetailPage: React.FC = () => {
       <div style={{ borderBottom: '1px solid #f0f0f2', backgroundColor: '#ffffff', padding: '1rem 0' }}>
         <div className="container">
           <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#6e6e73' }}>
-            <Link to="/shop" style={{ color: '#6e6e73', textDecoration: 'none' }}>Cigars / Shop</Link>
+            <Link to={rangePath} style={{ color: '#6e6e73', textDecoration: 'none' }}>{rangeLabel(productRange)}</Link>
             <ChevronRight size={14} style={{ opacity: 0.6 }} />
-            <Link to={`/shop?brand=${encodeURIComponent(product.brand)}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>
+            <Link to={`${rangePath}/${encodeURIComponent(product.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>
               {product.brand}
             </Link>
             <ChevronRight size={14} style={{ opacity: 0.6 }} />
@@ -394,7 +422,7 @@ export const ProductDetailPage: React.FC = () => {
                       {product.brand}
                     </div>
                     <div style={{ fontSize: '0.85rem', color: '#86868b', marginTop: '0.4rem' }}>
-                      Authentic {product.origin || 'Cuban'} Tobacco Vitola
+                      {isCigar ? `Authentic ${product.origin || 'Cuban'} Tobacco Vitola` : rangeLabel(productRange)}
                     </div>
                   </div>
                 )}
@@ -413,7 +441,7 @@ export const ProductDetailPage: React.FC = () => {
                 color: '#c06517',
                 marginBottom: '0.6rem'
               }}>
-                {product.brand} • CUBAN CIGARS
+                {product.brand} • {rangeEyebrow}
               </div>
 
               {/* Title */}
@@ -468,10 +496,10 @@ export const ProductDetailPage: React.FC = () => {
 
               {/* Subtitle summary */}
               <p style={{ color: '#515154', fontSize: '0.98rem', lineHeight: 1.5, marginBottom: '2rem' }}>
-                {extraDetails.tagline}
+                {detailTagline}
               </p>
 
-              {/* SELECT SIZE / PACKAGING */}
+              {(isCigar || packagingOptions.length > 1) && (
               <div style={{ marginBottom: '2rem' }}>
                 <div style={{
                   fontSize: '0.75rem',
@@ -485,7 +513,7 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', gap: '0.85rem', flexWrap: 'wrap' }}>
-                  {extraDetails.packagingOptions.map((opt) => {
+                  {packagingOptions.map((opt) => {
                     const isSelected = selectedPackaging?.id === opt.id;
                     const optPrice = Math.round(product.price * opt.priceMultiplier);
                     const optInStock = isOptionAvailable(opt.id, product.stock);
@@ -528,6 +556,7 @@ export const ProductDetailPage: React.FC = () => {
                   })}
                 </div>
               </div>
+              )}
 
               {/* Action Buttons: Conditional based on selected option stock */}
               <div style={{ marginBottom: '2.5rem' }}>
@@ -685,14 +714,14 @@ export const ProductDetailPage: React.FC = () => {
                 paddingTop: '1.5rem',
                 borderTop: '1px solid #f0f0f2'
               }}>
-                {extraDetails.expandedDesc.split('\n\n').map((paragraph, idx) => (
+                {story.split('\n\n').filter(Boolean).map((paragraph, idx) => (
                   <p key={idx} style={{ marginBottom: '1rem' }}>
                     {paragraph}
                   </p>
                 ))}
               </div>
 
-              {/* BENEFITS / TASTING NOTES (Matching Screenshot Style) */}
+              {tastingNotes.length > 0 && (
               <div style={{ marginBottom: '2.5rem' }}>
                 <div style={{
                   fontSize: '0.75rem',
@@ -706,7 +735,7 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
-                  {extraDetails.tastingNotes.map((note, index) => (
+                  {tastingNotes.map((note, index) => (
                     <div key={index} style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', fontSize: '0.94rem', color: '#1d1d1f' }}>
                       <span style={{ color: '#c06517', fontWeight: 700 }}>—</span>
                       <span>{note}</span>
@@ -714,8 +743,9 @@ export const ProductDetailPage: React.FC = () => {
                   ))}
                 </div>
               </div>
+              )}
 
-              {/* SPECIFICATIONS (Matching Screenshot Style) */}
+              {isCigar && (
               <div>
                 <div style={{
                   fontSize: '0.75rem',
@@ -751,12 +781,13 @@ export const ProductDetailPage: React.FC = () => {
                   </div>
                 </div>
               </div>
+              )}
             </div>
           </div>
         </div>
       </div>
 
-      {/* BRAND & HISTORY SECTION */}
+      {isCigar && (
       <div style={{ backgroundColor: '#faf7f5', borderTop: '1px solid #eae2dc', borderBottom: '1px solid #eae2dc', padding: '4.5rem 0' }}>
         <div className="container">
           <div style={{ maxWidth: '960px', margin: '0 auto' }}>
@@ -811,7 +842,7 @@ export const ProductDetailPage: React.FC = () => {
 
             {/* Brand History Story Text */}
             <div style={{ color: '#422829', fontSize: '1.02rem', lineHeight: 1.8, marginBottom: '2.5rem' }}>
-              {brandHist.history.split('\n\n').map((para, i) => (
+              {(product.brandHistory?.trim() || brandHist.history).split('\n\n').map((para, i) => (
                 <p key={i} style={{ marginBottom: '1.25rem' }}>
                   {para}
                 </p>
@@ -859,8 +890,9 @@ export const ProductDetailPage: React.FC = () => {
           </div>
         </div>
       </div>
+      )}
 
-      {/* RECOMMENDATIONS / FREQUENTLY BOUGHT TOGETHER SECTION */}
+      {recommendedCigars.length > 0 && (
       <div style={{ padding: '5rem 0 3rem 0', backgroundColor: '#ffffff' }}>
         <div className="container">
           {/* Main Product Out of Stock (stock <= 0): Display "Explore Other Products In Stock" */}
@@ -876,7 +908,7 @@ export const ProductDetailPage: React.FC = () => {
                   Explore Other Products In Stock
                 </h2>
                 <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginTop: '0.4rem' }}>
-                  Hand-selected premium Cuban cigars currently in stock in our humidor.
+                  Other products currently in stock that pair with this item.
                 </p>
               </div>
 
@@ -961,28 +993,23 @@ export const ProductDetailPage: React.FC = () => {
                   Frequently Bought Together
                 </h2>
                 <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginTop: '0.4rem' }}>
-                  Pair your {product.name} with these highly rated complementary Cuban cigars.
+                  Often bought with this item.
                 </p>
               </div>
 
-              <div style={{
+              <div className="fbt-bundle-box" style={{
                 border: '1px solid #e5e5e7',
                 borderRadius: '12px',
                 padding: '2rem',
                 backgroundColor: '#fafafa',
                 boxShadow: '0 4px 20px rgba(0,0,0,0.03)'
               }}>
-                {/* Horizontal Product Cards Chain (Spacious cards with volume selection) */}
-                <div style={{
-                  display: 'flex',
-                  alignItems: 'stretch',
-                  justifyContent: 'center',
-                  gap: '1.5rem',
-                  flexWrap: 'wrap',
+                {/* Product Cards Chain (column on mobile, row on desktop) */}
+                <div className="fbt-product-chain" style={{
                   marginBottom: '2.5rem'
                 }}>
                   {/* Main Product Card */}
-                  <div style={{
+                  <div className="fbt-product-card" style={{
                     backgroundColor: '#ffffff',
                     border: '2px solid #c06517',
                     borderRadius: '10px',
@@ -1048,14 +1075,11 @@ export const ProductDetailPage: React.FC = () => {
                     const cigarKey = cigar.id || cigar.slug;
                     const isChecked = selectedBundleItems[cigarKey];
                     const selectedPackId = selectedRecPackagings[cigarKey] || 'single';
-                    const packPrice = getRecCigarUnitPrice(cigar, selectedPackId);
+                    const packPrice = extraPrice(cigar, selectedPackId);
 
                     return (
                       <React.Fragment key={cigarKey}>
-                        <div style={{
-                          display: 'flex',
-                          alignItems: 'center',
-                          justifyContent: 'center',
+                        <div className="fbt-plus" style={{
                           color: '#86868b',
                           fontWeight: 700,
                           fontSize: '1.4rem'
@@ -1063,7 +1087,7 @@ export const ProductDetailPage: React.FC = () => {
                           +
                         </div>
 
-                        <div style={{
+                        <div className="fbt-product-card" style={{
                           backgroundColor: '#ffffff',
                           border: isChecked ? '1px solid #1d1d1f' : '1px solid #e5e5e7',
                           borderRadius: '10px',
@@ -1100,7 +1124,7 @@ export const ProductDetailPage: React.FC = () => {
                               </div>
                             </Link>
 
-                            {/* Packaging / Volume Selection for Recommended Cigar */}
+                            {isCigarItem(cigar) ? (
                             <div style={{ marginTop: '0.5rem' }}>
                               <select
                                 value={selectedPackId}
@@ -1129,6 +1153,11 @@ export const ProductDetailPage: React.FC = () => {
                                 )}
                               </select>
                             </div>
+                            ) : (
+                              <div style={{ marginTop: '0.5rem', fontSize: '0.82rem', fontWeight: 600, color: '#6e6e73' }}>
+                                Each (${cigar.price.toFixed(2)})
+                              </div>
+                            )}
                           </div>
 
                           <div style={{ fontSize: '0.95rem', fontWeight: 800, color: '#1d1d1f', marginTop: '0.75rem' }}>
@@ -1162,8 +1191,8 @@ export const ProductDetailPage: React.FC = () => {
                   {recommendedCigars.map((cigar) => {
                     const cigarKey = cigar.id || cigar.slug;
                     const selectedPackId = selectedRecPackagings[cigarKey] || 'single';
-                    const packPrice = getRecCigarUnitPrice(cigar, selectedPackId);
-                    const packName = getRecCigarPackName(selectedPackId);
+                    const packPrice = extraPrice(cigar, selectedPackId);
+                    const packName = extraPackName(cigar, selectedPackId);
 
                     return (
                       <label key={cigarKey} style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', cursor: 'pointer', fontSize: '0.92rem', color: '#1d1d1f' }}>
@@ -1196,7 +1225,7 @@ export const ProductDetailPage: React.FC = () => {
                   }}>
                     <div>
                       <div style={{ fontSize: '0.82rem', color: '#86868b', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
-                        TOTAL PRICE FOR {1 + checkedRecommendedCigars.length} CIGARS
+                        TOTAL PRICE FOR {1 + checkedRecommendedCigars.length} ITEMS
                       </div>
                       <div style={{ fontSize: '1.8rem', fontWeight: 800, color: '#1d1d1f' }}>
                         ${bundleTotalPrice.toFixed(2)} <span style={{ fontSize: '0.9rem', color: '#6e6e73', fontWeight: 500 }}>AUD</span>
@@ -1233,6 +1262,7 @@ export const ProductDetailPage: React.FC = () => {
           )}
         </div>
       </div>
+      )}
 
       {/* Stock Notification Modal */}
       {notifyModalOpen && (

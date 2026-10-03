@@ -297,7 +297,7 @@ export const DispatchPackagingSection: React.FC = () => {
               borderRadius: '0 10px 10px 0'
             }}>
               <span style={{ fontWeight: 600, color: '#2f0d0e' }}>Please note:</span>{' '}
-              Cigarettes ship in standard dispatch packaging. Our cedar wooden boxes are reserved for cigar orders only.
+              Cigarettes and accessories ship in standard dispatch packaging. Our cedar wooden boxes are reserved for cigar orders only.
             </p>
           </div>
 

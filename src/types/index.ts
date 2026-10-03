@@ -72,16 +72,32 @@ export interface PackagingOption {
   stock: number;
 }
 
+export type ProductRange = 'cigars' | 'cigarettes' | 'accessories';
+
+export interface CatalogCategory {
+  id?: string;
+  range: ProductRange;
+  name: string;
+  slug: string;
+  sortOrder: number;
+}
+
 export interface Product {
   id?: string;
   name: string;
   brand: string;
+  /** Managed category for this product's range. `brand` mirrors the category name. */
+  catalogCategoryId?: string;
   slug: string;
   price: number; // AUD
   currency: 'AUD';
   stock: number;
   imageUrl: string;
-  category: 'cigars' | 'cigarettes';
+  category: ProductRange;
+  /** Accessory only. Ranges where this product may appear in Frequently Bought Together. */
+  fbtRanges?: ProductRange[];
+  /** Set by the monthly sales job. Featured accessories are more likely to be picked within their category. */
+  fbtFeatured?: boolean;
   origin: string; // e.g. 'Cuban'
   active: boolean;
   description?: string;
@@ -247,7 +263,7 @@ export interface Coupon {
 export interface EmailSubscriber {
   id?: string;
   email: string;
-  source: 'cigarettes-coming-soon';
+  source: 'cigars-coming-soon' | 'cigarettes-coming-soon' | 'accessories-coming-soon';
   subscribedAt: string;
 }
 

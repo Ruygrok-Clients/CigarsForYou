@@ -233,7 +233,7 @@ export const AdminMarketing: React.FC = () => {
         <div>
           <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
             <p style={{ color: 'var(--text-secondary)', margin: 0, fontSize: '0.9rem' }}>
-              Customers who registered on the <strong>Cigarettes Coming Soon</strong> launch landing page.
+              Customers who asked to be notified when a product range launches. The source column shows whether they signed up for cigars, cigarettes, or accessories.
             </p>
             <button className="btn btn-secondary btn-sm" onClick={handleExportSubscribersCSV} style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
               <Download size={16} /> Export Subscribers CSV

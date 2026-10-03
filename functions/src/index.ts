@@ -20,6 +20,7 @@ import {
   writeStockNotifySocialProof,
 } from "./socialProof";
 import { placeRewardOrderForUser, reevaluateLoyaltyTiers, syncOrderRewards } from "./rewards";
+import { assignMonthlyAccessoryFeatured } from "./fbtFeatured";
 import { googleMapsApiKey } from "./immediateDispatchFee";
 
 export { createDiditSession, getDiditStatus, claimDiditForUser, completeSignup, diditWebhook } from "./didit";
@@ -167,6 +168,14 @@ export const placeRewardOrder = onCall({ secrets: [googleMapsApiKey] }, async (r
  */
 export const reevaluateLoyaltyTiersDaily = onSchedule("every 24 hours", async () => {
   await reevaluateLoyaltyTiers();
+});
+
+/** First of each month, Sydney time. Marks last month's best-selling accessory in each category. */
+export const assignAccessoryFbtFeatured = onSchedule({
+  schedule: "15 0 1 * *",
+  timeZone: "Australia/Sydney",
+}, async () => {
+  await assignMonthlyAccessoryFeatured(db);
 });
 
 /**

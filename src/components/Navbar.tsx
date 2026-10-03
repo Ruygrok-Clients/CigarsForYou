@@ -20,22 +20,20 @@ import { useLocationSelection } from '../context/LocationContext';
 import { useClosingSoon } from '../context/ClosingSoonContext';
 import { AdminAccountGate } from './AdminAccountGate';
 import { AUSTRALIAN_STATES } from '../constants/locations';
-import { CIGAR_CATALOG } from '../data/cigarCatalog';
 import { normalizeLoyaltyTier, TIER_COLORS } from '../utils/rewards';
+import { CIGAR_BRANDS } from '../constants/productRanges';
+import { useCigarCategories } from '../hooks/useCigarCategories';
+import { fetchProducts } from '../services/catalog';
+import type { Product, ProductRange } from '../types';
+import { productMatchesRange } from '../constants/productRanges';
+
+export { CIGAR_BRANDS };
 
 const CLOSING_BANNER_HEIGHT = 36;
 
-export const CIGAR_BRANDS = [
-  { name: 'Cohiba', slug: 'cohiba' },
-  { name: 'Partagas', slug: 'partagas' },
-  { name: 'Romeo y Julieta', slug: 'romeo-y-julieta' },
-  { name: 'Montecristo', slug: 'montecristo' },
-  { name: 'Hoyo De Monterrey', slug: 'hoyo-de-monterrey' },
-  { name: 'H. Upmann', slug: 'h-upmann' },
-  { name: 'Punch', slug: 'punch' }
-];
-
 export const Navbar: React.FC = () => {
+  const cigarCategories = useCigarCategories();
+  const [liveProducts, setLiveProducts] = useState<Product[]>([]);
   const { itemCount } = useCart();
   const { currentUser, userProfile, isAdmin } = useAuth();
   const { selectedLocation, setSelectedLocation } = useLocationSelection();
@@ -67,9 +65,24 @@ export const Navbar: React.FC = () => {
   const location = useLocation();
   const [searchParams] = useSearchParams();
 
+  useEffect(() => {
+    let cancelled = false;
+    fetchProducts()
+      .then((list) => {
+        if (cancelled) return;
+        setLiveProducts(list.filter((product) => product.active === true));
+      })
+      .catch((err) => {
+        console.error('Error loading products for search:', err);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   // Sync navbar search query with URL when on /shop page
   useEffect(() => {
-    if (location.pathname === '/shop') {
+    if (location.pathname === '/shop' || location.pathname.startsWith('/cigarettes') || location.pathname.startsWith('/accessories')) {
       const q = searchParams.get('search') || '';
       setSearchQuery(q);
     }
@@ -91,12 +104,20 @@ export const Navbar: React.FC = () => {
 
   const searchResults = useMemo(() => {
     if (!searchQuery.trim()) return [];
+    const rangeFilter: ProductRange | null = selectedCategory === 'Cigars'
+      ? 'cigars'
+      : selectedCategory === 'Cigarettes'
+        ? 'cigarettes'
+        : selectedCategory === 'Accessories'
+          ? 'accessories'
+          : null;
     const qWords = searchQuery.toLowerCase().trim().split(/\s+/);
-    return CIGAR_CATALOG.filter(p => {
+    return liveProducts.filter(p => {
+      if (rangeFilter && !productMatchesRange(p.category, rangeFilter)) return false;
       const text = `${p.brand} ${p.name} ${p.description || ''} ${p.origin || ''}`.toLowerCase();
       return qWords.every(word => text.includes(word));
     });
-  }, [searchQuery]);
+  }, [searchQuery, liveProducts, selectedCategory]);
 
   useEffect(() => {
     const updateNavbarHeight = () => {
@@ -161,19 +182,24 @@ export const Navbar: React.FC = () => {
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
     setIsSearchFocused(false);
-    if (selectedCategory === 'Cigarettes') {
-      navigate('/cigarettes');
-      return;
-    }
     const params = new URLSearchParams();
     if (searchQuery.trim()) {
       params.append('search', searchQuery.trim());
     }
+    const qStr = params.toString();
+    if (selectedCategory === 'Cigarettes') {
+      navigate(qStr ? `/cigarettes?${qStr}` : '/cigarettes');
+      return;
+    }
+    if (selectedCategory === 'Accessories') {
+      navigate(qStr ? `/accessories?${qStr}` : '/accessories');
+      return;
+    }
     if (selectedCategory === 'Cigars') {
       params.append('category', 'cigars');
     }
-    const qStr = params.toString();
-    navigate(qStr ? `/shop?${qStr}` : '/shop');
+    const shopQuery = params.toString();
+    navigate(shopQuery ? `/shop?${shopQuery}` : '/shop');
   };
 
   const handlePillScrollLeft = () => {
@@ -304,6 +330,7 @@ export const Navbar: React.FC = () => {
                     <option value="All Categories">All Categories</option>
                     <option value="Cigars">Cigars</option>
                     <option value="Cigarettes">Cigarettes</option>
+                    <option value="Accessories">Accessories</option>
                   </select>
 
                   <div style={{ width: '1px', height: '18px', backgroundColor: 'rgba(46, 26, 16, 0.15)', margin: '0 10px' }} />
@@ -378,7 +405,7 @@ export const Navbar: React.FC = () => {
                     alignItems: 'center',
                     justifyContent: 'space-between'
                   }}>
-                    <span>{searchResults.length} matching cigar{searchResults.length === 1 ? '' : 's'}</span>
+                    <span>{searchResults.length} matching product{searchResults.length === 1 ? '' : 's'}</span>
                     <button
                       type="button"
                       onClick={() => setIsSearchFocused(false)}
@@ -390,7 +417,7 @@ export const Navbar: React.FC = () => {
 
                   {searchResults.length === 0 ? (
                     <div style={{ padding: '1.25rem 1rem', textAlign: 'center', color: '#71717a', fontSize: '0.85rem' }}>
-                      No cigars found matching "{searchQuery}"
+                      No products found matching "{searchQuery}"
                     </div>
                   ) : (
                     <div style={{ maxHeight: '340px', overflowY: 'auto' }}>
@@ -748,7 +775,7 @@ export const Navbar: React.FC = () => {
                   padding: '0 0.25rem'
                 }}
               >
-                <Link to="/shop?category=specials" className="medicart-pill-btn" style={{ fontWeight: 700, color: '#d97706' }}>
+                <Link to="/shop?category=specials" className="medicart-pill-btn medicart-pill-btn--specials">
                   Specials
                 </Link>
                 <Link to="/shop?category=cigars" className="medicart-pill-btn" style={{ fontWeight: 600 }}>
@@ -756,6 +783,9 @@ export const Navbar: React.FC = () => {
                 </Link>
                 <Link to="/cigarettes" className="medicart-pill-btn" style={{ fontWeight: 600 }}>
                   Cigarettes
+                </Link>
+                <Link to="/accessories" className="medicart-pill-btn" style={{ fontWeight: 600 }}>
+                  Accessories
                 </Link>
 
                 <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(46, 26, 16, 0.18)', margin: '0 6px', flexShrink: 0 }} />
@@ -772,7 +802,7 @@ export const Navbar: React.FC = () => {
 
                 <div style={{ width: '1px', height: '20px', backgroundColor: 'rgba(46, 26, 16, 0.18)', margin: '0 6px', flexShrink: 0 }} />
 
-                {CIGAR_BRANDS.map((b) => (
+                {cigarCategories.map((b) => (
                   <Link
                     key={b.slug}
                     to={`/shop/${b.slug}`}
@@ -1044,6 +1074,7 @@ export const Navbar: React.FC = () => {
                   <option value="All Categories">All Categories</option>
                   <option value="Cigars">Cigars</option>
                   <option value="Cigarettes">Cigarettes</option>
+                  <option value="Accessories">Accessories</option>
                 </select>
 
                 <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(46, 26, 16, 0.15)', margin: '0 6px' }} />
@@ -1115,7 +1146,7 @@ export const Navbar: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'space-between'
                 }}>
-                  <span>{searchResults.length} matching cigar{searchResults.length === 1 ? '' : 's'}</span>
+                  <span>{searchResults.length} matching product{searchResults.length === 1 ? '' : 's'}</span>
                   <button
                     type="button"
                     onClick={() => setIsSearchFocused(false)}
@@ -1127,7 +1158,7 @@ export const Navbar: React.FC = () => {
 
                 {searchResults.length === 0 ? (
                   <div style={{ padding: '1rem 0.85rem', textAlign: 'center', color: '#71717a', fontSize: '0.825rem' }}>
-                    No cigars found matching "{searchQuery}"
+                    No products found matching "{searchQuery}"
                   </div>
                 ) : (
                   <div style={{ maxHeight: '260px', overflowY: 'auto' }}>
@@ -1242,7 +1273,7 @@ export const Navbar: React.FC = () => {
                   padding: '0 0.2rem'
                 }}
               >
-                <Link to="/shop?category=specials" className="medicart-pill-btn" style={{ fontWeight: 700, color: '#d97706', fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                <Link to="/shop?category=specials" className="medicart-pill-btn medicart-pill-btn--specials" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
                   Specials
                 </Link>
                 <Link to="/shop?category=cigars" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
@@ -1250,6 +1281,9 @@ export const Navbar: React.FC = () => {
                 </Link>
                 <Link to="/cigarettes" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
                   Cigarettes
+                </Link>
+                <Link to="/accessories" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                  Accessories
                 </Link>
 
                 <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(46, 26, 16, 0.18)', margin: '0 4px', flexShrink: 0 }} />
@@ -1266,7 +1300,7 @@ export const Navbar: React.FC = () => {
 
                 <div style={{ width: '1px', height: '16px', backgroundColor: 'rgba(46, 26, 16, 0.18)', margin: '0 4px', flexShrink: 0 }} />
 
-                {CIGAR_BRANDS.map((b) => (
+                {cigarCategories.map((b) => (
                   <Link
                     key={b.slug}
                     to={`/shop/${b.slug}`}

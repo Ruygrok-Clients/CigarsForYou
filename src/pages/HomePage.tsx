@@ -10,11 +10,12 @@ import { AboutUsSection } from '../components/AboutUsSection';
 import { DispatchPackagingSection } from '../components/DispatchPackagingSection';
 import { TrustBannerSection } from '../components/TrustBannerSection';
 import { SocialProofSlider } from '../components/SocialProofSlider';
-import { CIGAR_BRANDS } from '../components/Navbar';
+import { useCigarCategories } from '../hooks/useCigarCategories';
 import { Award, ChevronRight, Truck } from 'lucide-react';
 import bgVideo from '../assets/BG-Vid.mov';
 
 export const HomePage: React.FC = () => {
+  const cigarCategories = useCigarCategories();
   const [featuredProducts, setFeaturedProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedNotifyProduct, setSelectedNotifyProduct] = useState<Product | null>(null);
@@ -33,7 +34,8 @@ export const HomePage: React.FC = () => {
         const snap = await getDocs(q);
         const list: Product[] = [];
         snap.forEach(doc => {
-          list.push({ id: doc.id, ...doc.data() } as Product);
+          const product = { id: doc.id, ...doc.data() } as Product;
+          if (product.active === true) list.push(product);
         });
 
         // Group products by brand and interleave to create a diverse brand mix
@@ -288,7 +290,7 @@ export const HomePage: React.FC = () => {
                     style={{ flex: '1 1 140px', minWidth: '140px' }}
                   >
                     <option value="Brands">Brands</option>
-                    {CIGAR_BRANDS.map(b => (
+                    {cigarCategories.map(b => (
                       <option key={b.slug} value={b.name}>{b.name}</option>
                     ))}
                   </select>
@@ -508,7 +510,7 @@ export const HomePage: React.FC = () => {
                       style={{ width: '100%' }}
                     >
                       <option value="Brands">Brands</option>
-                      {CIGAR_BRANDS.map(b => (
+                      {cigarCategories.map(b => (
                         <option key={b.slug} value={b.name}>{b.name}</option>
                       ))}
                     </select>
@@ -599,7 +601,7 @@ export const HomePage: React.FC = () => {
             gridTemplateColumns: 'repeat(auto-fill, minmax(180px, 1fr))',
             gap: '1.25rem'
           }}>
-            {CIGAR_BRANDS.map(b => (
+            {cigarCategories.map(b => (
               <Link
                 key={b.slug}
                 to={`/shop/${b.slug}`}

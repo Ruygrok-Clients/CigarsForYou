@@ -25,6 +25,7 @@ import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
 import { ProductDetailPage } from './pages/ProductDetailPage';
 import { CigarettesPage } from './pages/CigarettesPage';
+import { AccessoriesPage } from './pages/AccessoriesPage';
 import { CartPage } from './pages/CartPage';
 import { CustomerDetailsPage } from './pages/CustomerDetailsPage';
 import { CheckoutPage } from './pages/CheckoutPage';
@@ -127,6 +128,8 @@ export default function App() {
                       <Route path="/product/:slug" element={<ProductDetailPage />} />
                       <Route path="/cigarettes" element={<CigarettesPage />} />
                       <Route path="/cigarettes/:brandSlug" element={<CigarettesPage />} />
+                      <Route path="/accessories" element={<AccessoriesPage />} />
+                      <Route path="/accessories/:categorySlug" element={<AccessoriesPage />} />
                       <Route path="/cart" element={<CartPage />} />
                       <Route path="/checkout-details" element={<CustomerDetailsPage />} />
                       <Route path="/checkout" element={<CheckoutPage />} />
