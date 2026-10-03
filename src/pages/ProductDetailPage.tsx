@@ -22,6 +22,7 @@ import {
   Bell, 
   Flame, 
   ChevronRight,
+  ArrowRight,
   Calendar,
   MapPin,
   Building
@@ -748,21 +749,27 @@ export const ProductDetailPage: React.FC = () => {
                   type="button"
                   onClick={() => document.getElementById('frequently-bought-together')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
                   style={{
-                    display: 'block',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'space-between',
+                    gap: '0.85rem',
                     width: '100%',
                     textAlign: 'left',
                     marginTop: '1.25rem',
-                    padding: '0.85rem 1rem',
+                    padding: '0.9rem 1rem',
                     borderRadius: '8px',
                     border: '1px solid rgba(192, 101, 23, 0.35)',
                     background: 'rgba(192, 101, 23, 0.08)',
                     color: '#1d1d1f',
                     fontSize: '0.92rem',
-                    lineHeight: 1.5,
+                    lineHeight: 1.45,
                     cursor: 'pointer'
                   }}
                 >
-                  Based on our data {product.fbtStat}% of customers buy one or all of these with this product
+                  <span>
+                    Based on our data, <strong>{product.fbtStat}%</strong> of customers also buy one or more of the items in Frequently Bought Together
+                  </span>
+                  <ArrowRight size={18} strokeWidth={2.25} style={{ flexShrink: 0, color: '#c06517' }} aria-hidden="true" />
                 </button>
               )}
             </div>

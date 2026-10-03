@@ -875,7 +875,8 @@ export const AdminProducts: React.FC = () => {
               </button>
               <div
                 ref={tabStripRef}
-                style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', flex: 1, scrollbarWidth: 'thin' }}
+                className="no-scrollbar"
+                style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', flex: 1 }}
               >
                 {EDITOR_TABS.map((tab) => (
                   <button
