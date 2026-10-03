@@ -126,7 +126,7 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
 
       if (searchQuery.trim()) {
         const words = searchQuery.toLowerCase().trim().split(/\s+/);
-        const searchable = `${product.brand} ${product.name} ${product.description || ''} ${product.origin || ''} ${product.category || ''}`.toLowerCase();
+        const searchable = `${product.brand} ${product.name} ${product.shortDescription || ''} ${product.extendedDescription || ''} ${product.origin || ''} ${product.category || ''}`.toLowerCase();
         if (!words.every((word) => searchable.includes(word))) return false;
       }
 

@@ -1,4 +1,5 @@
 import React from 'react';
+import { Modal } from './Modal';
 import { useLocation } from 'react-router-dom';
 import { ArrowRight, Clock, Truck } from 'lucide-react';
 import { EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
@@ -13,7 +14,7 @@ export const ClosingSoonModal: React.FC = () => {
   }
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 99999 }}>
+    <Modal style={{ zIndex: 99999 }}>
       <div
         className="modal-content"
         style={{
@@ -108,6 +109,6 @@ export const ClosingSoonModal: React.FC = () => {
           <ArrowRight size={18} />
         </button>
       </div>
-    </div>
+    </Modal>
   );
 };

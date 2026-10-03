@@ -5,6 +5,7 @@ import type { Order, OrderStatus } from '../../types';
 import { orderSourceLabel } from '../../utils/rewards';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
+import { Modal } from '../../components/Modal';
 import { 
   ShoppingBag, 
   Trash2, 
@@ -530,7 +531,7 @@ export const AdminOrders: React.FC = () => {
 
       {/* Order Detail Modal */}
       {selectedOrder && (
-        <div className="modal-overlay" onClick={() => setSelectedOrder(null)}>
+        <Modal onClick={() => setSelectedOrder(null)}>
           <div
             className="modal-content"
             style={{ maxWidth: '640px', position: 'relative' }}
@@ -720,11 +721,11 @@ export const AdminOrders: React.FC = () => {
               </div>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
 
       {cancelTarget && (
-        <div className="modal-overlay" onClick={() => { if (!cancelling) setCancelTarget(null); }}>
+        <Modal onClick={() => { if (!cancelling) setCancelTarget(null); }}>
           <div
             className="modal-content"
             style={{ maxWidth: '560px', position: 'relative' }}
@@ -846,7 +847,7 @@ export const AdminOrders: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

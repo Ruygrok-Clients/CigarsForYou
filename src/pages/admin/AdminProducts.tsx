@@ -1,28 +1,45 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { addDoc, collection, deleteDoc, deleteField, doc, updateDoc } from 'firebase/firestore';
 import { getDownloadURL, ref, uploadBytes } from 'firebase/storage';
 import { db, storage } from '../../firebase';
-import type { BulkDiscountTier, CatalogCategory, Product, ProductRange, ProductSpecification } from '../../types';
+import type { BrandStory, BulkDiscountTier, CatalogCategory, Product, ProductRange, ProductSpecification } from '../../types';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
+import { Modal } from '../../components/Modal';
 import { PRODUCT_RANGES, rangeLabel, slugifyLabel } from '../../constants/productRanges';
 import { DEFAULT_BULK_DISCOUNT_TIERS, isTobaccoRange, percentToMultiplier, savingsPercent } from '../../utils/bulkPricing';
 import {
+  deleteBrandStory,
   ensureDefaultCigarCategories,
+  fetchBrandStories,
   fetchCatalogCategories,
   fetchProducts,
-  productUsesCategory
+  productUsesCategory,
+  saveBrandStory
 } from '../../services/catalog';
-import { Plus, Search, X, Layers, Trash2 } from 'lucide-react';
+import { Plus, Search, X, Layers, Trash2, ChevronLeft, ChevronRight } from 'lucide-react';
 
-type EditorTab = 'identity' | 'media' | 'pricing' | 'story' | 'danger';
+type EditorTab = 'identity' | 'media' | 'pricing' | 'story' | 'fbt' | 'danger';
+type CatalogView = ProductRange | 'brandStories';
 
 const EDITOR_TABS: { id: EditorTab; label: string }[] = [
   { id: 'identity', label: 'Identity & Category' },
   { id: 'media', label: 'Media & Imagery' },
   { id: 'pricing', label: 'Pricing & Stock' },
   { id: 'story', label: 'Description & Story' },
+  { id: 'fbt', label: 'FBT' },
   { id: 'danger', label: 'Danger Zone' }
+];
+
+const SPEC_FIELDS: { key: keyof ProductSpecification; label: string }[] = [
+  { key: 'vitola', label: 'Vitola Shape' },
+  { key: 'factoryName', label: 'Factory name' },
+  { key: 'length', label: 'Length' },
+  { key: 'strength', label: 'Strength Profile' },
+  { key: 'wrapper', label: 'Wrapper Leaf' },
+  { key: 'filler', label: 'Filler' },
+  { key: 'binder', label: 'Binder' },
+  { key: 'smokingTime', label: 'Smoking Duration' }
 ];
 
 const emptySpecs = (): ProductSpecification => ({
@@ -50,12 +67,14 @@ function blankProduct(range: ProductRange, category?: CatalogCategory): Product 
     category: range,
     origin: range === 'cigars' ? 'Cuban' : '',
     active: true,
-    description: '',
+    shortDescription: '',
     extendedDescription: '',
-    tagline: '',
-    brandHistory: '',
+    brandStoryId: '',
+    brandStoryName: '',
     tastingNotes: [],
     fbtRanges: [],
+    fbtCompanionIds: [],
+    fbtDefaultIds: [],
     specifications: emptySpecs()
   };
   if (isTobaccoRange(range)) {
@@ -64,20 +83,86 @@ function blankProduct(range: ProductRange, category?: CatalogCategory): Product 
   return product;
 }
 
+function blankStory(): BrandStory {
+  return {
+    name: '',
+    title: '',
+    factory: '',
+    origin: '',
+    founded: '',
+    description: '',
+    highlights: []
+  };
+}
+
+function StringListEditor({
+  label,
+  hint,
+  values,
+  onChange,
+  addLabel
+}: {
+  label: string;
+  hint?: string;
+  values: string[];
+  onChange: (next: string[]) => void;
+  addLabel: string;
+}) {
+  return (
+    <div className="form-group">
+      <label className="form-label">{label}</label>
+      {hint && (
+        <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 0 }}>{hint}</p>
+      )}
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem' }}>
+        {values.map((value, index) => (
+          <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem' }}>
+            <input
+              className="form-control"
+              value={value}
+              onChange={(e) => {
+                const next = [...values];
+                next[index] = e.target.value;
+                onChange(next);
+              }}
+            />
+            <button
+              type="button"
+              className="btn btn-danger btn-sm"
+              onClick={() => onChange(values.filter((_, itemIndex) => itemIndex !== index))}
+              aria-label="Remove"
+            >
+              <Trash2 size={14} />
+            </button>
+          </div>
+        ))}
+      </div>
+      <button
+        type="button"
+        className="btn btn-secondary btn-sm"
+        style={{ marginTop: '0.6rem' }}
+        onClick={() => onChange([...values, ''])}
+      >
+        {addLabel}
+      </button>
+    </div>
+  );
+}
+
 export const AdminProducts: React.FC = () => {
   const { screenLocked } = useAdminContext();
   const { showToast } = useToast();
 
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
+  const [brandStories, setBrandStories] = useState<BrandStory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [range, setRange] = useState<ProductRange>('cigars');
+  const [view, setView] = useState<CatalogView>('cigars');
   const [searchQuery, setSearchQuery] = useState('');
 
   const [editorOpen, setEditorOpen] = useState(false);
   const [editorTab, setEditorTab] = useState<EditorTab>('identity');
   const [draft, setDraft] = useState<Product>(blankProduct('cigars'));
-  const [notesText, setNotesText] = useState('');
   const [uploading, setUploading] = useState(false);
   const [saving, setSaving] = useState(false);
 
@@ -90,6 +175,14 @@ export const AdminProducts: React.FC = () => {
   const [editingCategoryName, setEditingCategoryName] = useState('');
   const [blockedCategory, setBlockedCategory] = useState<{ name: string; count: number } | null>(null);
   const [confirmDelete, setConfirmDelete] = useState(false);
+  const tabStripRef = useRef<HTMLDivElement>(null);
+
+  const [storyOpen, setStoryOpen] = useState(false);
+  const [storyDraft, setStoryDraft] = useState<BrandStory>(blankStory());
+  const [storySaving, setStorySaving] = useState(false);
+  const [blockedStory, setBlockedStory] = useState<{ name: string; count: number } | null>(null);
+
+  const range: ProductRange = view === 'brandStories' ? 'cigars' : view;
 
   const loadCatalog = async () => {
     setLoading(true);
@@ -99,7 +192,12 @@ export const AdminProducts: React.FC = () => {
       setProducts(productList);
       try {
         await ensureDefaultCigarCategories(productList);
-        setCategories(await fetchCatalogCategories());
+        const [categoryList, storyList] = await Promise.all([
+          fetchCatalogCategories(),
+          fetchBrandStories()
+        ]);
+        setCategories(categoryList);
+        setBrandStories(storyList);
       } catch (err) {
         console.error('Error loading categories:', err);
         showToast('Failed to load categories. Deploy the latest Firestore rules if this persists.', 'error');
@@ -123,7 +221,13 @@ export const AdminProducts: React.FC = () => {
         try {
           await ensureDefaultCigarCategories(productList);
           if (cancelled) return;
-          setCategories(await fetchCatalogCategories());
+          const [categoryList, storyList] = await Promise.all([
+            fetchCatalogCategories(),
+            fetchBrandStories()
+          ]);
+          if (cancelled) return;
+          setCategories(categoryList);
+          setBrandStories(storyList);
         } catch (err) {
           console.error('Error loading categories:', err);
           if (!cancelled) showToast('Failed to load categories. Deploy the latest Firestore rules if this persists.', 'error');
@@ -170,7 +274,11 @@ export const AdminProducts: React.FC = () => {
               ? product.bulkDiscountTiers.map((tier) => ({ ...tier }))
               : DEFAULT_BULK_DISCOUNT_TIERS.map((tier) => ({ ...tier })))
             : undefined,
-          tastingNotes: product.tastingNotes || []
+          tastingNotes: product.tastingNotes || [],
+          shortDescription: product.shortDescription || '',
+          extendedDescription: product.extendedDescription || '',
+          brandStoryId: product.brandStoryId || '',
+          brandStoryName: product.brandStoryName || ''
         }
       : blankProduct(range, rangeCategories[0]);
     const matched = rangeCategories.find((category) => category.id === next.catalogCategoryId)
@@ -180,7 +288,6 @@ export const AdminProducts: React.FC = () => {
       next.brand = matched.name;
     }
     setDraft(next);
-    setNotesText((next.tastingNotes || []).join('\n'));
     setEditorTab('identity');
     setConfirmDelete(false);
     setEditorOpen(true);
@@ -194,7 +301,12 @@ export const AdminProducts: React.FC = () => {
       showToast('A product name and category are required', 'error');
       return null;
     }
-    const notes = notesText.split('\n').map((line) => line.trim()).filter(Boolean);
+    if (!(draft.extendedDescription || '').trim()) {
+      setEditorTab('story');
+      showToast('Extended description is required', 'error');
+      return null;
+    }
+    const notes = (draft.tastingNotes || []).map((line) => line.trim()).filter(Boolean);
     const specs = draft.specifications || emptySpecs();
     const tobacco = isTobaccoRange(range);
     const tiers = tobacco
@@ -207,6 +319,7 @@ export const AdminProducts: React.FC = () => {
           }))
           .sort((a, b) => a.minQuantity - b.minQuantity)
       : undefined;
+    const linked = brandStories.find((story) => story.id === draft.brandStoryId);
 
     return {
       name: draft.name.trim(),
@@ -220,17 +333,35 @@ export const AdminProducts: React.FC = () => {
       category: range,
       origin: (draft.origin || '').trim(),
       active: draft.active,
-      description: (draft.description || '').trim(),
+      shortDescription: (draft.shortDescription || '').trim(),
       extendedDescription: (draft.extendedDescription || '').trim(),
-      tagline: (draft.tagline || '').trim(),
-      brandHistory: (draft.brandHistory || '').trim(),
+      brandStoryId: linked?.id || '',
+      brandStoryName: linked?.name || '',
       tastingNotes: notes,
       fbtRanges: range === 'accessories' ? (draft.fbtRanges || []) : [],
+      fbtStat: Number.isFinite(Number(draft.fbtStat)) ? Math.max(0, Math.min(100, Math.round(Number(draft.fbtStat)))) : undefined,
+      fbtCompanionIds: (draft.fbtCompanionIds || []).filter(Boolean).slice(0, 3),
+      fbtDefaultIds: (draft.fbtDefaultIds || []).filter((id) => id && id !== draft.id),
       specifications: range === 'cigars'
         ? Object.fromEntries(Object.entries(specs).filter(([, value]) => value !== undefined && value !== ''))
         : {},
       ...(tobacco && tiers ? { bulkDiscountTiers: tiers } : {})
     };
+  };
+
+  const stripProductFromFbtLists = async (productId: string) => {
+    const affected = products.filter((product) => (
+      product.id
+      && product.id !== productId
+      && (
+        (product.fbtCompanionIds || []).includes(productId)
+        || (product.fbtDefaultIds || []).includes(productId)
+      )
+    ));
+    await Promise.all(affected.map((product) => updateDoc(doc(db, 'products', product.id!), {
+      fbtCompanionIds: (product.fbtCompanionIds || []).filter((id) => id !== productId),
+      fbtDefaultIds: (product.fbtDefaultIds || []).filter((id) => id !== productId)
+    })));
   };
 
   const handleSaveProduct = async () => {
@@ -239,15 +370,30 @@ export const AdminProducts: React.FC = () => {
     if (!payload) return;
     setSaving(true);
     try {
+      const storyFields = payload.brandStoryId
+        ? { brandStoryId: payload.brandStoryId, brandStoryName: payload.brandStoryName || '' }
+        : { brandStoryId: deleteField(), brandStoryName: deleteField() };
       if (draft.id) {
         await updateDoc(doc(db, 'products', draft.id), {
           ...(payload as unknown as Record<string, unknown>),
+          ...storyFields,
           packagingOptions: deleteField(),
-          ...(isTobaccoRange(range) ? {} : { bulkDiscountTiers: deleteField() })
+          description: deleteField(),
+          tagline: deleteField(),
+          brandHistory: deleteField(),
+          ...(isTobaccoRange(range) ? {} : { bulkDiscountTiers: deleteField() }),
+          ...(payload.fbtStat === undefined ? { fbtStat: deleteField() } : {})
         });
+        if (!payload.active) await stripProductFromFbtLists(draft.id);
         showToast(`Updated product ${payload.name}`);
       } else {
-        await addDoc(collection(db, 'products'), payload);
+        const createPayload = { ...payload } as Record<string, unknown>;
+        if (payload.fbtStat === undefined) delete createPayload.fbtStat;
+        if (!payload.brandStoryId) {
+          delete createPayload.brandStoryId;
+          delete createPayload.brandStoryName;
+        }
+        await addDoc(collection(db, 'products'), createPayload);
         showToast(`Created new product ${payload.name}`);
       }
       setEditorOpen(false);
@@ -263,6 +409,7 @@ export const AdminProducts: React.FC = () => {
   const handleDeleteProduct = async () => {
     if (screenLocked || !draft.id) return;
     try {
+      await stripProductFromFbtLists(draft.id);
       await deleteDoc(doc(db, 'products', draft.id));
       showToast(`Deleted ${draft.name}`);
       setEditorOpen(false);
@@ -378,9 +525,12 @@ export const AdminProducts: React.FC = () => {
           price: 50,
           stock: 0,
           active: true,
-          description: 'Bulk added product pending details'
+          extendedDescription: 'Details coming soon.'
         };
-        await addDoc(collection(db, 'products'), payload);
+        const createPayload = { ...payload } as Record<string, unknown>;
+        delete createPayload.brandStoryId;
+        delete createPayload.brandStoryName;
+        await addDoc(collection(db, 'products'), createPayload);
       }
       showToast(`Bulk added ${names.length} product(s) at 0 stock`);
       setBulkOpen(false);
@@ -398,6 +548,56 @@ export const AdminProducts: React.FC = () => {
       bulkDiscountTiers[index] = { ...bulkDiscountTiers[index], ...patch };
       return { ...current, bulkDiscountTiers };
     });
+  };
+
+  const openStoryEditor = (story: BrandStory | null) => {
+    setStoryDraft(story ? { ...story, highlights: [...(story.highlights || [])] } : blankStory());
+    setStoryOpen(true);
+  };
+
+  const handleSaveStory = async () => {
+    if (screenLocked || storySaving) return;
+    if (!storyDraft.name.trim() || !storyDraft.description.trim()) {
+      showToast('A brand name and description are required', 'error');
+      return;
+    }
+    setStorySaving(true);
+    try {
+      const id = await saveBrandStory(storyDraft);
+      const name = storyDraft.name.trim();
+      const linked = products.filter((product) => product.brandStoryId === (storyDraft.id || id));
+      if (storyDraft.id) {
+        await Promise.all(linked.map((product) => {
+          if (!product.id) return Promise.resolve();
+          return updateDoc(doc(db, 'products', product.id), { brandStoryName: name });
+        }));
+      }
+      showToast(storyDraft.id ? `Updated ${name}` : `Created ${name}`);
+      setStoryOpen(false);
+      await loadCatalog();
+    } catch (err) {
+      console.error('Error saving brand story:', err);
+      showToast('Failed to save brand story', 'error');
+    } finally {
+      setStorySaving(false);
+    }
+  };
+
+  const handleDeleteStory = async (story: BrandStory) => {
+    if (screenLocked || !story.id) return;
+    const linked = products.filter((product) => product.brandStoryId === story.id);
+    if (linked.length > 0) {
+      setBlockedStory({ name: story.name, count: linked.length });
+      return;
+    }
+    try {
+      await deleteBrandStory(story.id);
+      showToast(`Deleted ${story.name}`);
+      setBrandStories(await fetchBrandStories());
+    } catch (err) {
+      console.error('Error deleting brand story:', err);
+      showToast('Failed to delete brand story', 'error');
+    }
   };
 
   const saveBar = (
@@ -420,127 +620,178 @@ export const AdminProducts: React.FC = () => {
           </span>
           <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)' }}>Products & Stock</h1>
         </div>
-        <div style={{ display: 'flex', gap: '0.75rem' }}>
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => {
-              if (rangeCategories.length === 0) {
-                showToast('Create a category for this range before bulk adding', 'error');
-                return;
-              }
-              setBulkCategoryId(rangeCategories[0].id || '');
-              setBulkOpen(true);
-            }}
-            disabled={screenLocked}
-            style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-          >
-            <Layers size={16} /> Bulk-Add Tool
-          </button>
+        {view === 'brandStories' ? (
           <button
             className="btn btn-primary btn-sm"
-            onClick={() => openEditor(null)}
+            onClick={() => openStoryEditor(null)}
             disabled={screenLocked}
             style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
           >
-            <Plus size={16} /> Add Product
+            <Plus size={16} /> Add Brand Story
           </button>
-        </div>
+        ) : (
+          <div style={{ display: 'flex', gap: '0.75rem' }}>
+            <button
+              className="btn btn-secondary btn-sm"
+              onClick={() => {
+                if (rangeCategories.length === 0) {
+                  showToast('Create a category for this range before bulk adding', 'error');
+                  return;
+                }
+                setBulkCategoryId(rangeCategories[0].id || '');
+                setBulkOpen(true);
+              }}
+              disabled={screenLocked}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Layers size={16} /> Bulk-Add Tool
+            </button>
+            <button
+              className="btn btn-primary btn-sm"
+              onClick={() => openEditor(null)}
+              disabled={screenLocked}
+              style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+            >
+              <Plus size={16} /> Add Product
+            </button>
+          </div>
+        )}
       </div>
 
-      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap' }}>
+      <div style={{ display: 'flex', gap: '0.5rem', marginBottom: '1.25rem', flexWrap: 'wrap', alignItems: 'center' }}>
         {PRODUCT_RANGES.map((item) => (
           <button
             key={item}
-            className={`btn btn-sm ${range === item ? 'btn-primary' : 'btn-secondary'}`}
+            className={`btn btn-sm ${view === item ? 'btn-primary' : 'btn-secondary'}`}
             onClick={() => {
-              setRange(item);
+              setView(item);
               setSearchQuery('');
             }}
           >
             {rangeLabel(item)}
           </button>
         ))}
+        <span aria-hidden="true" style={{ width: '1px', alignSelf: 'stretch', minHeight: '2rem', background: 'var(--border-color)', margin: '0 0.35rem' }} />
+        <button
+          className={`btn btn-sm ${view === 'brandStories' ? 'btn-primary' : 'btn-secondary'}`}
+          onClick={() => setView('brandStories')}
+        >
+          Brand Stories
+        </button>
       </div>
 
-      <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <div style={{ marginBottom: '0.85rem' }}>
-          <h2 style={{ fontSize: '1.15rem', marginBottom: '0.25rem' }}>{rangeLabel(range)} categories</h2>
-          <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
-            E.g. brands or product type e.g. Lighters etc.
-          </p>
-        </div>
-        <div style={{ display: 'flex', flexDirection: 'column', gap: '0.6rem', marginBottom: '1rem' }}>
-          {rangeCategories.length === 0 && (
-            <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: 0 }}>
-              No categories yet. Add one before creating products in this range.
-            </p>
-          )}
-          {rangeCategories.map((category) => (
-            <div key={category.id} style={{ display: 'flex', gap: '0.5rem', alignItems: 'center', flexWrap: 'wrap' }}>
-              {editingCategoryId === category.id ? (
-                <>
-                  <input
-                    className="form-control"
-                    value={editingCategoryName}
-                    onChange={(e) => setEditingCategoryName(e.target.value)}
-                    style={{ maxWidth: '280px' }}
-                  />
-                  <button className="btn btn-primary btn-sm" disabled={screenLocked} onClick={() => handleRenameCategory(category)}>Save</button>
-                  <button className="btn btn-secondary btn-sm" onClick={() => setEditingCategoryId(null)}>Cancel</button>
-                </>
-              ) : (
-                <>
-                  <strong style={{ minWidth: '140px' }}>{category.name}</strong>
-                  <button
-                    className="btn btn-secondary btn-sm"
-                    disabled={screenLocked}
-                    onClick={() => {
-                      setEditingCategoryId(category.id || null);
-                      setEditingCategoryName(category.name);
-                    }}
-                  >
-                    Rename
-                  </button>
-                  <button className="btn btn-danger btn-sm" disabled={screenLocked} onClick={() => handleDeleteCategory(category)}>
-                    Delete
-                  </button>
-                </>
-              )}
+      {view !== 'brandStories' && (
+        <>
+          <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+            <div style={{ marginBottom: '0.85rem' }}>
+              <h2 style={{ fontSize: '1.15rem', marginBottom: '0.25rem' }}>{rangeLabel(range)} categories</h2>
+              <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', margin: 0 }}>
+                Brands or product types, such as lighters. Rename and delete sit on each tile.
+              </p>
             </div>
-          ))}
-        </div>
-        <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
-          <input
-            className="form-control"
-            placeholder="New category name"
-            value={newCategoryName}
-            onChange={(e) => setNewCategoryName(e.target.value)}
-            style={{ maxWidth: '280px' }}
-          />
-          <button className="btn btn-secondary btn-sm" type="submit" disabled={screenLocked}>Add category</button>
-        </form>
-      </div>
+            {rangeCategories.length === 0 ? (
+              <p style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', margin: '0 0 1rem' }}>
+                No categories yet. Add one before creating products in this range.
+              </p>
+            ) : (
+              <div className="admin-category-grid" style={{ marginBottom: '1rem' }}>
+                {rangeCategories.map((category) => (
+                  <div key={category.id} className="admin-category-tile">
+                    {editingCategoryId === category.id ? (
+                      <div style={{ display: 'flex', gap: '0.4rem', width: '100%', flexWrap: 'wrap' }}>
+                        <input
+                          className="form-control"
+                          value={editingCategoryName}
+                          onChange={(e) => setEditingCategoryName(e.target.value)}
+                          style={{ flex: '1 1 140px', minWidth: 0 }}
+                        />
+                        <button className="btn btn-primary btn-sm" disabled={screenLocked} onClick={() => handleRenameCategory(category)}>Save</button>
+                        <button className="btn btn-secondary btn-sm" onClick={() => setEditingCategoryId(null)}>Cancel</button>
+                      </div>
+                    ) : (
+                      <>
+                        <strong>{category.name}</strong>
+                        <div style={{ display: 'flex', gap: '0.35rem', flexShrink: 0 }}>
+                          <button
+                            className="btn btn-secondary btn-sm"
+                            disabled={screenLocked}
+                            onClick={() => {
+                              setEditingCategoryId(category.id || null);
+                              setEditingCategoryName(category.name);
+                            }}
+                          >
+                            Rename
+                          </button>
+                          <button className="btn btn-danger btn-sm" disabled={screenLocked} onClick={() => handleDeleteCategory(category)}>
+                            Delete
+                          </button>
+                        </div>
+                      </>
+                    )}
+                  </div>
+                ))}
+              </div>
+            )}
+            <form onSubmit={handleAddCategory} style={{ display: 'flex', gap: '0.5rem', width: '100%' }}>
+              <input
+                className="form-control"
+                placeholder="New category name"
+                value={newCategoryName}
+                onChange={(e) => setNewCategoryName(e.target.value)}
+                style={{ flex: 1 }}
+              />
+              <button className="btn btn-secondary btn-sm" type="submit" disabled={screenLocked}>Add category</button>
+            </form>
+          </div>
 
-      <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
-        <div style={{ position: 'relative', maxWidth: '360px' }}>
-          <Search size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
-          <input
-            type="text"
-            className="form-control"
-            style={{ paddingLeft: '2.5rem' }}
-            placeholder="Search product or category..."
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-          />
-        </div>
-      </div>
+          <div className="card" style={{ padding: '1.25rem', marginBottom: '1.5rem' }}>
+            <div style={{ position: 'relative', maxWidth: '360px' }}>
+              <Search size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
+              <input
+                type="text"
+                className="form-control"
+                style={{ paddingLeft: '2.5rem' }}
+                placeholder="Search product or category..."
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+              />
+            </div>
+          </div>
+        </>
+      )}
 
       {loading ? (
         <div style={{ padding: '3rem 0', textAlign: 'center', color: 'var(--text-muted)' }}>Loading product catalog...</div>
+      ) : view === 'brandStories' ? (
+        <div className="card" style={{ padding: '1rem' }}>
+          {brandStories.length === 0 ? (
+            <p style={{ color: 'var(--text-muted)', margin: '0.5rem' }}>No brand stories yet.</p>
+          ) : (
+            <div className="admin-category-grid">
+              {brandStories.map((story) => {
+                const linkedCount = products.filter((product) => product.brandStoryId === story.id).length;
+                return (
+                  <div key={story.id} className="admin-category-tile" style={{ alignItems: 'flex-start', flexDirection: 'column' }}>
+                    <div style={{ width: '100%' }}>
+                      <strong style={{ display: 'block' }}>{story.name}</strong>
+                      <p style={{ margin: '0.25rem 0 0', color: 'var(--text-muted)', fontSize: '0.82rem' }}>
+                        {story.title || 'Untitled'} · {linkedCount} linked product{linkedCount === 1 ? '' : 's'}
+                      </p>
+                    </div>
+                    <div style={{ display: 'flex', gap: '0.35rem' }}>
+                      <button className="btn btn-secondary btn-sm" disabled={screenLocked} onClick={() => openStoryEditor(story)}>Edit</button>
+                      <button className="btn btn-danger btn-sm" disabled={screenLocked} onClick={() => handleDeleteStory(story)}>Delete</button>
+                    </div>
+                  </div>
+                );
+              })}
+            </div>
+          )}
+        </div>
       ) : (
         <div className="card" style={{ padding: '1rem' }}>
           <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <table className="admin-product-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
               <thead>
                 <tr style={{ borderBottom: '1px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)' }}>
                   <th style={{ padding: '0.75rem' }}>Category</th>
@@ -558,8 +809,9 @@ export const AdminProducts: React.FC = () => {
                   return (
                     <tr
                       key={product.id}
+                      className="admin-product-row"
                       onClick={() => openEditor(product)}
-                      style={{ borderBottom: '1px solid var(--border-subtle)', cursor: 'pointer' }}
+                      style={{ borderBottom: '1px solid var(--border-subtle)' }}
                     >
                       <td style={{ padding: '0.75rem', fontWeight: 600, color: 'var(--accent-gold)' }}>{product.brand}</td>
                       <td style={{ padding: '0.75rem', color: 'var(--text-primary)', fontWeight: 600 }}>{product.name}</td>
@@ -598,7 +850,7 @@ export const AdminProducts: React.FC = () => {
       )}
 
       {editorOpen && (
-        <div className="modal-overlay">
+        <Modal>
           <div className="modal-content" style={{ maxWidth: '760px', width: '100%', maxHeight: '90vh', overflow: 'auto', position: 'relative' }}>
             <button
               onClick={() => setEditorOpen(false)}
@@ -612,17 +864,39 @@ export const AdminProducts: React.FC = () => {
             <p style={{ color: 'var(--text-muted)', fontSize: '0.85rem', marginBottom: '1rem' }}>
               Range: {rangeLabel(range)}
             </p>
-            <div style={{ display: 'flex', gap: '0.4rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-              {EDITOR_TABS.map((tab) => (
-                <button
-                  key={tab.id}
-                  type="button"
-                  className={`btn btn-sm ${editorTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
-                  onClick={() => setEditorTab(tab.id)}
-                >
-                  {tab.label}
-                </button>
-              ))}
+            <div style={{ display: 'flex', alignItems: 'center', gap: '0.35rem', marginBottom: '1.25rem' }}>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                aria-label="Scroll tabs left"
+                onClick={() => tabStripRef.current?.scrollBy({ left: -180, behavior: 'smooth' })}
+              >
+                <ChevronLeft size={16} />
+              </button>
+              <div
+                ref={tabStripRef}
+                style={{ display: 'flex', gap: '0.4rem', overflowX: 'auto', flex: 1, scrollbarWidth: 'thin' }}
+              >
+                {EDITOR_TABS.map((tab) => (
+                  <button
+                    key={tab.id}
+                    type="button"
+                    className={`btn btn-sm ${editorTab === tab.id ? 'btn-primary' : 'btn-secondary'}`}
+                    style={{ flexShrink: 0 }}
+                    onClick={() => setEditorTab(tab.id)}
+                  >
+                    {tab.label}
+                  </button>
+                ))}
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                aria-label="Scroll tabs right"
+                onClick={() => tabStripRef.current?.scrollBy({ left: 180, behavior: 'smooth' })}
+              >
+                <ChevronRight size={16} />
+              </button>
             </div>
 
             {editorTab === 'identity' && (
@@ -743,31 +1017,38 @@ export const AdminProducts: React.FC = () => {
                   <div>
                     <label className="form-label">Bulk discount tiers</label>
                     <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 0 }}>
-                      Cigars and cigarettes only. Min quantity, then percent off the base unit price. Once a threshold is met, every unit uses that rate.
+                      Cigars and cigarettes only. Set a minimum quantity and the percent off the base unit price. Once that quantity is reached, every unit uses that discounted rate.
                     </p>
                     {(draft.bulkDiscountTiers || []).map((tier, index) => (
-                      <div key={`${tier.id}-${index}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', marginBottom: '0.5rem' }}>
-                        <input
-                          className="form-control"
-                          type="number"
-                          min={1}
-                          value={tier.minQuantity}
-                          onChange={(e) => {
-                            const minQuantity = Math.max(1, Number(e.target.value) || 1);
-                            updateTier(index, { minQuantity, id: `qty${minQuantity}` });
-                          }}
-                          placeholder="Min quantity"
-                        />
-                        <input
-                          className="form-control"
-                          type="number"
-                          min={0}
-                          max={100}
-                          step="1"
-                          value={savingsPercent(tier)}
-                          onChange={(e) => updateTier(index, { unitPriceMultiplier: percentToMultiplier(Number(e.target.value) || 0) })}
-                          placeholder="% off"
-                        />
+                      <div key={`${tier.id}-${index}`} style={{ display: 'grid', gridTemplateColumns: '1fr 1fr auto', gap: '0.5rem', marginBottom: '0.65rem', alignItems: 'end' }}>
+                        <div>
+                          <label className="form-label">Quantity</label>
+                          <input
+                            className="form-control"
+                            type="number"
+                            min={1}
+                            value={tier.minQuantity}
+                            onChange={(e) => {
+                              const minQuantity = Math.max(1, Number(e.target.value) || 1);
+                              updateTier(index, { minQuantity, id: `qty${minQuantity}` });
+                            }}
+                          />
+                        </div>
+                        <div>
+                          <label className="form-label">Discount</label>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem' }}>
+                            <input
+                              className="form-control"
+                              type="number"
+                              min={0}
+                              max={100}
+                              step="1"
+                              value={savingsPercent(tier)}
+                              onChange={(e) => updateTier(index, { unitPriceMultiplier: percentToMultiplier(Number(e.target.value) || 0) })}
+                            />
+                            <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>%</span>
+                          </div>
+                        </div>
                         <button
                           type="button"
                           className="btn btn-danger btn-sm"
@@ -775,6 +1056,7 @@ export const AdminProducts: React.FC = () => {
                             ...current,
                             bulkDiscountTiers: (current.bulkDiscountTiers || []).filter((_, itemIndex) => itemIndex !== index)
                           }))}
+                          aria-label="Remove tier"
                         >
                           <Trash2 size={14} />
                         </button>
@@ -802,37 +1084,34 @@ export const AdminProducts: React.FC = () => {
             {editorTab === 'story' && (
               <div>
                 <div className="form-group">
-                  <label className="form-label">Tagline</label>
-                  <input className="form-control" value={draft.tagline || ''} onChange={(e) => setDraft({ ...draft, tagline: e.target.value })} />
-                </div>
-                <div className="form-group">
                   <label className="form-label">Short description</label>
-                  <textarea className="form-control" rows={3} value={draft.description || ''} onChange={(e) => setDraft({ ...draft, description: e.target.value })} />
+                  <input
+                    className="form-control"
+                    value={draft.shortDescription || ''}
+                    onChange={(e) => setDraft({ ...draft, shortDescription: e.target.value })}
+                    placeholder="Cuban Hand-Rolled Vitola • Medium to Full Body"
+                  />
                 </div>
                 <div className="form-group">
                   <label className="form-label">Extended description</label>
-                  <textarea className="form-control" rows={4} value={draft.extendedDescription || ''} onChange={(e) => setDraft({ ...draft, extendedDescription: e.target.value })} />
+                  <textarea
+                    className="form-control"
+                    rows={5}
+                    required
+                    value={draft.extendedDescription || ''}
+                    onChange={(e) => setDraft({ ...draft, extendedDescription: e.target.value })}
+                  />
                 </div>
-                <div className="form-group">
-                  <label className="form-label">Tasting notes (one per line)</label>
-                  <textarea className="form-control" rows={4} value={notesText} onChange={(e) => setNotesText(e.target.value)} />
-                </div>
-                <div className="form-group">
-                  <label className="form-label">Brand story</label>
-                  <textarea className="form-control" rows={4} value={draft.brandHistory || ''} onChange={(e) => setDraft({ ...draft, brandHistory: e.target.value })} />
-                </div>
+                <StringListEditor
+                  label="Tasting notes"
+                  hint="Each note is its own line on the product page."
+                  values={draft.tastingNotes || []}
+                  onChange={(tastingNotes) => setDraft({ ...draft, tastingNotes })}
+                  addLabel="Add tasting note"
+                />
                 {range === 'cigars' && (
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem' }}>
-                    {([
-                      ['vitola', 'Vitola'],
-                      ['factoryName', 'Factory name'],
-                      ['length', 'Length'],
-                      ['strength', 'Strength'],
-                      ['wrapper', 'Wrapper'],
-                      ['filler', 'Filler'],
-                      ['binder', 'Binder'],
-                      ['smokingTime', 'Smoking time']
-                    ] as const).map(([key, label]) => (
+                    {SPEC_FIELDS.map(({ key, label }) => (
                       <div className="form-group" key={key}>
                         <label className="form-label">{label}</label>
                         <input
@@ -846,7 +1125,7 @@ export const AdminProducts: React.FC = () => {
                       </div>
                     ))}
                     <div className="form-group">
-                      <label className="form-label">Ring gauge</label>
+                      <label className="form-label">Ring Gauge</label>
                       <input
                         type="number"
                         className="form-control"
@@ -863,6 +1142,120 @@ export const AdminProducts: React.FC = () => {
                     </div>
                   </div>
                 )}
+                <div className="form-group" style={{ marginTop: '0.5rem' }}>
+                  <label className="form-label">Brand story</label>
+                  <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 0 }}>
+                    Optional. Leave this blank and the product page skips the brand heritage section.
+                  </p>
+                  <select
+                    className="form-control"
+                    value={draft.brandStoryId || ''}
+                    onChange={(e) => {
+                      const story = brandStories.find((item) => item.id === e.target.value);
+                      setDraft({
+                        ...draft,
+                        brandStoryId: story?.id || '',
+                        brandStoryName: story?.name || ''
+                      });
+                    }}
+                  >
+                    <option value="">None</option>
+                    {brandStories.map((story) => (
+                      <option key={story.id} value={story.id}>{story.name}</option>
+                    ))}
+                  </select>
+                </div>
+                {saveBar}
+              </div>
+            )}
+
+            {editorTab === 'fbt' && (
+              <div>
+                {draft.id && (
+                  <p style={{ color: 'var(--text-secondary)', marginTop: 0 }}>
+                    {products.filter((product) => product.id !== draft.id && (product.fbtCompanionIds || []).includes(draft.id || '')).length} other product{products.filter((product) => product.id !== draft.id && (product.fbtCompanionIds || []).includes(draft.id || '')).length === 1 ? '' : 's'} include this product in their 3 Frequently Bought Together options.
+                  </p>
+                )}
+                <div className="form-group">
+                  <label className="form-label">Frequently Bought Together % Stat</label>
+                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', maxWidth: '180px' }}>
+                    <input
+                      type="number"
+                      min={0}
+                      max={100}
+                      className="form-control"
+                      value={draft.fbtStat ?? ''}
+                      onChange={(e) => setDraft({
+                        ...draft,
+                        fbtStat: e.target.value === '' ? undefined : Number(e.target.value)
+                      })}
+                    />
+                    <span style={{ fontWeight: 700, color: 'var(--text-secondary)' }}>%</span>
+                  </div>
+                </div>
+                <label className="form-label">Frequently Bought Together</label>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 0 }}>
+                  Up to three products shown with this one. Stock does not matter.
+                </p>
+                {[0, 1, 2].map((slot) => (
+                  <div className="form-group" key={slot}>
+                    <select
+                      className="form-control"
+                      value={(draft.fbtCompanionIds || [])[slot] || ''}
+                      onChange={(e) => {
+                        const next = [...(draft.fbtCompanionIds || [])];
+                        while (next.length < 3) next.push('');
+                        next[slot] = e.target.value;
+                        setDraft({ ...draft, fbtCompanionIds: next });
+                      }}
+                    >
+                      <option value="">None</option>
+                      {products.filter((product) => product.id && product.id !== draft.id).map((product) => (
+                        <option key={product.id} value={product.id}>{product.brand} — {product.name}</option>
+                      ))}
+                    </select>
+                  </div>
+                ))}
+                <label className="form-label">Default matches</label>
+                <p style={{ fontSize: '0.82rem', color: 'var(--text-muted)', marginTop: 0 }}>
+                  Used when order history cannot fill all three companions. Each open slot is chosen at random from this list.
+                </p>
+                {(draft.fbtDefaultIds || []).map((value, index) => (
+                  <div key={index} style={{ display: 'grid', gridTemplateColumns: '1fr auto', gap: '0.5rem', marginBottom: '0.5rem' }}>
+                    <select
+                      className="form-control"
+                      value={value}
+                      onChange={(e) => {
+                        const next = [...(draft.fbtDefaultIds || [])];
+                        next[index] = e.target.value;
+                        setDraft({ ...draft, fbtDefaultIds: next });
+                      }}
+                    >
+                      <option value="">Select a product</option>
+                      {products.filter((product) => product.id && product.id !== draft.id).map((product) => (
+                        <option key={product.id} value={product.id}>{product.brand} — {product.name}</option>
+                      ))}
+                    </select>
+                    <button
+                      type="button"
+                      className="btn btn-danger btn-sm"
+                      onClick={() => setDraft({
+                        ...draft,
+                        fbtDefaultIds: (draft.fbtDefaultIds || []).filter((_, itemIndex) => itemIndex !== index)
+                      })}
+                      aria-label="Remove default match"
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  </div>
+                ))}
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm"
+                  onClick={() => setDraft({ ...draft, fbtDefaultIds: [...(draft.fbtDefaultIds || []), ''] })}
+                >
+                  Add default match
+                </button>
                 {saveBar}
               </div>
             )}
@@ -900,11 +1293,11 @@ export const AdminProducts: React.FC = () => {
               </div>
             )}
           </div>
-        </div>
+        </Modal>
       )}
 
       {bulkOpen && (
-        <div className="modal-overlay">
+        <Modal>
           <div className="modal-content" style={{ maxWidth: '520px', position: 'relative' }}>
             <button
               onClick={() => setBulkOpen(false)}
@@ -935,11 +1328,11 @@ export const AdminProducts: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </Modal>
       )}
 
       {blockedCategory && (
-        <div className="modal-overlay" onClick={() => setBlockedCategory(null)}>
+        <Modal onClick={() => setBlockedCategory(null)}>
           <div className="modal-content" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
             <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Category still in use</h2>
             <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
@@ -947,7 +1340,73 @@ export const AdminProducts: React.FC = () => {
             </p>
             <button className="btn btn-primary" style={{ marginTop: '1.25rem' }} onClick={() => setBlockedCategory(null)}>Close</button>
           </div>
-        </div>
+        </Modal>
+      )}
+
+      {storyOpen && (
+        <Modal>
+          <div className="modal-content" style={{ maxWidth: '720px', width: '100%', position: 'relative' }}>
+            <button
+              onClick={() => setStoryOpen(false)}
+              style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
+            >
+              <X size={20} />
+            </button>
+            <h2 style={{ fontSize: '1.6rem', marginBottom: '1rem' }}>
+              {storyDraft.id ? storyDraft.name || 'Edit brand story' : 'Add brand story'}
+            </h2>
+            <div className="form-group">
+              <label className="form-label">Name</label>
+              <input className="form-control" value={storyDraft.name} onChange={(e) => setStoryDraft({ ...storyDraft, name: e.target.value })} />
+            </div>
+            <div className="form-group">
+              <label className="form-label">Title</label>
+              <input className="form-control" value={storyDraft.title} onChange={(e) => setStoryDraft({ ...storyDraft, title: e.target.value })} placeholder="Cohiba: The Apex of Habanos Mastery" />
+            </div>
+            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '0.75rem' }}>
+              <div className="form-group">
+                <label className="form-label">Factory</label>
+                <input className="form-control" value={storyDraft.factory} onChange={(e) => setStoryDraft({ ...storyDraft, factory: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Origin</label>
+                <input className="form-control" value={storyDraft.origin} onChange={(e) => setStoryDraft({ ...storyDraft, origin: e.target.value })} />
+              </div>
+              <div className="form-group">
+                <label className="form-label">Founded</label>
+                <input className="form-control" value={storyDraft.founded} onChange={(e) => setStoryDraft({ ...storyDraft, founded: e.target.value })} />
+              </div>
+            </div>
+            <div className="form-group">
+              <label className="form-label">Description</label>
+              <textarea className="form-control" rows={6} value={storyDraft.description} onChange={(e) => setStoryDraft({ ...storyDraft, description: e.target.value })} />
+            </div>
+            <StringListEditor
+              label="Highlights"
+              values={storyDraft.highlights}
+              onChange={(highlights) => setStoryDraft({ ...storyDraft, highlights })}
+              addLabel="Add highlight"
+            />
+            <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.25rem' }}>
+              <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setStoryOpen(false)}>Cancel</button>
+              <button type="button" className="btn btn-primary" style={{ flex: 2 }} disabled={screenLocked || storySaving} onClick={handleSaveStory}>
+                {storySaving ? 'Saving...' : 'Save brand story'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {blockedStory && (
+        <Modal onClick={() => setBlockedStory(null)}>
+          <div className="modal-content" style={{ maxWidth: '460px' }} onClick={(e) => e.stopPropagation()}>
+            <h2 style={{ fontSize: '1.5rem', marginBottom: '0.75rem' }}>Brand story still in use</h2>
+            <p style={{ color: 'var(--text-secondary)', lineHeight: 1.6 }}>
+              {blockedStory.name} is linked to {blockedStory.count} product{blockedStory.count === 1 ? '' : 's'}. Unlink those products before deleting this brand story.
+            </p>
+            <button className="btn btn-primary" style={{ marginTop: '1.25rem' }} onClick={() => setBlockedStory(null)}>Close</button>
+          </div>
+        </Modal>
       )}
     </div>
   );

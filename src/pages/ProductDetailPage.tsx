@@ -2,13 +2,12 @@ import React, { useState, useEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
-import type { Product, ProductRange } from '../types';
+import type { BrandStory, Product, ProductRange } from '../types';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
 import { useProductViewers } from '../hooks/useProductViewers';
-import { getExtendedProductDetails } from '../data/productExtraData';
 import {
   getBulkTiers,
   isTobaccoRange,
@@ -18,8 +17,7 @@ import {
   unitPriceForTier
 } from '../utils/bulkPricing';
 import { rangeBasePath, rangeLabel } from '../constants/productRanges';
-import { fetchProducts } from '../services/catalog';
-import { selectFrequentlyBoughtTogether } from '../utils/frequentlyBoughtTogether';
+import { fetchBrandStory, fetchProducts } from '../services/catalog';
 import { 
   Bell, 
   Flame, 
@@ -42,6 +40,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const [recommendedCigars, setRecommendedCigars] = useState<Product[]>([]);
   const [selectedBundleItems, setSelectedBundleItems] = useState<Record<string, boolean>>({});
+  const [brandStory, setBrandStory] = useState<BrandStory | null>(null);
   const viewerCount = useProductViewers(product?.id);
 
   useEffect(() => {
@@ -69,7 +68,11 @@ export const ProductDetailPage: React.FC = () => {
 
         try {
           const catalog = await fetchProducts();
-          const shown = foundProduct ? selectFrequentlyBoughtTogether(foundProduct, catalog) : [];
+          const companionIds = foundProduct?.fbtCompanionIds || [];
+          const byId = new Map(catalog.filter((item) => item.active && item.id).map((item) => [item.id as string, item]));
+          const shown = companionIds
+            .map((id) => byId.get(id))
+            .filter((item): item is Product => Boolean(item));
           setRecommendedCigars(shown);
 
           const initialChecked: Record<string, boolean> = {};
@@ -92,11 +95,24 @@ export const ProductDetailPage: React.FC = () => {
     fetchProduct();
   }, [slug]);
 
-  // Derived extra details
-  const extraDetails = useMemo(() => {
-    if (!product) return null;
-    return getExtendedProductDetails(product);
-  }, [product]);
+  useEffect(() => {
+    let cancelled = false;
+    if (!product?.brandStoryId) {
+      setBrandStory(null);
+      return;
+    }
+    fetchBrandStory(product.brandStoryId)
+      .then((story) => {
+        if (!cancelled) setBrandStory(story);
+      })
+      .catch((err) => {
+        console.error('Error fetching brand story:', err);
+        if (!cancelled) setBrandStory(null);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, [product?.brandStoryId]);
 
   const maxAllowedQuantity = useMemo(() => {
     if (!product) return 1;
@@ -117,7 +133,7 @@ export const ProductDetailPage: React.FC = () => {
     );
   }
 
-  if (!product || !extraDetails) {
+  if (!product) {
     return (
       <div style={{ backgroundColor: '#ffffff', minHeight: '80vh', padding: '6rem 0', textAlign: 'center' }}>
         <div className="container">
@@ -139,13 +155,10 @@ export const ProductDetailPage: React.FC = () => {
   const rangePath = rangeBasePath(productRange);
   const bulkTiers = getBulkTiers(product);
   const activeTier = usesBulkPricing ? resolveTier(bulkTiers, quantity) : null;
-  const story = isCigar
-    ? extraDetails.expandedDesc
-    : (product.extendedDescription || product.description || '');
-  const tastingNotes = isCigar ? extraDetails.tastingNotes : (product.tastingNotes || []);
-  const detailTagline = isCigar
-    ? extraDetails.tagline
-    : (product.tagline || product.description || '');
+  const story = (product.extendedDescription || '').trim();
+  const tastingNotes = (product.tastingNotes || []).map((note) => note.trim()).filter(Boolean);
+  const detailTagline = (product.shortDescription || '').trim();
+  const specs = product.specifications;
   const rangeEyebrow = isCigar ? 'CUBAN CIGARS' : rangeLabel(productRange).toUpperCase();
 
   const unitPrice = usesBulkPricing
@@ -208,7 +221,6 @@ export const ProductDetailPage: React.FC = () => {
     showToast(`Added bundle (${1 + checkedRecommendedCigars.length} items) to your cart!`);
   };
 
-  const brandHist = extraDetails.brandHist;
 
   return (
     <div style={{ backgroundColor: '#ffffff', color: '#1d1d1f', minHeight: '100vh', paddingBottom: '5rem' }}>
@@ -425,10 +437,11 @@ export const ProductDetailPage: React.FC = () => {
                 </p>
               )}
 
-              {/* Subtitle summary */}
-              <p style={{ color: '#515154', fontSize: '0.98rem', lineHeight: 1.5, marginBottom: '2rem' }}>
-                {detailTagline}
-              </p>
+              {detailTagline && (
+                <p style={{ color: '#515154', fontSize: '0.98rem', lineHeight: 1.5, marginBottom: '2rem' }}>
+                  {detailTagline}
+                </p>
+              )}
 
               {usesBulkPricing && bulkTiers.length > 0 && (
               <div style={{ marginBottom: '2rem' }}>
@@ -641,7 +654,7 @@ export const ProductDetailPage: React.FC = () => {
                 )}
               </div>
 
-              {/* Extended Product Description Paragraph */}
+              {story && (
               <div style={{
                 color: '#333336',
                 fontSize: '0.96rem',
@@ -656,6 +669,7 @@ export const ProductDetailPage: React.FC = () => {
                   </p>
                 ))}
               </div>
+              )}
 
               {tastingNotes.length > 0 && (
               <div style={{ marginBottom: '2.5rem' }}>
@@ -681,7 +695,7 @@ export const ProductDetailPage: React.FC = () => {
               </div>
               )}
 
-              {isCigar && (
+              {isCigar && specs && (specs.vitola || specs.ringGauge || specs.length || specs.strength || specs.wrapper || specs.smokingTime) && (
               <div>
                 <div style={{
                   fontSize: '0.75rem',
@@ -695,35 +709,68 @@ export const ProductDetailPage: React.FC = () => {
                 </div>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                  {specs.vitola && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', fontSize: '0.94rem', color: '#1d1d1f' }}>
                     <span style={{ color: '#c06517', fontWeight: 700 }}>—</span>
-                    <span><strong>Vitola Shape:</strong> {extraDetails.specifications.vitola} ({extraDetails.specifications.factoryName})</span>
+                    <span><strong>Vitola Shape:</strong> {specs.vitola}{specs.factoryName ? ` (${specs.factoryName})` : ''}</span>
                   </div>
+                  )}
+                  {(specs.ringGauge || specs.length) && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', fontSize: '0.94rem', color: '#1d1d1f' }}>
                     <span style={{ color: '#c06517', fontWeight: 700 }}>—</span>
-                    <span><strong>Ring Gauge & Length:</strong> {extraDetails.specifications.ringGauge} RG x {extraDetails.specifications.length}</span>
+                    <span><strong>Ring Gauge & Length:</strong> {specs.ringGauge ? `${specs.ringGauge} RG` : ''}{specs.ringGauge && specs.length ? ' x ' : ''}{specs.length || ''}</span>
                   </div>
+                  )}
+                  {specs.strength && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', fontSize: '0.94rem', color: '#1d1d1f' }}>
                     <span style={{ color: '#c06517', fontWeight: 700 }}>—</span>
-                    <span><strong>Strength Profile:</strong> {extraDetails.specifications.strength}</span>
+                    <span><strong>Strength Profile:</strong> {specs.strength}</span>
                   </div>
+                  )}
+                  {specs.wrapper && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', fontSize: '0.94rem', color: '#1d1d1f' }}>
                     <span style={{ color: '#c06517', fontWeight: 700 }}>—</span>
-                    <span><strong>Wrapper Leaf:</strong> 100% {extraDetails.specifications.wrapper}</span>
+                    <span><strong>Wrapper Leaf:</strong> 100% {specs.wrapper}</span>
                   </div>
+                  )}
+                  {specs.smokingTime && (
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem', fontSize: '0.94rem', color: '#1d1d1f' }}>
                     <span style={{ color: '#c06517', fontWeight: 700 }}>—</span>
-                    <span><strong>Smoking Duration:</strong> Approx. {extraDetails.specifications.smokingTime}</span>
+                    <span><strong>Smoking Duration:</strong> Approx. {specs.smokingTime}</span>
                   </div>
+                  )}
                 </div>
               </div>
+              )}
+
+              {inStock && recommendedCigars.length > 0 && typeof product.fbtStat === 'number' && (
+                <button
+                  type="button"
+                  onClick={() => document.getElementById('frequently-bought-together')?.scrollIntoView({ behavior: 'smooth', block: 'start' })}
+                  style={{
+                    display: 'block',
+                    width: '100%',
+                    textAlign: 'left',
+                    marginTop: '1.25rem',
+                    padding: '0.85rem 1rem',
+                    borderRadius: '8px',
+                    border: '1px solid rgba(192, 101, 23, 0.35)',
+                    background: 'rgba(192, 101, 23, 0.08)',
+                    color: '#1d1d1f',
+                    fontSize: '0.92rem',
+                    lineHeight: 1.5,
+                    cursor: 'pointer'
+                  }}
+                >
+                  Based on our data {product.fbtStat}% of customers buy one or all of these with this product
+                </button>
               )}
             </div>
           </div>
         </div>
       </div>
 
-      {isCigar && (
+      {brandStory && (
       <div style={{ backgroundColor: '#faf7f5', borderTop: '1px solid #eae2dc', borderBottom: '1px solid #eae2dc', padding: '4.5rem 0' }}>
         <div className="container">
           <div style={{ maxWidth: '960px', margin: '0 auto' }}>
@@ -740,7 +787,9 @@ export const ProductDetailPage: React.FC = () => {
               }}>
                 Brand Heritage
               </span>
-              <span style={{ color: '#86868b', fontSize: '0.88rem' }}>Founded {brandHist.foundingYear}</span>
+              {brandStory.founded && (
+                <span style={{ color: '#86868b', fontSize: '0.88rem' }}>Founded {brandStory.founded}</span>
+              )}
             </div>
 
             <h2 style={{
@@ -750,7 +799,7 @@ export const ProductDetailPage: React.FC = () => {
               marginBottom: '1rem',
               lineHeight: 1.2
             }}>
-              {product.brand}: {brandHist.title}
+              {brandStory.title || brandStory.name}
             </h2>
 
             {/* Quick meta points */}
@@ -764,21 +813,21 @@ export const ProductDetailPage: React.FC = () => {
             }}>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#5c3537', fontSize: '0.9rem' }}>
                 <Building size={18} style={{ color: '#c06517' }} />
-                <span><strong>Factory:</strong> {brandHist.factory}</span>
+                <span><strong>Factory:</strong> {brandStory.factory}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#5c3537', fontSize: '0.9rem' }}>
                 <MapPin size={18} style={{ color: '#c06517' }} />
-                <span><strong>Origin:</strong> {brandHist.origin}</span>
+                <span><strong>Origin:</strong> {brandStory.origin}</span>
               </div>
               <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#5c3537', fontSize: '0.9rem' }}>
                 <Calendar size={18} style={{ color: '#c06517' }} />
-                <span><strong>Founded:</strong> {brandHist.foundingYear}</span>
+                <span><strong>Founded:</strong> {brandStory.founded}</span>
               </div>
             </div>
 
             {/* Brand History Story Text */}
             <div style={{ color: '#422829', fontSize: '1.02rem', lineHeight: 1.8, marginBottom: '2.5rem' }}>
-              {(product.brandHistory?.trim() || brandHist.history).split('\n\n').map((para, i) => (
+              {brandStory.description.split('\n\n').filter(Boolean).map((para, i) => (
                 <p key={i} style={{ marginBottom: '1.25rem' }}>
                   {para}
                 </p>
@@ -791,7 +840,7 @@ export const ProductDetailPage: React.FC = () => {
               gridTemplateColumns: 'repeat(auto-fit, minmax(260px, 1fr))',
               gap: '1.25rem'
             }}>
-              {brandHist.heritagePoints.map((pt, idx) => (
+              {brandStory.highlights.map((pt, idx) => (
                 <div key={idx} style={{
                   backgroundColor: '#ffffff',
                   border: '1px solid rgba(47, 13, 14, 0.1)',
@@ -918,7 +967,7 @@ export const ProductDetailPage: React.FC = () => {
             </div>
           ) : (
             /* Main Product In Stock: Display Frequently Bought Together with volume selection per cigar */
-            <div>
+            <div id="frequently-bought-together">
               <div style={{ textAlign: 'center', marginBottom: '3rem' }}>
                 <h2 style={{
                   fontFamily: 'var(--font-serif)',

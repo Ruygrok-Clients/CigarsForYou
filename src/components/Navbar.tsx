@@ -114,7 +114,7 @@ export const Navbar: React.FC = () => {
     const qWords = searchQuery.toLowerCase().trim().split(/\s+/);
     return liveProducts.filter(p => {
       if (rangeFilter && !productMatchesRange(p.category, rangeFilter)) return false;
-      const text = `${p.brand} ${p.name} ${p.description || ''} ${p.origin || ''}`.toLowerCase();
+      const text = `${p.brand} ${p.name} ${p.shortDescription || ''} ${p.extendedDescription || ''} ${p.origin || ''}`.toLowerCase();
       return qWords.every(word => text.includes(word));
     });
   }, [searchQuery, liveProducts, selectedCategory]);

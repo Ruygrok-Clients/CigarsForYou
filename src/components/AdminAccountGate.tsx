@@ -2,6 +2,7 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { ShieldCheck, LogOut, LayoutDashboard, X } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
+import { Modal } from './Modal';
 
 interface AdminAccountGateProps {
   variant: 'modal' | 'inline';
@@ -101,8 +102,7 @@ export const AdminAccountGate: React.FC<AdminAccountGateProps> = ({ variant, onC
   }
 
   return (
-    <div
-      className="modal-overlay"
+    <Modal
       onClick={(e) => {
         if (e.target === e.currentTarget && !busy) onClose?.();
       }}
@@ -138,6 +138,6 @@ export const AdminAccountGate: React.FC<AdminAccountGateProps> = ({ variant, onC
         </div>
         {body}
       </div>
-    </div>
+    </Modal>
   );
 };

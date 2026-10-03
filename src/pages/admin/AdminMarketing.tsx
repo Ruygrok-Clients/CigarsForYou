@@ -5,6 +5,7 @@ import type { Coupon, EmailSubscriber } from '../../types';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
 import { Plus, Trash2, Download, X } from 'lucide-react';
+import { Modal } from '../../components/Modal';
 
 export const AdminMarketing: React.FC = () => {
   const { screenLocked } = useAdminContext();
@@ -281,7 +282,7 @@ export const AdminMarketing: React.FC = () => {
 
       {/* Coupon Modal */}
       {isCouponModalOpen && (
-        <div className="modal-overlay">
+        <Modal>
           <div className="modal-content" style={{ maxWidth: '440px', position: 'relative' }}>
             <button
               onClick={() => setIsCouponModalOpen(false)}
@@ -369,7 +370,7 @@ export const AdminMarketing: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

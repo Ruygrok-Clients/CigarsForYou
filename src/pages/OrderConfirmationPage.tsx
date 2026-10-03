@@ -10,6 +10,7 @@ import {
   tierRank
 } from '../utils/rewards';
 import type { LoyaltyTier } from '../types';
+import { Modal } from '../components/Modal';
 
 export const OrderConfirmationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
@@ -62,7 +63,7 @@ export const OrderConfirmationPage: React.FC = () => {
       </div>
 
       {showCelebration && (
-        <div className="modal-overlay" role="dialog" aria-modal="true" aria-labelledby="tier-upgrade-title">
+        <Modal role="dialog" aria-modal="true" aria-labelledby="tier-upgrade-title">
           <div className="modal-content" style={{ maxWidth: '460px', textAlign: 'center', background: '#fff' }}>
             <span className="badge badge-gold" style={{ marginBottom: '0.75rem' }}>{tierLabel(tier)}</span>
             <h2 id="tier-upgrade-title" style={{ margin: '0 0 0.6rem', color: 'var(--text-primary)' }}>
@@ -80,7 +81,7 @@ export const OrderConfirmationPage: React.FC = () => {
               </button>
             </div>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

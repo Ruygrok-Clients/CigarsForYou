@@ -83,6 +83,17 @@ export interface CatalogCategory {
   sortOrder: number;
 }
 
+export interface BrandStory {
+  id?: string;
+  name: string;
+  title: string;
+  factory: string;
+  origin: string;
+  founded: string;
+  description: string;
+  highlights: string[];
+}
+
 export interface Product {
   id?: string;
   name: string;
@@ -99,12 +110,20 @@ export interface Product {
   fbtRanges?: ProductRange[];
   /** Set by the monthly sales job. Featured accessories are more likely to be picked within their category. */
   fbtFeatured?: boolean;
+  /** Percent number only. The storefront renders “Based on our data {n}% of customers…”. */
+  fbtStat?: number;
+  /** Up to three companion product ids shown as Frequently Bought Together. */
+  fbtCompanionIds?: string[];
+  /** Fallback pool used when order data cannot fill all three companion slots. */
+  fbtDefaultIds?: string[];
   origin: string; // e.g. 'Cuban'
   active: boolean;
-  description?: string;
+  shortDescription?: string;
+  /** Required when saving from the admin portal. */
   extendedDescription?: string;
-  brandHistory?: string;
-  tagline?: string;
+  /** Optional link into the brandStories collection. */
+  brandStoryId?: string;
+  brandStoryName?: string;
   tastingNotes?: string[];
   specifications?: ProductSpecification;
   /** Cigars and cigarettes only. Accessories must not use bulk tiers. */

@@ -4,6 +4,7 @@ import { Award, Edit3, Plus, Search, Trash2, X } from 'lucide-react';
 import { db } from '../../firebase';
 import type { LoyaltyTier, RewardProduct } from '../../types';
 import { useToast } from '../../components/Toast';
+import { Modal } from '../../components/Modal';
 import { useAuth } from '../../context/AuthContext';
 import { useAdminContext } from './AdminContext';
 import {
@@ -432,7 +433,7 @@ export const AdminRewards: React.FC = () => {
       )}
 
       {modalOpen && (
-        <div className="modal-overlay" onClick={() => setModalOpen(false)}>
+        <Modal onClick={() => setModalOpen(false)}>
           <div className="modal-content" style={{ maxWidth: '560px' }} onClick={(event) => event.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h2 style={{ margin: 0, fontSize: '1.4rem', color: 'var(--text-primary)' }}>
@@ -490,7 +491,7 @@ export const AdminRewards: React.FC = () => {
               </button>
             </form>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

@@ -4,6 +4,7 @@ import { Edit3, Newspaper, Plus, Search, Trash2, X } from 'lucide-react';
 import { db } from '../../firebase';
 import type { NewsPost } from '../../types';
 import { useToast } from '../../components/Toast';
+import { Modal } from '../../components/Modal';
 import { useAdminContext } from './AdminContext';
 import { mapNewsPost, slugifyNewsTitle } from '../../services/news';
 
@@ -247,7 +248,7 @@ export const AdminNews: React.FC = () => {
       )}
 
       {modalOpen && (
-        <div className="modal-overlay" onClick={() => setModalOpen(false)}>
+        <Modal onClick={() => setModalOpen(false)}>
           <div className="modal-content" style={{ maxWidth: '680px' }} onClick={(event) => event.stopPropagation()}>
             <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.25rem' }}>
               <h2 style={{ margin: 0, fontSize: '1.4rem', color: 'var(--text-primary)' }}>
@@ -315,7 +316,7 @@ export const AdminNews: React.FC = () => {
               </button>
             </form>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

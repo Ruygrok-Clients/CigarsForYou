@@ -1,4 +1,5 @@
 import React from 'react';
+import { Modal } from './Modal';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Lock, X } from 'lucide-react';
 import { useAgeGate } from '../context/AgeGateContext';
@@ -25,7 +26,7 @@ export const AgeGateModal: React.FC = () => {
   };
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 99999 }}>
+    <Modal style={{ zIndex: 99999 }}>
       <div 
         className="modal-content" 
         style={{ 
@@ -135,7 +136,7 @@ export const AgeGateModal: React.FC = () => {
           </p>
         </div>
       </div>
-    </div>
+    </Modal>
   );
 };
 

@@ -128,13 +128,13 @@
 }
 
 [data-theme="dark"] .form-control {
-  background-color: #ffffff;
-  color: #000000 !important;
-  border-color: var(--border-color);
+  background-color: #3a2418;
+  color: #f8f5f0 !important;
+  border-color: rgba(255, 255, 255, 0.12);
 }
 
 [data-theme="dark"] .form-control::placeholder {
-  color: #666666;
+  color: #a89080;
 }
 
 
@@ -485,6 +485,59 @@ select.form-control option {
   -webkit-text-fill-color: #000000 !important;
   box-shadow: 0 0 0px 1000px #ffffff inset !important;
   transition: background-color 5000s ease-in-out 0s;
+}
+
+[data-theme="dark"] .form-control:focus {
+  background-color: #452b1e;
+  color: #f8f5f0 !important;
+  border-color: #c06517;
+  box-shadow: 0 0 0 4px rgba(192, 101, 23, 0.2);
+}
+
+[data-theme="dark"] select.form-control option {
+  background-color: #2e1a10;
+  color: #f8f5f0;
+}
+
+[data-theme="dark"] .form-control:-webkit-autofill,
+[data-theme="dark"] .form-control:-webkit-autofill:hover,
+[data-theme="dark"] .form-control:-webkit-autofill:focus,
+[data-theme="dark"] .form-control:-webkit-autofill:active {
+  -webkit-text-fill-color: #f8f5f0 !important;
+  box-shadow: 0 0 0px 1000px #3a2418 inset !important;
+}
+
+.admin-category-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+  gap: 0.75rem;
+}
+
+.admin-category-tile {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.65rem;
+  min-height: 3.25rem;
+  padding: 0.7rem 0.85rem;
+  border: 1px solid var(--border-subtle);
+  border-radius: 10px;
+  background: var(--bg-surface-elevated, rgba(255, 255, 255, 0.03));
+}
+
+.admin-category-tile strong {
+  min-width: 0;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.admin-product-table tbody tr.admin-product-row {
+  cursor: pointer;
+  transition: background-color 0.15s ease;
+}
+
+.admin-product-table tbody tr.admin-product-row:hover {
+  background: rgba(192, 101, 23, 0.1);
 }
 
 /* Card Container */

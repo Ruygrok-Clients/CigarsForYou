@@ -1,4 +1,5 @@
 import React from 'react';
+import { Modal } from './Modal';
 import { useLocation } from 'react-router-dom';
 import { ArrowRight, Clock } from 'lucide-react';
 import { useClosingSoon } from '../context/ClosingSoonContext';
@@ -12,7 +13,7 @@ export const FinalCallModal: React.FC = () => {
   }
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 99999 }}>
+    <Modal style={{ zIndex: 99999 }}>
       <div
         className="modal-content"
         style={{
@@ -101,6 +102,6 @@ export const FinalCallModal: React.FC = () => {
           <ArrowRight size={18} />
         </button>
       </div>
-    </div>
+    </Modal>
   );
 };

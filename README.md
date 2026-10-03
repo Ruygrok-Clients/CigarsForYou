@@ -70,11 +70,14 @@ Open [http://localhost:5173](http://localhost:5173) in your browser.
 
 Project ID: `cigarsforyou-ea835`
 
-### 1. Seed Product Catalog into Firestore
-To populate Firestore with the complete Cuban cigar catalog (Cohiba, Partagas, Montecristo, etc. defaulted to stock 100):
+### 1. Catalogue data
+Products and brand stories live in Firestore. There is no product seed script. To backfill short descriptions, extended descriptions, specs, tasting notes, and the Brand Stories collection on an existing catalogue:
+
 ```bash
-node scripts/seed-products.js
+node scripts/migrate-brand-stories.js
 ```
+
+That script needs `gcloud auth` for project `cigarsforyou-ea835`.
 
 ### 2. Configure API Keys & Secrets
 Environment variables and webhooks are scaffolded in `functions/src/index.ts` and `functions/.env.example`.

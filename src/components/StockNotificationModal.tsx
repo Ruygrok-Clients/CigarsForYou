@@ -4,6 +4,7 @@ import { db } from '../firebase';
 import type { Product } from '../types';
 import { X, Bell, Check } from 'lucide-react';
 import { useToast } from './Toast';
+import { Modal } from './Modal';
 import { useAuth } from '../context/AuthContext';
 
 interface StockNotificationModalProps {
@@ -64,7 +65,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
   };
 
   return (
-    <div className="modal-overlay" style={{ zIndex: 10000 }}>
+    <Modal style={{ zIndex: 10000 }}>
       <div className="modal-content" style={{ maxWidth: '460px', position: 'relative' }}>
         <button
           onClick={onClose}
@@ -172,6 +173,6 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
           </form>
         )}
       </div>
-    </div>
+    </Modal>
   );
 };

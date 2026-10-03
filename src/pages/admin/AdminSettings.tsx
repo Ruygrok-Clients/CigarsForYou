@@ -5,6 +5,7 @@ import { db, functions } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
+import { Modal } from '../../components/Modal';
 import type { UserProfile } from '../../types';
 import { UserPlus, Trash2, Edit3, ShieldAlert, X, Mail, Send, CheckCircle, ShieldCheck, Users, Newspaper } from 'lucide-react';
 
@@ -445,7 +446,7 @@ export const AdminSettings: React.FC = () => {
       )}
 
       {modal.open && (
-        <div className="modal-overlay">
+        <Modal>
           <div className="modal-content" style={{ maxWidth: '440px', position: 'relative' }}>
             <button
               type="button"
@@ -519,7 +520,7 @@ export const AdminSettings: React.FC = () => {
               </div>
             </form>
           </div>
-        </div>
+        </Modal>
       )}
     </div>
   );

@@ -56,10 +56,8 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
   };
 
   const getProductDescription = (p: Product) => {
-    if (p.description && p.description.trim().length > 10) {
-      return p.description;
-    }
-    return p.description?.trim() || 'Published catalogue item.';
+    const copy = (p.shortDescription || p.extendedDescription || '').trim();
+    return copy || 'Published catalogue item.';
   };
 
   if (!loading && displayProducts.length === 0) return null;

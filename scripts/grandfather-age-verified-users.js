@@ -7,7 +7,7 @@
  *   ageVerifiedAt: <ISO timestamp>
  *   ageVerificationSource: "legacy_grandfather"
  *
- * Auth: uses `gcloud auth print-access-token` (same pattern as seed-firestore-gcloud.js).
+ * Auth: uses `gcloud auth print-access-token`.
  *
  * Usage (from repo root):
  *   node scripts/grandfather-age-verified-users.js

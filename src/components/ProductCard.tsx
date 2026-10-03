@@ -135,7 +135,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
           </h3>
         </Link>
 
-        {product.description && (
+        {product.shortDescription && (
           <p style={{
             fontSize: '0.825rem',
             color: '#515154',
@@ -146,7 +146,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
             WebkitBoxOrient: 'vertical',
             overflow: 'hidden'
           }}>
-            {product.description}
+            {product.shortDescription}
           </p>
         )}
 
