@@ -10,8 +10,8 @@ import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBa
 import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import { AUSTRALIAN_STATES } from '../constants/locations';
-import { FREE_EXPRESS_NAME, IMMEDIATE_DISPATCH_NAME, UBER_PARTNER_BLURB } from '../constants/deliveryCopy';
-import { estimateImmediateDispatchFee } from '../utils/immediateDispatchFee';
+import { EXPRESS_DELIVERY_FEE, EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME, UBER_PARTNER_BLURB } from '../constants/deliveryCopy';
+import { quoteImmediateDispatch } from '../services/immediateDispatch';
 import {
   freeExpressHoursMessage,
   getDeliveryWindow,
@@ -88,6 +88,9 @@ export const CustomerDetailsPage: React.FC = () => {
   const [verifyingAge, setVerifyingAge] = useState(false);
   const [ageBlockMessage, setAgeBlockMessage] = useState('');
   const [now, setNow] = useState(() => new Date());
+  const [quote, setQuote] = useState<{ feeAud: number; approxKm: number } | null>(null);
+  const [quoteLoading, setQuoteLoading] = useState(false);
+  const [quoteFailed, setQuoteFailed] = useState(false);
   const profileStamp = [
     currentUser?.uid ?? '',
     userProfile?.displayName ?? '',
@@ -139,9 +142,53 @@ export const CustomerDetailsPage: React.FC = () => {
 
   const postcodeReady = /^\d{4}$/.test(postcode.trim());
   const stateMatches = stateVal === selectedLocation;
-  const quote = stateMatches && postcodeReady
-    ? estimateImmediateDispatchFee({ postcode: postcode.trim(), state: stateVal })
-    : null;
+  const addressReady =
+    street.trim().length >= 3 &&
+    suburb.trim().length >= 2 &&
+    postcodeReady &&
+    stateVal === 'NSW' &&
+    stateMatches;
+
+  useEffect(() => {
+    if (!addressReady) {
+      setQuote(null);
+      setQuoteFailed(false);
+      setQuoteLoading(false);
+      return;
+    }
+
+    let cancelled = false;
+    setQuote(null);
+    setQuoteFailed(false);
+    setQuoteLoading(true);
+    const timer = window.setTimeout(() => {
+      quoteImmediateDispatch({
+        street: street.trim(),
+        suburb: suburb.trim(),
+        state: stateVal,
+        postcode: postcode.trim()
+      })
+        .then((next) => {
+          if (cancelled) return;
+          setQuote(next);
+          setQuoteFailed(false);
+        })
+        .catch(() => {
+          if (cancelled) return;
+          setQuote(null);
+          setQuoteFailed(true);
+        })
+        .finally(() => {
+          if (!cancelled) setQuoteLoading(false);
+        });
+    }, 450);
+
+    return () => {
+      cancelled = true;
+      window.clearTimeout(timer);
+    };
+  }, [addressReady, street, suburb, stateVal, postcode]);
+
   const immediateAvailable = Boolean(quote);
   const { isClerkGrace, isFinalCall } = useClosingSoon();
   const deliveryWindow = getDeliveryWindow(now);
@@ -149,14 +196,20 @@ export const CustomerDetailsPage: React.FC = () => {
   const quotedFee = quote?.feeAud ?? 0;
 
   useEffect(() => {
+    if (quoteLoading) return;
     if (!immediateAvailable && deliveryMethod === 'immediate') {
       setDeliveryMethod('express');
     }
-  }, [immediateAvailable, deliveryMethod, setDeliveryMethod]);
+  }, [quoteLoading, immediateAvailable, deliveryMethod, setDeliveryMethod]);
 
   useEffect(() => {
-    setImmediateDispatchFee(deliveryMethod === 'immediate' ? quotedFee : 0);
-  }, [deliveryMethod, quotedFee, setImmediateDispatchFee]);
+    if (deliveryMethod !== 'immediate') {
+      setImmediateDispatchFee(0);
+      return;
+    }
+    if (quoteLoading) return;
+    setImmediateDispatchFee(quotedFee);
+  }, [deliveryMethod, quotedFee, quoteLoading, setImmediateDispatchFee]);
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -247,13 +300,20 @@ export const CustomerDetailsPage: React.FC = () => {
     return null;
   }
 
-  const immediateStatus = !postcodeReady
-    ? 'Enter your street address and a 4-digit postcode to price Immediate Dispatch.'
+  const addressFieldsReady = street.trim().length >= 3 && suburb.trim().length >= 2 && postcodeReady;
+  const immediateStatus = !addressFieldsReady
+    ? 'Enter your street, suburb, and a 4-digit postcode to price Immediate Dispatch.'
     : !stateMatches
       ? `This address is in ${stateVal}, but your selected location is ${selectedLocation}. Immediate Dispatch is only available when they match.`
-      : !quote
-        ? 'Immediate Dispatch is not available for this postcode.'
-        : isFinalCall
+      : stateVal !== 'NSW'
+        ? 'Immediate Dispatch is only available for NSW addresses.'
+        : quoteLoading
+          ? 'Pricing Immediate Dispatch for this address…'
+          : !quote
+            ? quoteFailed
+              ? 'We could not price Immediate Dispatch for this address. Check the details or choose Express Delivery.'
+              : 'Immediate Dispatch is not available for this address.'
+            : isFinalCall
           ? 'The clerk is keeping Immediate Dispatch open for this last stretch. Order before the extra time ends and we will dispatch this straight away.'
           : isClerkGrace
             ? 'The shop clerk is holding Immediate Dispatch open a little longer. Order before the extra time ends and we will dispatch this straight away.'
@@ -420,7 +480,7 @@ export const CustomerDetailsPage: React.FC = () => {
                           </label>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
                             <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem' }}>
-                              {quote ? (isFreeShipping && deliveryMethod === 'immediate' ? 'FREE' : `$${quote.feeAud.toFixed(2)}`) : '—'}
+                              {quoteLoading ? '…' : quote ? (isFreeShipping && deliveryMethod === 'immediate' ? 'FREE' : `$${quote.feeAud.toFixed(2)}`) : '—'}
                             </strong>
                             <button
                               type="button"
@@ -466,13 +526,13 @@ export const CustomerDetailsPage: React.FC = () => {
                       <div style={{ flex: 1 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'flex-start' }}>
                           <label htmlFor="delivery-express" style={{ fontWeight: 700, color: 'var(--text-primary)', cursor: 'pointer' }}>
-                            {FREE_EXPRESS_NAME}
+                            {EXPRESS_DELIVERY_NAME}
                           </label>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-                            <strong style={{ color: '#4caf50', fontSize: '0.95rem' }}>FREE</strong>
+                            <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem' }}>${EXPRESS_DELIVERY_FEE.toFixed(2)}</strong>
                             <button
                               type="button"
-                              aria-label="About Free Express Delivery"
+                              aria-label="About Express Delivery"
                               onClick={() => setOpenInfo(openInfo === 'express' ? null : 'express')}
                               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}
                             >
@@ -485,7 +545,7 @@ export const CustomerDetailsPage: React.FC = () => {
                         </p>
                         {openInfo === 'express' && deliveryWindow === 'open' && (
                           <p style={{ margin: '0.65rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                            This option is always available and does not add a delivery fee.
+                            Flat ${EXPRESS_DELIVERY_FEE.toFixed(2)} AUD, available Australia-wide with courier partners such as DHL or AusPost.
                           </p>
                         )}
                       </div>
@@ -617,8 +677,10 @@ export const CustomerDetailsPage: React.FC = () => {
                     </div>
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', gap: '1rem' }}>
-                    <span>{deliveryMethod === 'immediate' ? IMMEDIATE_DISPATCH_NAME : FREE_EXPRESS_NAME}</span>
-                    {shippingFee === 0 ? (
+                    <span>{deliveryMethod === 'immediate' ? IMMEDIATE_DISPATCH_NAME : EXPRESS_DELIVERY_NAME}</span>
+                    {deliveryMethod === 'immediate' && quoteLoading ? (
+                      <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>Pricing…</span>
+                    ) : shippingFee === 0 ? (
                       <span style={{ color: '#4caf50', fontWeight: 600, flexShrink: 0 }}>FREE ($0.00 AUD)</span>
                     ) : (
                       <span style={{ color: 'var(--accent-gold)', flexShrink: 0 }}>${shippingFee.toFixed(2)} AUD</span>

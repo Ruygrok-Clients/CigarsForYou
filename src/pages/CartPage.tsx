@@ -6,6 +6,7 @@ import { useToast } from '../components/Toast';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
 import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
 import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
+import { EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import {
   ShoppingBag,
@@ -29,7 +30,6 @@ export const CartPage: React.FC = () => {
     spendPromoDiscount,
     shippingFee,
     totalAmount,
-    isFreeShipping,
     deliveryMethod
   } = useCart();
   const { currentUser, userProfile } = useAuth();
@@ -273,19 +273,13 @@ export const CartPage: React.FC = () => {
                 )}
 
                 <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-                  <span>{deliveryMethod === 'immediate' ? 'Immediate Dispatch (1-3hrs Delivery)' : 'Free Express Delivery'}</span>
+                  <span>{deliveryMethod === 'immediate' ? IMMEDIATE_DISPATCH_NAME : EXPRESS_DELIVERY_NAME}</span>
                   {shippingFee === 0 ? (
                     <span style={{ color: '#4caf50', fontWeight: 600 }}>FREE ($0.00 AUD)</span>
                   ) : (
                     <span style={{ color: 'var(--accent-gold)' }}>${shippingFee.toFixed(2)} AUD</span>
                   )}
                 </div>
-                {deliveryMethod !== 'immediate' && (
-                  <p style={{ margin: 0, fontSize: '0.78rem', color: 'var(--text-muted)', lineHeight: 1.45 }}>
-                    Immediate Dispatch (1-3hrs Delivery) is priced on the delivery details page.
-                    {isFreeShipping ? ' A free-shipping coupon will waive that fee.' : ''}
-                  </p>
-                )}
 
                 <div style={{
                   display: 'flex',

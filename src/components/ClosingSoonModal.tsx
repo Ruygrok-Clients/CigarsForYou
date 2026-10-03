@@ -1,7 +1,7 @@
 import React from 'react';
 import { useLocation } from 'react-router-dom';
 import { ArrowRight, Clock, Truck } from 'lucide-react';
-import { FREE_EXPRESS_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
+import { EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
 import { useClosingSoon } from '../context/ClosingSoonContext';
 
 export const ClosingSoonModal: React.FC = () => {
@@ -69,7 +69,7 @@ export const ClosingSoonModal: React.FC = () => {
             </p>
           </div>
           <div style={{ padding: '0.85rem 0.95rem', backgroundColor: '#faf6f5', borderRadius: '6px', border: '1px solid rgba(47, 13, 14, 0.08)' }}>
-            <strong style={{ display: 'block', fontSize: '0.88rem', color: '#2f0d0e', marginBottom: '0.3rem' }}>{FREE_EXPRESS_NAME}</strong>
+            <strong style={{ display: 'block', fontSize: '0.88rem', color: '#2f0d0e', marginBottom: '0.3rem' }}>{EXPRESS_DELIVERY_NAME}</strong>
             <p style={{ margin: 0, fontSize: '0.82rem', color: '#515154', lineHeight: 1.45 }}>
               Priority express with courier partners such as DHL or AusPost.
             </p>

@@ -20,8 +20,10 @@ import {
   writeStockNotifySocialProof,
 } from "./socialProof";
 import { placeRewardOrderForUser, reevaluateLoyaltyTiers, syncOrderRewards } from "./rewards";
+import { googleMapsApiKey } from "./immediateDispatchFee";
 
 export { createDiditSession, getDiditStatus, claimDiditForUser, completeSignup, diditWebhook } from "./didit";
+export { quoteImmediateDispatch } from "./immediateDispatchFee";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -151,7 +153,7 @@ export const syncOrderRewardsOnWrite = onDocumentWritten("orders/{orderId}", asy
  * Places a reward redemption as an order. Refuses while payments are paused
  * (set REWARD_ORDERS_ENABLED=true once the payment processor is live).
  */
-export const placeRewardOrder = onCall(async (request) => {
+export const placeRewardOrder = onCall({ secrets: [googleMapsApiKey] }, async (request) => {
   const uid = request.auth?.uid;
   if (!uid) {
     throw new HttpsError("unauthenticated", "Sign in to redeem rewards.");

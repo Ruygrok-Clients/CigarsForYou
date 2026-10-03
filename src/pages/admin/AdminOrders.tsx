@@ -682,7 +682,7 @@ export const AdminOrders: React.FC = () => {
                       </div>
                     )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
-                      <span>{selectedOrder.deliveryMethod === 'immediate' ? 'Immediate Dispatch' : 'Free Express Delivery'}</span>
+                      <span>{selectedOrder.deliveryMethod === 'immediate' ? 'Immediate Dispatch' : 'Express Delivery'}</span>
                       <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${(selectedOrder.shippingFee ?? 0).toFixed(2)} AUD</span>
                     </div>
                   </div>

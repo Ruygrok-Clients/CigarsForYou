@@ -137,7 +137,7 @@ export const TrustBannerSection: React.FC = () => {
                 maxWidth: '280px',
                 fontWeight: 400
               }}>
-                Immediate Dispatch (1-3hr Delivery) with Uber Commercial Courier, or Free Express Delivery with partners such as DHL or AusPost.
+                Immediate Dispatch (1-3hr Delivery) with Uber Commercial Courier, or Express Delivery with partners such as DHL or AusPost.
               </p>
             </div>
 

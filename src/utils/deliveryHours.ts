@@ -135,10 +135,10 @@ export function immediateDispatchHoursMessage(window: DeliveryWindow): string {
 
 export function freeExpressHoursMessage(window: DeliveryWindow): string {
   if (window === 'closed') {
-    return "We're closed right now. Free Express Delivery is dispatched first thing tomorrow morning with courier partners such as DHL or AusPost.";
+    return "We're closed right now. Express Delivery is dispatched first thing tomorrow morning with courier partners such as DHL or AusPost.";
   }
   if (window === 'early') {
-    return "You're lucky — we opened early today. Free Express Delivery goes out with courier partners such as DHL or AusPost.";
+    return "You're lucky — we opened early today. Express Delivery goes out with courier partners such as DHL or AusPost.";
   }
   return 'Priority express delivery with logistics and courier partners such as DHL or AusPost.';
 }

@@ -403,7 +403,7 @@ export const HomePage: React.FC = () => {
                   maxWidth: '580px',
                   marginInline: 'auto'
                 }}>
-                  Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. Choose Immediate Dispatch (1-3hr Delivery) or Free Express Delivery.
+                  Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. Choose Immediate Dispatch (1-3hr Delivery) or Express Delivery.
                 </p>
 
                 {/* Action Buttons (Dynamically shrink on small screens via 100% width, max-width & horizontal margin) */}

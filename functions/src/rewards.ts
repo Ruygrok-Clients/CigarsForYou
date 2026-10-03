@@ -1,7 +1,11 @@
 import * as admin from "firebase-admin";
 import { HttpsError } from "firebase-functions/v2/https";
 import * as logger from "firebase-functions/logger";
-import { estimateImmediateDispatchFee } from "./immediateDispatchFee";
+import {
+  EXPRESS_DELIVERY_FEE,
+  estimateImmediateDispatchFeeFromAddress,
+  normalizeDeliveryAddress,
+} from "./immediateDispatchFee";
 import {
   normalizeLoyaltyTier,
   productVisibleForTier,
@@ -192,16 +196,23 @@ export async function placeRewardOrderForUser(
     throw new HttpsError("invalid-argument", "Add at least one reward to redeem.");
   }
 
-  let shippingFee = 0;
+  let shippingFee = EXPRESS_DELIVERY_FEE;
   if (deliveryMethod === "immediate") {
-    const quote = estimateImmediateDispatchFee({
-      postcode: address.postcode.trim(),
-      state: address.state.trim(),
-    });
-    if (!quote) {
+    const normalized = normalizeDeliveryAddress(address);
+    if (!normalized) {
       throw new HttpsError("failed-precondition", "Immediate Dispatch is not available for this address.");
     }
-    shippingFee = quote.feeAud;
+    try {
+      const quote = await estimateImmediateDispatchFeeFromAddress(normalized);
+      if (!quote) {
+        throw new HttpsError("failed-precondition", "Immediate Dispatch is not available for this address.");
+      }
+      shippingFee = quote.feeAud;
+    } catch (err) {
+      if (err instanceof HttpsError) throw err;
+      logger.error("Immediate Dispatch quote failed during reward checkout", err);
+      throw new HttpsError("unavailable", "Could not price Immediate Dispatch right now.");
+    }
   }
 
   const userRef = db().collection("users").doc(uid);

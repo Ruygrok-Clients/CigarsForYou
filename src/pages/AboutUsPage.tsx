@@ -702,7 +702,7 @@ export const AboutUsPage: React.FC = () => {
                 Immediate Dispatch (1-3hrs)
               </h3>
               <p style={{ fontSize: '0.95rem', color: '#9ca3af', lineHeight: 1.6 }}>
-                We are an official partner with the Uber Commercial Courier program, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Free Express Delivery is also available with courier partners such as DHL or AusPost.
+                We are an official partner with the Uber Commercial Courier program, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Express Delivery is also available with courier partners such as DHL or AusPost.
               </p>
             </div>
 

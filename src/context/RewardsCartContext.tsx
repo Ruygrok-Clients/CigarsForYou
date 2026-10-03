@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { doc, getDoc } from 'firebase/firestore';
 import type { DeliveryMethod, RewardCartItem, RewardCheckoutDraft, RewardProduct } from '../types';
+import { EXPRESS_DELIVERY_FEE } from '../constants/deliveryCopy';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
 import { normalizeLoyaltyTier, productVisibleForTier, resolveProductPointsCost } from '../utils/rewards';
@@ -150,7 +151,7 @@ export const RewardsCartProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCheckoutDraft(null);
   };
 
-  const shippingFee = deliveryMethod === 'immediate' ? immediateDispatchFee : 0;
+  const shippingFee = deliveryMethod === 'immediate' ? Math.max(0, immediateDispatchFee) : EXPRESS_DELIVERY_FEE;
 
   return (
     <RewardsCartContext.Provider value={{

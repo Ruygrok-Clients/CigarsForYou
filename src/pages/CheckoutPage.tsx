@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRewardsCart } from '../context/RewardsCartContext';
 import { useToast } from '../components/Toast';
 import { placeRewardOrder } from '../services/rewards';
-import { FREE_EXPRESS_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
+import { EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
 import {
   clearLoyaltyTierSnapshot,
   normalizeLoyaltyTier,
@@ -49,7 +49,7 @@ const RewardsCheckout: React.FC = () => {
   const rewardsCart = useRewardsCart();
   const [placing, setPlacing] = useState(false);
   const draft = rewardsCart.checkoutDraft;
-  const deliveryName = rewardsCart.deliveryMethod === 'immediate' ? IMMEDIATE_DISPATCH_NAME : FREE_EXPRESS_NAME;
+  const deliveryName = rewardsCart.deliveryMethod === 'immediate' ? IMMEDIATE_DISPATCH_NAME : EXPRESS_DELIVERY_NAME;
 
   const handlePlace = async () => {
     if (!paymentsEnabled) {

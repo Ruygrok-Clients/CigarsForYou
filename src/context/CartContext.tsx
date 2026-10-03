@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { CartItem, Coupon, DeliveryMethod, Product } from '../types';
+import { EXPRESS_DELIVERY_FEE } from '../constants/deliveryCopy';
 import { getSpendPromoState } from '../constants/spendPromo';
 
 interface CartContextType {
@@ -141,10 +142,12 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   const isFreeShipping = appliedCoupons.some(c => c.discountType === 'free_shipping');
-  const quotedImmediateFee = deliveryMethod === 'immediate' ? Math.max(0, immediateDispatchFee) : 0;
-  const shippingFee = cart.length > 0 && !isFreeShipping ? quotedImmediateFee : 0;
+  const quotedImmediateFee = Math.max(0, immediateDispatchFee);
+  const baseShipping = deliveryMethod === 'immediate' ? quotedImmediateFee : EXPRESS_DELIVERY_FEE;
+  const waiveImmediate = isFreeShipping && deliveryMethod === 'immediate';
+  const shippingFee = cart.length > 0 && !waiveImmediate ? baseShipping : 0;
 
-  // Calculate sum of item discounts (excluding free_shipping which makes shippingFee = 0)
+  // Item discounts only. free_shipping waives Immediate Dispatch, not Express.
   let rawItemDiscount = 0;
   for (const c of appliedCoupons) {
     if (!c.active && c.active !== undefined) continue;

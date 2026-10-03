@@ -341,7 +341,7 @@ export const AdminMarketing: React.FC = () => {
                   />
                   {discountType === 'free_shipping' && (
                     <span style={{ fontSize: '0.75rem', color: 'var(--accent-gold)', display: 'block', marginTop: '0.25rem' }}>
-                      Waives the Immediate Dispatch delivery fee. Free Express Delivery is already free.
+                      Waives the Immediate Dispatch delivery fee. Express Delivery stays $12.
                     </span>
                   )}
                 </div>

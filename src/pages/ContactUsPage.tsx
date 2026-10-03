@@ -44,7 +44,7 @@ export const ContactUsPage: React.FC = () => {
   const faqs = [
     {
       q: 'How does delivery work?',
-      a: 'There are two options. Immediate Dispatch (1-3hrs Delivery): we are an official partner with the Uber Commercial Courier program, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Free Express Delivery: priority express with logistics and courier partners such as DHL or AusPost.'
+      a: 'There are two options. Immediate Dispatch (1-3hrs Delivery): we are an official partner with the Uber Commercial Courier program, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Express Delivery: priority express with logistics and courier partners such as DHL or AusPost.'
     },
     {
       q: 'How is age verification handled upon delivery?',
@@ -494,7 +494,7 @@ export const ContactUsPage: React.FC = () => {
                         Immediate Dispatch (1-3hrs Delivery)
                       </div>
                       <div style={{ fontSize: '0.85rem', color: '#d1d5db', lineHeight: 1.45, marginTop: '0.2rem' }}>
-                        Or Free Express Delivery with partners such as DHL or AusPost.
+                        Or Express Delivery with partners such as DHL or AusPost.
                       </div>
                     </div>
                   </div>
@@ -518,7 +518,7 @@ export const ContactUsPage: React.FC = () => {
                     Delivery Options
                   </h4>
                   <p style={{ fontSize: '0.85rem', color: '#6b7280', lineHeight: 1.5, margin: 0 }}>
-                    Immediate Dispatch (1-3hrs Delivery) is handled by our Uber Commercial Courier partners. Free Express Delivery is priority express with courier partners such as DHL or AusPost.
+                    Immediate Dispatch (1-3hrs Delivery) is handled by our Uber Commercial Courier partners. Express Delivery is priority express with courier partners such as DHL or AusPost.
                   </p>
                 </div>
               </div>
