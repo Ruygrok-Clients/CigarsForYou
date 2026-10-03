@@ -4,8 +4,8 @@ import { logger } from "firebase-functions";
 import { HttpsError, onCall, onRequest } from "firebase-functions/v2/https";
 import { defineSecret } from "firebase-functions/params";
 
-// Per-session config, not a secret. "CigarsForYou KYC" in the Didit console.
-const WORKFLOW_ID = "e6952104-027b-4b6b-8e24-427e9869cacd";
+// Per-session config, not a secret. "Adaptive Age Estimation" in the Didit console.
+const WORKFLOW_ID = "84d26e09-eec6-4c66-b58b-15642b90b77c";
 const DIDIT_SESSION_URL = "https://verification.didit.me/v3/session/";
 const CALLBACK_URL = "https://cigarsforyou.com.au";
 const PENDING_TTL_MS = 24 * 60 * 60 * 1000;
@@ -108,6 +108,13 @@ async function createDiditSessionRecord(input: {
   if (!response.ok) {
     const detail = await response.text();
     logger.error("Didit session create failed", { status: response.status, detail });
+    const lower = detail.toLowerCase();
+    if (response.status === 400 && lower.includes("enough credits")) {
+      throw new HttpsError(
+        "resource-exhausted",
+        "Age verification is temporarily unavailable (Didit credits). Please try again later."
+      );
+    }
     throw new HttpsError("internal", "Could not start age verification.");
   }
 
