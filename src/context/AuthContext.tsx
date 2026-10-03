@@ -17,6 +17,11 @@ interface AuthContextType {
   loading: boolean;
   isAdmin: boolean;
   isMemberOrAdmin: boolean;
+  /** Admin, member, or marketing staff — can enter the portal */
+  canAccessPortal: boolean;
+  isMarketingStaff: boolean;
+  /** Admin, member, or marketing staff — can manage News & SEO */
+  canManageNews: boolean;
   signUp: (
     email: string,
     pass: string,
@@ -117,6 +122,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const isAdmin = userProfile?.role === 'admin';
   const isMemberOrAdmin = userProfile?.role === 'admin' || userProfile?.role === 'member';
+  const isMarketingStaff = userProfile?.role === 'marketing';
+  const canAccessPortal = isMemberOrAdmin || isMarketingStaff;
+  const canManageNews = isMemberOrAdmin || isMarketingStaff;
 
   return (
     <AuthContext.Provider value={{
@@ -125,6 +133,9 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
       loading,
       isAdmin,
       isMemberOrAdmin,
+      canAccessPortal,
+      isMarketingStaff,
+      canManageNews,
       signUp,
       logIn,
       logOut,

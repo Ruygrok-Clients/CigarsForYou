@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useLocation, useNavigate, Outlet } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { useAdminContext } from './AdminContext';
@@ -20,28 +20,46 @@ import {
   X
 } from 'lucide-react';
 
+const roleLabel = (role?: string) => {
+  if (role === 'marketing') return 'Marketing Staff';
+  if (role === 'admin') return 'Administrator';
+  if (role === 'member') return 'Staff Member';
+  return role ? role.charAt(0).toUpperCase() + role.slice(1) : 'Administrator';
+};
+
 export const AdminLayout: React.FC = () => {
-  const { userProfile, logOut, isAdmin } = useAuth();
+  const { userProfile, logOut, isAdmin, isMarketingStaff } = useAuth();
   const { screenLocked, toggleScreenLock, theme, toggleTheme } = useAdminContext();
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const location = useLocation();
   const navigate = useNavigate();
 
-  const overviewItems = [
-    { label: 'Dashboard', path: '/admin', icon: LayoutDashboard }
-  ];
+  // Marketing staff may only use News & SEO
+  useEffect(() => {
+    if (isMarketingStaff && !location.pathname.startsWith('/admin/news')) {
+      navigate('/admin/news', { replace: true });
+    }
+  }, [isMarketingStaff, location.pathname, navigate]);
 
-  const marketingItems = [
-    { label: 'Coupons', path: '/admin/marketing', icon: Tag },
-    { label: 'Loyalty Program', path: '/admin/rewards', icon: Award },
-    { label: 'Stock Notifications', path: '/admin/stock-notifications', icon: Bell },
-    { label: 'News & Blogs', path: '/admin/news', icon: Newspaper }
-  ];
+  const overviewItems = isMarketingStaff
+    ? []
+    : [{ label: 'Dashboard', path: '/admin', icon: LayoutDashboard }];
 
-  const operationsItems = [
-    { label: 'Products & Stock', path: '/admin/products', icon: Box },
-    { label: 'Orders', path: '/admin/orders', icon: ShoppingBag }
-  ];
+  const marketingItems = isMarketingStaff
+    ? [{ label: 'News & SEO', path: '/admin/news', icon: Newspaper }]
+    : [
+        { label: 'Coupons', path: '/admin/marketing', icon: Tag },
+        { label: 'Loyalty Program', path: '/admin/rewards', icon: Award },
+        { label: 'Stock Notifications', path: '/admin/stock-notifications', icon: Bell },
+        { label: 'News & Blogs', path: '/admin/news', icon: Newspaper }
+      ];
+
+  const operationsItems = isMarketingStaff
+    ? []
+    : [
+        { label: 'Products & Stock', path: '/admin/products', icon: Box },
+        { label: 'Orders', path: '/admin/orders', icon: ShoppingBag }
+      ];
 
   const systemItems = [
     ...(isAdmin ? [{ label: 'Portal Settings', path: '/admin/settings', icon: Settings }] : [])
@@ -86,7 +104,7 @@ export const AdminLayout: React.FC = () => {
     if (path.startsWith('/admin/marketing')) return { section: 'Marketing', title: 'Coupons' };
     if (path.startsWith('/admin/rewards')) return { section: 'Marketing', title: 'Loyalty Program' };
     if (path.startsWith('/admin/stock-notifications')) return { section: 'Marketing', title: 'Stock Notifications' };
-    if (path.startsWith('/admin/news')) return { section: 'Marketing', title: 'News & Blogs' };
+    if (path.startsWith('/admin/news')) return { section: 'Marketing', title: isMarketingStaff ? 'News & SEO' : 'News & Blogs' };
     if (path.startsWith('/admin/products')) return { section: 'Operations', title: 'Products & Stock' };
     if (path.startsWith('/admin/orders')) return { section: 'Operations', title: 'Orders' };
     if (path.startsWith('/admin/settings')) return { section: 'Settings', title: 'Portal Settings & Staff' };
@@ -120,7 +138,7 @@ export const AdminLayout: React.FC = () => {
           alignItems: 'center',
           justifyContent: 'space-between'
         }}>
-          <Link to="/admin" style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none', gap: '0.35rem' }}>
+          <Link to={isMarketingStaff ? '/admin/news' : '/admin'} style={{ display: 'flex', flexDirection: 'column', alignItems: 'flex-start', textDecoration: 'none', gap: '0.35rem' }}>
             <img 
               src={theme === 'dark' ? "/logo-white.svg" : "/logo.svg"} 
               alt="CigarsForYou Admin Logo" 
@@ -144,37 +162,43 @@ export const AdminLayout: React.FC = () => {
         {/* Links Navigation */}
         <nav style={{ padding: '1rem 0.75rem', display: 'flex', flexDirection: 'column', gap: '1.25rem', flex: 1, overflowY: 'auto' }}>
           {/* Overview */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            {overviewItems.map(renderNavItem)}
-          </div>
+          {overviewItems.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              {overviewItems.map(renderNavItem)}
+            </div>
+          )}
 
           {/* Marketing Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <div style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: 'var(--text-muted)',
-              padding: '0.25rem 0.75rem 0.35rem 0.75rem',
-              letterSpacing: '0.05em'
-            }}>
-              Marketing
+          {marketingItems.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: 'var(--text-muted)',
+                padding: '0.25rem 0.75rem 0.35rem 0.75rem',
+                letterSpacing: '0.05em'
+              }}>
+                Marketing
+              </div>
+              {marketingItems.map(renderNavItem)}
             </div>
-            {marketingItems.map(renderNavItem)}
-          </div>
+          )}
 
           {/* Operations Section */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-            <div style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              color: 'var(--text-muted)',
-              padding: '0.25rem 0.75rem 0.35rem 0.75rem',
-              letterSpacing: '0.05em'
-            }}>
-              Operations
+          {operationsItems.length > 0 && (
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+              <div style={{
+                fontSize: '0.75rem',
+                fontWeight: 700,
+                color: 'var(--text-muted)',
+                padding: '0.25rem 0.75rem 0.35rem 0.75rem',
+                letterSpacing: '0.05em'
+              }}>
+                Operations
+              </div>
+              {operationsItems.map(renderNavItem)}
             </div>
-            {operationsItems.map(renderNavItem)}
-          </div>
+          )}
 
           {/* System Section */}
           {systemItems.length > 0 && (
@@ -470,7 +494,7 @@ export const AdminLayout: React.FC = () => {
                   color: 'var(--text-muted)',
                   whiteSpace: 'nowrap'
                 }}>
-                  {userProfile?.role ? (userProfile.role.charAt(0).toUpperCase() + userProfile.role.slice(1)) : 'Administrator'} Profile
+                  {roleLabel(userProfile?.role)} Profile
                 </span>
               </div>
             </div>

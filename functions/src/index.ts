@@ -378,7 +378,7 @@ export const setUserRole = onCall(async (request) => {
   }
 
   const { targetUid, role } = request.data;
-  if (!["admin", "member", "customer"].includes(role)) {
+  if (!["admin", "member", "marketing", "customer"].includes(role)) {
     throw new HttpsError("invalid-argument", "Invalid role specified");
   }
 

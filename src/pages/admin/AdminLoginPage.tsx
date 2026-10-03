@@ -49,10 +49,15 @@ export const AdminLoginPage: React.FC = () => {
 
         if (userSnap.exists()) {
           const profile = userSnap.data();
-          if (profile.role !== 'admin' && profile.role !== 'member') {
-            showToast('Access denied. Account is not registered as admin or member.', 'error');
+          const role = profile.role;
+          if (role !== 'admin' && role !== 'member' && role !== 'marketing') {
+            showToast('Access denied. Account is not registered for portal access.', 'error');
             return;
           }
+          await refreshProfile();
+          showToast('Welcome to CigarsForYou Admin Portal');
+          navigate(role === 'marketing' ? '/admin/news' : '/admin');
+          return;
         }
 
         await refreshProfile();

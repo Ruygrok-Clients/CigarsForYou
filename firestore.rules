@@ -24,6 +24,15 @@ service cloud.firestore {
       return isAuthenticated() && (getUserData().role == 'admin' || getUserData().role == 'member');
     }
 
+    // News & SEO: admins, members, and marketing staff
+    function canManageNews() {
+      return isAuthenticated() && (
+        getUserData().role == 'admin'
+        || getUserData().role == 'member'
+        || getUserData().role == 'marketing'
+      );
+    }
+
     function loyaltyFieldsUntouched() {
       return !request.resource.data.diff(resource.data).affectedKeys().hasAny([
         'rewardsPoints',
@@ -46,10 +55,13 @@ service cloud.firestore {
     // rewardsPoints and loyalty tier fields are written only by Cloud Functions (Admin SDK bypasses these rules).
     match /users/{userId} {
       allow read: if isOwner(userId) || isMemberOrAdmin();
-      allow create: if isAuthenticated() && request.auth.uid == userId
+      allow create: if (isAuthenticated() && request.auth.uid == userId
         && (!request.resource.data.keys().hasAny(['rewardsPoints']) || request.resource.data.rewardsPoints == 0)
         && !request.resource.data.keys().hasAny(['loyaltyTier', 'loyaltyWindowPoints', 'loyaltyTierUpdatedAt'])
-        && !request.resource.data.keys().hasAny(['ageVerified', 'ageVerificationStatus', 'diditSessionId', 'ageVerifiedAt']);
+        && !request.resource.data.keys().hasAny(['ageVerified', 'ageVerificationStatus', 'diditSessionId', 'ageVerifiedAt']))
+        || (isAdmin()
+          && request.resource.data.role in ['admin', 'member', 'marketing']
+          && (!request.resource.data.keys().hasAny(['rewardsPoints']) || request.resource.data.rewardsPoints == 0));
       allow update: if (isOwner(userId) || isAdmin()) && loyaltyFieldsUntouched() && ageVerificationFieldsUntouched();
       allow delete: if isAdmin();
     }
@@ -87,10 +99,10 @@ service cloud.firestore {
       allow write: if isMemberOrAdmin();
     }
 
-    // News & blog posts (public when published; staff manage all)
+    // News & blog posts (public when published; staff + marketing manage all)
     match /newsPosts/{postId} {
       allow read: if true;
-      allow write: if isMemberOrAdmin();
+      allow write: if canManageNews();
     }
 
     // Tier thresholds. Staff write; signed-in customers read for progress copy.

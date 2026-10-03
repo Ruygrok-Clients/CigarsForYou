@@ -4,7 +4,7 @@ import { useAuth } from '../../context/AuthContext';
 import { ShieldAlert } from 'lucide-react';
 
 export const AdminGuard: React.FC = () => {
-  const { currentUser, userProfile, loading, isMemberOrAdmin } = useAuth();
+  const { currentUser, userProfile, loading, canAccessPortal } = useAuth();
 
   if (loading) {
     return (
@@ -25,7 +25,7 @@ export const AdminGuard: React.FC = () => {
     return <Navigate to="/admin/login" replace />;
   }
 
-  if (!isMemberOrAdmin) {
+  if (!canAccessPortal) {
     return (
       <div style={{
         minHeight: '100vh',
@@ -40,7 +40,7 @@ export const AdminGuard: React.FC = () => {
           <ShieldAlert size={48} style={{ color: 'var(--accent-ruby)', margin: '0 auto 1rem auto' }} />
           <h2 style={{ color: 'var(--text-primary)', marginBottom: '0.5rem' }}>Access Denied</h2>
           <p style={{ color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-            Your account ({userProfile?.email}) is registered as a customer. Administrator or Member role is required to enter this portal.
+            Your account ({userProfile?.email}) is registered as a customer. Administrator, Member, or Marketing Staff role is required to enter this portal.
           </p>
         </div>
       </div>

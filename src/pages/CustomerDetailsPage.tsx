@@ -7,6 +7,7 @@ import { useLocationSelection } from '../context/LocationContext';
 import { useToast } from '../components/Toast';
 import { useClosingSoon } from '../context/ClosingSoonContext';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
+import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import { AUSTRALIAN_STATES } from '../constants/locations';
 import { FREE_EXPRESS_NAME, IMMEDIATE_DISPATCH_NAME, UBER_PARTNER_BLURB } from '../constants/deliveryCopy';
@@ -51,7 +52,8 @@ export const CustomerDetailsPage: React.FC = () => {
     applyCoupon,
     removeCoupon,
     subtotal,
-    discountAmount,
+    couponDiscountAmount,
+    spendPromoDiscount,
     totalAmount,
     isFreeShipping: productIsFreeShipping,
     deliveryMethod: productDeliveryMethod,
@@ -301,6 +303,8 @@ export const CustomerDetailsPage: React.FC = () => {
         </div>
 
         <ClosingSoonCountdownBanner />
+
+        {!rewardsMode && <SpendThresholdPromoBar subtotal={subtotal} />}
 
         <form onSubmit={(e) => e.preventDefault()}>
           <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
@@ -600,10 +604,16 @@ export const CustomerDetailsPage: React.FC = () => {
                       <span>${subtotal.toFixed(2)} AUD</span>
                     </div>
                   )}
-                  {!rewardsMode && discountAmount > 0 && (
+                  {!rewardsMode && spendPromoDiscount > 0 && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
+                      <span>Spend & Save ($400+)</span>
+                      <span>-${spendPromoDiscount.toFixed(2)} AUD</span>
+                    </div>
+                  )}
+                  {!rewardsMode && couponDiscountAmount > 0 && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
                       <span>Coupon Discount</span>
-                      <span>-${discountAmount.toFixed(2)} AUD</span>
+                      <span>-${couponDiscountAmount.toFixed(2)} AUD</span>
                     </div>
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', gap: '1rem' }}>

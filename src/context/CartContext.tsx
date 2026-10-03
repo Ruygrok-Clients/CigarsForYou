@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { CartItem, Coupon, DeliveryMethod, Product } from '../types';
+import { getSpendPromoState } from '../constants/spendPromo';
 
 interface CartContextType {
   cart: CartItem[];
@@ -12,6 +13,8 @@ interface CartContextType {
   applyCoupon: (coupon: Coupon | null) => void;
   removeCoupon: (code: string) => void;
   subtotal: number;
+  couponDiscountAmount: number;
+  spendPromoDiscount: number;
   discountAmount: number;
   shippingFee: number;
   totalAmount: number;
@@ -157,7 +160,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  const discountAmount = Math.min(rawItemDiscount, subtotal);
+  const spendPromoDiscount = getSpendPromoState(subtotal).discount;
+  const couponDiscountAmount = Math.min(rawItemDiscount, subtotal);
+  const discountAmount = Math.min(couponDiscountAmount + spendPromoDiscount, subtotal);
   const totalAmount = Math.max(0, subtotal - discountAmount + shippingFee);
   const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -173,6 +178,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       applyCoupon,
       removeCoupon,
       subtotal,
+      couponDiscountAmount,
+      spendPromoDiscount,
       discountAmount,
       shippingFee,
       totalAmount,

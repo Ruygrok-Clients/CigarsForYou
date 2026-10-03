@@ -6,13 +6,34 @@ import { useAuth } from '../../context/AuthContext';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
 import type { UserProfile } from '../../types';
-import { UserPlus, Trash2, Edit3, ShieldAlert, X, Mail, Send, CheckCircle, ShieldCheck, Users } from 'lucide-react';
+import { UserPlus, Trash2, Edit3, ShieldAlert, X, Mail, Send, CheckCircle, ShieldCheck, Users, Newspaper } from 'lucide-react';
 
-type StaffKind = 'admin' | 'member';
+type StaffKind = 'admin' | 'member' | 'marketing';
 
 type StaffModalState =
   | { open: false }
   | { open: true; kind: StaffKind; editing: UserProfile | null };
+
+const STAFF_LABELS: Record<StaffKind, { singular: string; plural: string; badge: string; description: string }> = {
+  admin: {
+    singular: 'administrator',
+    plural: 'Administrators',
+    badge: 'Administrator',
+    description: 'Administrators only need an account type, name, and email.'
+  },
+  member: {
+    singular: 'staff member',
+    plural: 'Staff members',
+    badge: 'Staff member',
+    description: 'Staff members get orders and products access in the portal.'
+  },
+  marketing: {
+    singular: 'marketing staff',
+    plural: 'Marketing staff',
+    badge: 'Marketing Staff',
+    description: 'Marketing staff can only access and manage the News & SEO page.'
+  }
+};
 
 export const AdminSettings: React.FC = () => {
   const { currentUser, isAdmin } = useAuth();
@@ -34,7 +55,7 @@ export const AdminSettings: React.FC = () => {
       const list: UserProfile[] = [];
       snap.forEach((d) => {
         const u = { uid: d.id, ...d.data() } as UserProfile;
-        if (u.role === 'admin' || u.role === 'member') {
+        if (u.role === 'admin' || u.role === 'member' || u.role === 'marketing') {
           list.push(u);
         }
       });
@@ -69,6 +90,7 @@ export const AdminSettings: React.FC = () => {
 
   const admins = portalUsers.filter((u) => u.role === 'admin');
   const members = portalUsers.filter((u) => u.role === 'member');
+  const marketingStaff = portalUsers.filter((u) => u.role === 'marketing');
 
   const openAdd = (kind: StaffKind) => {
     setModal({ open: true, kind, editing: null });
@@ -77,7 +99,8 @@ export const AdminSettings: React.FC = () => {
   };
 
   const openEdit = (u: UserProfile) => {
-    const kind: StaffKind = u.role === 'admin' ? 'admin' : 'member';
+    const kind: StaffKind =
+      u.role === 'admin' ? 'admin' : u.role === 'marketing' ? 'marketing' : 'member';
     setModal({ open: true, kind, editing: u });
     setName(u.displayName || '');
     setEmail(u.email);
@@ -103,7 +126,7 @@ export const AdminSettings: React.FC = () => {
           displayName: trimmedName,
           role: kind
         });
-        showToast(`Updated ${kind === 'admin' ? 'administrator' : 'staff member'} ${trimmedEmail}`);
+        showToast(`Updated ${STAFF_LABELS[kind].singular} ${trimmedEmail}`);
       } else {
         const uid = `user-${Math.random().toString(36).substring(2, 9)}`;
         const payload: Record<string, unknown> = {
@@ -113,15 +136,13 @@ export const AdminSettings: React.FC = () => {
           role: kind,
           createdAt: new Date().toISOString()
         };
-        // Members may later link to a full customer-style profile; admins stay lean.
+        // Members may later link to a full customer-style profile; admins/marketing stay lean.
         if (kind === 'member') {
           payload.addresses = [];
         }
         await setDoc(doc(db, 'users', uid), payload);
         showToast(
-          kind === 'admin'
-            ? `Administrator record added for ${trimmedEmail}. They still need a matching Firebase Auth login to sign in.`
-            : `Staff member record added for ${trimmedEmail}. They still need a matching Firebase Auth login to sign in.`
+          `${STAFF_LABELS[kind].badge} record added for ${trimmedEmail}. They still need a matching Firebase Auth login to sign in.`
         );
       }
       closeModal();
@@ -138,7 +159,12 @@ export const AdminSettings: React.FC = () => {
       showToast('Cannot delete your own active administrator account', 'error');
       return;
     }
-    const label = u.role === 'admin' ? 'administrator' : 'staff member';
+    const label =
+      u.role === 'admin'
+        ? 'administrator'
+        : u.role === 'marketing'
+          ? 'marketing staff'
+          : 'staff member';
     if (!window.confirm(`Remove ${label} access for ${u.email}?`)) return;
 
     try {
@@ -191,7 +217,8 @@ export const AdminSettings: React.FC = () => {
   };
 
   const renderStaffTable = (kind: StaffKind, rows: UserProfile[]) => {
-    const emptyLabel = kind === 'admin' ? 'No administrator accounts yet.' : 'No staff members yet.';
+    const emptyLabel = `No ${STAFF_LABELS[kind].singular} accounts yet.`;
+    const badgeClass = kind === 'admin' ? 'badge-gold' : kind === 'marketing' ? 'badge-amber' : 'badge-gray';
     return (
       <div className="card" style={{ padding: '1rem' }}>
         <div style={{ overflowX: 'auto' }}>
@@ -216,15 +243,15 @@ export const AdminSettings: React.FC = () => {
                 rows.map((u) => (
                   <tr key={u.uid} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
                     <td style={{ padding: '0.75rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                      {u.displayName || (kind === 'admin' ? 'Administrator' : 'Staff Member')}
+                      {u.displayName || STAFF_LABELS[kind].badge}
                       {u.uid === currentUser?.uid && (
                         <span className="badge badge-gold" style={{ marginLeft: '0.5rem', fontSize: '0.65rem' }}>You</span>
                       )}
                     </td>
                     <td style={{ padding: '0.75rem', color: 'var(--accent-gold)' }}>{u.email}</td>
                     <td style={{ padding: '0.75rem' }}>
-                      <span className={`badge ${kind === 'admin' ? 'badge-gold' : 'badge-gray'}`} style={{ textTransform: 'uppercase' }}>
-                        {kind}
+                      <span className={`badge ${badgeClass}`} style={{ textTransform: 'uppercase' }}>
+                        {kind === 'marketing' ? 'marketing' : kind}
                       </span>
                     </td>
                     <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>
@@ -266,7 +293,7 @@ export const AdminSettings: React.FC = () => {
           </span>
           <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)' }}>Portal Settings & Staff</h1>
           <p style={{ color: 'var(--text-secondary)', margin: '0.4rem 0 0', maxWidth: '40rem', lineHeight: 1.5 }}>
-            Administrators and staff members are managed separately. Admin accounts only need a name, email, and account type.
+            Administrators, staff members, and marketing staff are managed separately. Each account type only needs a name, email, and role.
           </p>
         </div>
       </div>
@@ -281,6 +308,11 @@ export const AdminSettings: React.FC = () => {
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Staff Members</span>
           <h3 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>{members.length}</h3>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Orders & products operational access</span>
+        </div>
+        <div className="card" style={{ padding: '1.25rem' }}>
+          <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Marketing Staff</span>
+          <h3 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>{marketingStaff.length}</h3>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>News & SEO access only</span>
         </div>
       </div>
 
@@ -385,6 +417,30 @@ export const AdminSettings: React.FC = () => {
             </div>
             {renderStaffTable('member', members)}
           </section>
+
+          <section>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+                  <Newspaper size={18} style={{ color: 'var(--text-primary)' }} />
+                  <h2 style={{ fontSize: '1.35rem', color: 'var(--text-primary)', margin: 0 }}>Marketing staff</h2>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                  Limited access — can only view and manage the News & SEO page in the portal.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={screenLocked}
+                onClick={() => openAdd('marketing')}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <UserPlus size={16} /> Add marketing staff
+              </button>
+            </div>
+            {renderStaffTable('marketing', marketingStaff)}
+          </section>
         </div>
       )}
 
@@ -401,17 +457,11 @@ export const AdminSettings: React.FC = () => {
 
             <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
               {modal.editing
-                ? modal.kind === 'admin'
-                  ? 'Edit administrator'
-                  : 'Edit staff member'
-                : modal.kind === 'admin'
-                  ? 'Add administrator'
-                  : 'Add staff member'}
+                ? `Edit ${STAFF_LABELS[modal.kind].singular}`
+                : `Add ${STAFF_LABELS[modal.kind].singular}`}
             </h2>
             <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
-              {modal.kind === 'admin'
-                ? 'Administrators only need an account type, name, and email.'
-                : 'Staff members get orders and products access in the portal.'}
+              {STAFF_LABELS[modal.kind].description}
             </p>
 
             <form onSubmit={handleSave}>
@@ -420,7 +470,7 @@ export const AdminSettings: React.FC = () => {
                 <input
                   type="text"
                   className="form-control"
-                  value={modal.kind === 'admin' ? 'Administrator' : 'Staff member'}
+                  value={STAFF_LABELS[modal.kind].badge}
                   disabled
                   readOnly
                 />
@@ -432,7 +482,13 @@ export const AdminSettings: React.FC = () => {
                   type="text"
                   required
                   className="form-control"
-                  placeholder={modal.kind === 'admin' ? 'e.g. Alex Admin' : 'e.g. Sarah Connor'}
+                  placeholder={
+                    modal.kind === 'admin'
+                      ? 'e.g. Alex Admin'
+                      : modal.kind === 'marketing'
+                        ? 'e.g. Jamie Marketing'
+                        : 'e.g. Sarah Connor'
+                  }
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
@@ -456,7 +512,9 @@ export const AdminSettings: React.FC = () => {
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={screenLocked}>
-                  {modal.editing ? 'Save changes' : modal.kind === 'admin' ? 'Add administrator' : 'Add staff member'}
+                  {modal.editing
+                    ? 'Save changes'
+                    : `Add ${STAFF_LABELS[modal.kind].singular}`}
                 </button>
               </div>
             </form>

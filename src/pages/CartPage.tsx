@@ -5,6 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
 import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
+import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import {
   ShoppingBag,
@@ -15,7 +16,22 @@ import {
 } from 'lucide-react';
 
 export const CartPage: React.FC = () => {
-  const { cart, removeFromCart, updateQuantity, clearCart, appliedCoupons, applyCoupon, removeCoupon, subtotal, discountAmount, shippingFee, totalAmount, isFreeShipping, deliveryMethod } = useCart();
+  const {
+    cart,
+    removeFromCart,
+    updateQuantity,
+    clearCart,
+    appliedCoupons,
+    applyCoupon,
+    removeCoupon,
+    subtotal,
+    couponDiscountAmount,
+    spendPromoDiscount,
+    shippingFee,
+    totalAmount,
+    isFreeShipping,
+    deliveryMethod
+  } = useCart();
   const { currentUser, userProfile } = useAuth();
   const { showToast } = useToast();
   const [couponCode, setCouponCode] = useState('');
@@ -79,6 +95,8 @@ export const CartPage: React.FC = () => {
         </div>
 
         <ClosingSoonCountdownBanner style={{ marginTop: '0.25rem' }} />
+
+        <SpendThresholdPromoBar subtotal={subtotal} />
 
         <div style={{
           display: 'grid',
@@ -240,10 +258,17 @@ export const CartPage: React.FC = () => {
                   <span>${subtotal.toFixed(2)} AUD</span>
                 </div>
 
-                {discountAmount > 0 && (
+                {spendPromoDiscount > 0 && (
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
-                    <span>Discount</span>
-                    <span>-${discountAmount.toFixed(2)} AUD</span>
+                    <span>Spend & Save ($400+)</span>
+                    <span>-${spendPromoDiscount.toFixed(2)} AUD</span>
+                  </div>
+                )}
+
+                {couponDiscountAmount > 0 && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
+                    <span>Coupon Discount</span>
+                    <span>-${couponDiscountAmount.toFixed(2)} AUD</span>
                   </div>
                 )}
 
