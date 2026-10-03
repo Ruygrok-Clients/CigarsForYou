@@ -87,6 +87,12 @@ service cloud.firestore {
       allow write: if isMemberOrAdmin();
     }
 
+    // News & blog posts (public when published; staff manage all)
+    match /newsPosts/{postId} {
+      allow read: if true;
+      allow write: if isMemberOrAdmin();
+    }
+
     // Tier thresholds. Staff write; signed-in customers read for progress copy.
     match /settings/{docId} {
       allow read: if isAuthenticated();

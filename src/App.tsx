@@ -37,6 +37,8 @@ import { LegalPage } from './pages/LegalPage';
 import { AgeRestrictedPage } from './pages/AgeRestrictedPage';
 import { AboutUsPage } from './pages/AboutUsPage';
 import { ContactUsPage } from './pages/ContactUsPage';
+import { NewsPage } from './pages/NewsPage';
+import { NewsArticlePage } from './pages/NewsArticlePage';
 
 // Admin Portal Imports
 import { AdminContextProvider } from './pages/admin/AdminContext';
@@ -49,6 +51,7 @@ import { AdminProducts } from './pages/admin/AdminProducts';
 import { AdminStockNotifications } from './pages/admin/AdminStockNotifications';
 import { AdminMarketing } from './pages/admin/AdminMarketing';
 import { AdminRewards } from './pages/admin/AdminRewards';
+import { AdminNews } from './pages/admin/AdminNews';
 import { AdminSettings } from './pages/admin/AdminSettings';
 
 const queryClient = new QueryClient();
@@ -136,6 +139,8 @@ export default function App() {
                       <Route path="/privacy" element={<LegalPage />} />
                       <Route path="/refund-policy" element={<LegalPage />} />
                       <Route path="/about" element={<AboutUsPage />} />
+                      <Route path="/news" element={<NewsPage />} />
+                      <Route path="/news/:slug" element={<NewsArticlePage />} />
                       <Route path="/contact" element={<ContactUsPage />} />
                       <Route path="/age-restricted" element={<AgeRestrictedPage />} />
 
@@ -149,6 +154,7 @@ export default function App() {
                           <Route path="/admin/stock-notifications" element={<AdminStockNotifications />} />
                           <Route path="/admin/marketing" element={<AdminMarketing />} />
                           <Route path="/admin/rewards" element={<AdminRewards />} />
+                          <Route path="/admin/news" element={<AdminNews />} />
                           <Route path="/admin/settings" element={<AdminSettings />} />
                         </Route>
                       </Route>

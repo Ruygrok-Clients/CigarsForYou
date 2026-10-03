@@ -763,6 +763,9 @@ export const Navbar: React.FC = () => {
                 <Link to="/about" className="medicart-pill-btn">
                   About Us
                 </Link>
+                <Link to="/news" className="medicart-pill-btn">
+                  News
+                </Link>
                 <Link to="/contact" className="medicart-pill-btn">
                   Contact Us
                 </Link>
@@ -1253,6 +1256,9 @@ export const Navbar: React.FC = () => {
 
                 <Link to="/about" className="medicart-pill-btn" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
                   About Us
+                </Link>
+                <Link to="/news" className="medicart-pill-btn" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                  News
                 </Link>
                 <Link to="/contact" className="medicart-pill-btn" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
                   Contact Us

@@ -103,6 +103,21 @@ export type DeliveryMethod = 'immediate' | 'express';
 export type OrderStatus = 'Pending' | 'Verified' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
 export type OrderSource = 'Website' | 'Manual' | 'Reward';
 
+export interface NewsPost {
+  id?: string;
+  slug: string;
+  title: string;
+  excerpt: string;
+  imageUrl: string;
+  /** Blank-line paragraphs. A block starting with "## " renders as a heading. */
+  body: string;
+  publishedAt: string;
+  readMinutes: number;
+  active: boolean;
+  createdAt: string;
+  updatedAt: string;
+}
+
 export interface RewardProduct {
   id?: string;
   name: string;

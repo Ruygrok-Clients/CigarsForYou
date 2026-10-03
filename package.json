@@ -11,7 +11,8 @@
     "deploy": "bash scripts/deploy-firebase.sh",
     "deploy:functions": "bash scripts/deploy-firebase.sh --functions-only",
     "deploy:hosting": "bash scripts/deploy-firebase.sh --hosting-only",
-    "users:grandfather-age": "node scripts/grandfather-age-verified-users.js"
+    "users:grandfather-age": "node scripts/grandfather-age-verified-users.js",
+    "seed:news": "node scripts/seed-news.js"
   },
   "dependencies": {
     "@didit-protocol/sdk-web": "^0.4.0",

@@ -9,6 +9,7 @@ import {
   Bell, 
   Tag, 
   Award,
+  Newspaper,
   Settings, 
   Lock, 
   Unlock, 
@@ -33,7 +34,8 @@ export const AdminLayout: React.FC = () => {
   const marketingItems = [
     { label: 'Coupons', path: '/admin/marketing', icon: Tag },
     { label: 'Loyalty Program', path: '/admin/rewards', icon: Award },
-    { label: 'Stock Notifications', path: '/admin/stock-notifications', icon: Bell }
+    { label: 'Stock Notifications', path: '/admin/stock-notifications', icon: Bell },
+    { label: 'News & Blogs', path: '/admin/news', icon: Newspaper }
   ];
 
   const operationsItems = [
@@ -84,6 +86,7 @@ export const AdminLayout: React.FC = () => {
     if (path.startsWith('/admin/marketing')) return { section: 'Marketing', title: 'Coupons' };
     if (path.startsWith('/admin/rewards')) return { section: 'Marketing', title: 'Loyalty Program' };
     if (path.startsWith('/admin/stock-notifications')) return { section: 'Marketing', title: 'Stock Notifications' };
+    if (path.startsWith('/admin/news')) return { section: 'Marketing', title: 'News & Blogs' };
     if (path.startsWith('/admin/products')) return { section: 'Operations', title: 'Products & Stock' };
     if (path.startsWith('/admin/orders')) return { section: 'Operations', title: 'Orders' };
     if (path.startsWith('/admin/settings')) return { section: 'Settings', title: 'Portal Settings & Staff' };
