@@ -69,9 +69,16 @@ pause() {
 
 discover_functions() {
   # Cloud Functions exported from functions/src/index.ts
-  grep -E '^export const [A-Za-z0-9_]+' functions/src/index.ts \
-    | sed -E 's/^export const ([A-Za-z0-9_]+).*/\1/' \
-    | sort -u
+  # Matches both `export const foo = ...` and `export { foo, bar } from "./mod"`.
+  {
+    grep -E '^export const [A-Za-z0-9_]+' functions/src/index.ts \
+      | sed -E 's/^export const ([A-Za-z0-9_]+).*/\1/'
+    grep -E '^export \{' functions/src/index.ts \
+      | sed -E 's/^export \{([^}]+)\}.*/\1/' \
+      | tr ',' '\n' \
+      | sed -E 's/^[[:space:]]*//; s/[[:space:]]*$//' \
+      | grep -E '^[A-Za-z0-9_]+$'
+  } | sort -u
 }
 
 deploy_function_batch() {
