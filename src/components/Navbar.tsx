@@ -745,9 +745,9 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={handlePillScrollLeft}
                 style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '50%',
+                  width: '32px',
+                  alignSelf: 'stretch',
+                  borderRadius: '6px',
                   backgroundColor: '#f8f6f3',
                   border: '1px solid rgba(46, 26, 16, 0.12)',
                   color: '#2e1a10',
@@ -756,7 +756,8 @@ export const Navbar: React.FC = () => {
                   justifyContent: 'center',
                   flexShrink: 0,
                   cursor: 'pointer',
-                  transition: 'all 0.15s ease'
+                  transition: 'all 0.15s ease',
+                  boxSizing: 'border-box'
                 }}
                 aria-label="Scroll Categories Left"
               >
@@ -816,17 +817,19 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={handlePillScrollRight}
                 style={{
-                  width: '30px',
-                  height: '30px',
-                  borderRadius: '50%',
+                  width: '32px',
+                  alignSelf: 'stretch',
+                  borderRadius: '6px',
                   backgroundColor: '#c06517',
+                  border: 'none',
                   color: '#ffffff',
                   display: 'flex',
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
                   cursor: 'pointer',
-                  boxShadow: '0 2px 8px rgba(192, 101, 23, 0.25)'
+                  boxShadow: '0 2px 8px rgba(192, 101, 23, 0.25)',
+                  boxSizing: 'border-box'
                 }}
                 aria-label="Scroll Categories Right"
               >
@@ -1244,9 +1247,9 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={handlePillScrollLeft}
                 style={{
-                  width: '26px',
-                  height: '26px',
-                  borderRadius: '50%',
+                  width: '28px',
+                  alignSelf: 'stretch',
+                  borderRadius: '6px',
                   backgroundColor: '#f8f6f3',
                   border: '1px solid rgba(46, 26, 16, 0.12)',
                   color: '#2e1a10',
@@ -1254,7 +1257,8 @@ export const Navbar: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center',
                   flexShrink: 0,
-                  cursor: 'pointer'
+                  cursor: 'pointer',
+                  boxSizing: 'border-box'
                 }}
                 aria-label="Scroll Categories Left"
               >
@@ -1315,9 +1319,9 @@ export const Navbar: React.FC = () => {
               <button
                 onClick={handlePillScrollRight}
                 style={{
-                  width: '26px',
-                  height: '26px',
-                  borderRadius: '50%',
+                  width: '28px',
+                  alignSelf: 'stretch',
+                  borderRadius: '6px',
                   backgroundColor: '#c06517',
                   color: '#ffffff',
                   display: 'flex',
@@ -1325,7 +1329,8 @@ export const Navbar: React.FC = () => {
                   justifyContent: 'center',
                   flexShrink: 0,
                   cursor: 'pointer',
-                  border: 'none'
+                  border: 'none',
+                  boxSizing: 'border-box'
                 }}
                 aria-label="Scroll Categories Right"
               >

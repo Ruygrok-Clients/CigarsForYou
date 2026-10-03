@@ -57,7 +57,7 @@ export const NewsArticlePage: React.FC = () => {
           color: #2f0d0e;
         }
         .news-article-shell {
-          max-width: 760px;
+          max-width: 1320px;
           margin: 0 auto;
           padding: 2.25rem 1.15rem 4.5rem;
         }

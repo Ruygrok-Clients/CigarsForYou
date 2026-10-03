@@ -6,15 +6,18 @@ import { useToast } from '../components/Toast';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
 import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
 import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
-import { EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import {
   ShoppingBag,
   Trash2,
   Tag,
   ChevronLeft,
-  Loader2
+  Loader2,
+  Star
 } from 'lucide-react';
+
+const GOOGLE_REVIEW_RATING = 4.9;
+const GOOGLE_REVIEW_COUNT = 310;
 
 export const CartPage: React.FC = () => {
   const {
@@ -27,15 +30,18 @@ export const CartPage: React.FC = () => {
     removeCoupon,
     subtotal,
     couponDiscountAmount,
-    spendPromoDiscount,
-    shippingFee,
-    totalAmount,
-    deliveryMethod
+    spendPromoDiscount
   } = useCart();
   const { currentUser, userProfile } = useAuth();
   const { showToast } = useToast();
   const [couponCode, setCouponCode] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
+
+  // Delivery is chosen on the Customer Details step — cart total is merchandise only.
+  const merchandiseTotal = Math.max(
+    0,
+    subtotal - Math.min(couponDiscountAmount + spendPromoDiscount, subtotal)
+  );
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -98,6 +104,13 @@ export const CartPage: React.FC = () => {
 
         <SpendThresholdPromoBar subtotal={subtotal} />
 
+        <Link
+          to="/shop"
+          className="cart-continue-browsing cart-continue-browsing--mobile"
+        >
+          <ChevronLeft size={16} /> Continue Browsing Catalog
+        </Link>
+
         <div style={{
           display: 'grid',
           gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
@@ -113,7 +126,7 @@ export const CartPage: React.FC = () => {
                 style={{
                   display: 'flex',
                   gap: '1.25rem',
-                  alignItems: 'center',
+                  alignItems: 'flex-start',
                   padding: '1.25rem',
                   backgroundColor: 'var(--bg-surface)'
                 }}
@@ -137,24 +150,58 @@ export const CartPage: React.FC = () => {
                   )}
                 </div>
 
-                {/* Info */}
-                <div style={{ flex: 1 }}>
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start' }}>
-                    <div>
-                      <span style={{ fontSize: '0.75rem', textTransform: 'uppercase', color: 'var(--text-muted)' }}>
-                        {item.product.brand}
-                      </span>
-                      <h4 style={{ fontSize: '1.15rem', color: 'var(--text-primary)', margin: '0.15rem 0' }}>
-                        {item.product.name}
-                      </h4>
-                    </div>
-                    <span style={{ fontWeight: 700, color: 'var(--accent-gold)', fontSize: '1.1rem' }}>
-                      ${item.product.price * item.quantity} AUD
+                {/* Info — stacked so brand/price can share a full-width row */}
+                <div style={{
+                  flex: 1,
+                  minWidth: 0,
+                  display: 'flex',
+                  flexDirection: 'column',
+                  gap: '0.55rem'
+                }}>
+                  <div style={{
+                    display: 'flex',
+                    alignItems: 'baseline',
+                    justifyContent: 'space-between',
+                    gap: '0.75rem',
+                    flexWrap: 'wrap'
+                  }}>
+                    <span style={{
+                      fontSize: '0.75rem',
+                      textTransform: 'uppercase',
+                      letterSpacing: '0.04em',
+                      color: 'var(--text-muted)',
+                      minWidth: 0
+                    }}>
+                      {item.product.brand}
+                    </span>
+                    <span style={{
+                      fontWeight: 700,
+                      color: 'var(--accent-gold)',
+                      fontSize: '1.1rem',
+                      fontVariantNumeric: 'tabular-nums',
+                      whiteSpace: 'nowrap',
+                      marginLeft: 'auto'
+                    }}>
+                      ${item.product.price * item.quantity}
                     </span>
                   </div>
 
-                  {/* Quantity & Delete Controls */}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginTop: '0.75rem' }}>
+                  <h4 style={{
+                    fontSize: '1.15rem',
+                    color: 'var(--text-primary)',
+                    margin: 0,
+                    lineHeight: 1.25,
+                    wordBreak: 'break-word'
+                  }}>
+                    {item.product.name}
+                  </h4>
+
+                  <div style={{
+                    display: 'flex',
+                    justifyContent: 'space-between',
+                    alignItems: 'center',
+                    gap: '0.75rem'
+                  }}>
                     <div style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -162,8 +209,10 @@ export const CartPage: React.FC = () => {
                       borderRadius: 'var(--radius-md)'
                     }}>
                       <button
+                        type="button"
                         onClick={() => updateQuantity(item.product.id || item.product.slug, item.quantity - 1)}
                         style={{ padding: '0.25rem 0.6rem', color: 'var(--text-primary)' }}
+                        aria-label="Decrease quantity"
                       >
                         -
                       </button>
@@ -171,25 +220,41 @@ export const CartPage: React.FC = () => {
                         {item.quantity}
                       </span>
                       <button
+                        type="button"
                         onClick={() => updateQuantity(item.product.id || item.product.slug, item.quantity + 1)}
                         style={{ padding: '0.25rem 0.6rem', color: 'var(--text-primary)' }}
+                        aria-label="Increase quantity"
                       >
                         +
                       </button>
                     </div>
 
                     <button
+                      type="button"
                       onClick={() => removeFromCart(item.product.id || item.product.slug)}
-                      style={{ color: 'var(--accent-ruby)', display: 'flex', alignItems: 'center', gap: '0.25rem', fontSize: '0.85rem' }}
+                      aria-label={`Remove ${item.product.name} from cart`}
+                      style={{
+                        color: 'var(--accent-ruby)',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        padding: '0.35rem',
+                        background: 'none',
+                        border: 'none',
+                        cursor: 'pointer'
+                      }}
                     >
-                      <Trash2 size={14} /> Remove
+                      <Trash2 size={16} />
                     </button>
                   </div>
                 </div>
               </div>
             ))}
 
-            <Link to="/shop" style={{ display: 'inline-flex', alignItems: 'center', gap: '0.4rem', color: 'var(--accent-gold)', marginTop: '1rem' }}>
+            <Link
+              to="/shop"
+              className="cart-continue-browsing cart-continue-browsing--desktop"
+            >
               <ChevronLeft size={16} /> Continue Browsing Catalog
             </Link>
           </div>
@@ -272,15 +337,6 @@ export const CartPage: React.FC = () => {
                   </div>
                 )}
 
-                <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-                  <span>{deliveryMethod === 'immediate' ? IMMEDIATE_DISPATCH_NAME : EXPRESS_DELIVERY_NAME}</span>
-                  {shippingFee === 0 ? (
-                    <span style={{ color: '#4caf50', fontWeight: 600 }}>FREE ($0.00 AUD)</span>
-                  ) : (
-                    <span style={{ color: 'var(--accent-gold)' }}>${shippingFee.toFixed(2)} AUD</span>
-                  )}
-                </div>
-
                 <div style={{
                   display: 'flex',
                   justifyContent: 'space-between',
@@ -291,7 +347,7 @@ export const CartPage: React.FC = () => {
                   color: 'var(--text-primary)'
                 }}>
                   <span>Total</span>
-                  <span style={{ color: 'var(--text-primary)' }}>${totalAmount.toFixed(2)} AUD</span>
+                  <span style={{ color: 'var(--text-primary)' }}>${merchandiseTotal.toFixed(2)} AUD</span>
                 </div>
               </div>
 
@@ -307,9 +363,33 @@ export const CartPage: React.FC = () => {
                 Continue to Delivery Details
               </Link>
 
-              <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-secondary)', marginTop: '0.85rem', lineHeight: 1.5 }}>
-                You can review delivery options next. Online payment is still unavailable, so orders cannot be placed right now.
-              </p>
+              <div
+                className="cart-google-reviews"
+                aria-label={`Rated ${GOOGLE_REVIEW_RATING} out of 5 on Google from ${GOOGLE_REVIEW_COUNT} reviews`}
+              >
+                <span className="cart-google-reviews__g" aria-hidden="true">G</span>
+                <div className="cart-google-reviews__body">
+                  <div className="cart-google-reviews__row">
+                    <strong>{GOOGLE_REVIEW_RATING.toFixed(1)}</strong>
+                    <span className="cart-google-reviews__stars" aria-hidden="true">
+                      {Array.from({ length: 5 }, (_, i) => {
+                        const fill = Math.min(1, Math.max(0, GOOGLE_REVIEW_RATING - i));
+                        return (
+                          <span key={i} className="cart-google-reviews__star-wrap">
+                            <Star size={14} strokeWidth={0} className="cart-google-reviews__star-empty" />
+                            <span className="cart-google-reviews__star-fill" style={{ width: `${fill * 100}%` }}>
+                              <Star size={14} strokeWidth={0} fill="currentColor" />
+                            </span>
+                          </span>
+                        );
+                      })}
+                    </span>
+                  </div>
+                  <p className="cart-google-reviews__meta">
+                    Based on <strong>{GOOGLE_REVIEW_COUNT}</strong> Google reviews
+                  </p>
+                </div>
+              </div>
             </div>
           </div>
         </div>

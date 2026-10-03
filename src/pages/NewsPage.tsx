@@ -36,7 +36,7 @@ export const NewsPage: React.FC = () => {
           color: #2f0d0e;
         }
         .news-shell {
-          max-width: 1080px;
+          max-width: 1320px;
           margin: 0 auto;
           padding: 2.25rem 1.15rem 4rem;
         }
@@ -113,7 +113,6 @@ export const NewsPage: React.FC = () => {
         }
         .news-excerpt {
           margin: 0;
-          max-width: 42em;
           color: #5c3537;
           line-height: 1.6;
           font-size: 0.98rem;
