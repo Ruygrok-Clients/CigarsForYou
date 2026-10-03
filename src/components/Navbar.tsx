@@ -11,12 +11,14 @@ import {
   Truck,
   Flame,
   X,
-  Clock
+  Clock,
+  ShieldCheck
 } from 'lucide-react';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLocationSelection } from '../context/LocationContext';
 import { useClosingSoon } from '../context/ClosingSoonContext';
+import { AdminAccountGate } from './AdminAccountGate';
 import { AUSTRALIAN_STATES } from '../constants/locations';
 import { CIGAR_CATALOG } from '../data/cigarCatalog';
 import { normalizeLoyaltyTier, TIER_COLORS } from '../utils/rewards';
@@ -35,12 +37,15 @@ export const CIGAR_BRANDS = [
 
 export const Navbar: React.FC = () => {
   const { itemCount } = useCart();
-  const { currentUser, userProfile } = useAuth();
+  const { currentUser, userProfile, isAdmin } = useAuth();
   const { selectedLocation, setSelectedLocation } = useLocationSelection();
   const { isClosingSoon, isClerkGrace, isFinalCall, formattedCountdown } = useClosingSoon();
   const showCountdown = isClosingSoon || isClerkGrace || isFinalCall;
   const loyaltyTier = normalizeLoyaltyTier(userProfile?.loyaltyTier);
-  const profileAvatarBg = currentUser ? TIER_COLORS[loyaltyTier] : '#c06517';
+  const profileAvatarBg = currentUser
+    ? (isAdmin ? '#2f0d0e' : TIER_COLORS[loyaltyTier])
+    : '#c06517';
+  const [adminGateOpen, setAdminGateOpen] = useState(false);
   const countdownLabel = isFinalCall
     ? `Final call — order in ${formattedCountdown}`
     : isClerkGrace
@@ -599,6 +604,46 @@ export const Navbar: React.FC = () => {
 
               {/* User Account Pill / Sign In Prompt */}
               {currentUser ? (
+                isAdmin ? (
+                  <button
+                    type="button"
+                    onClick={() => setAdminGateOpen(true)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      gap: '0.6rem',
+                      padding: '0.4rem 0.85rem',
+                      borderRadius: '9999px',
+                      backgroundColor: '#2f0d0e',
+                      border: '1px solid rgba(212, 175, 55, 0.45)',
+                      textDecoration: 'none',
+                      cursor: 'pointer',
+                      color: '#ffffff'
+                    }}
+                    aria-label="Administrator account options"
+                  >
+                    <div style={{
+                      width: '32px',
+                      height: '32px',
+                      borderRadius: '50%',
+                      backgroundColor: 'rgba(212, 175, 55, 0.2)',
+                      color: '#d4af37',
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'center',
+                      fontSize: '0.8rem',
+                      fontWeight: 700
+                    }}>
+                      <ShieldCheck size={16} />
+                    </div>
+                    <div style={{ display: 'flex', flexDirection: 'column', lineHeight: 1.2, textAlign: 'left' }}>
+                      <span style={{ fontSize: '0.65rem', color: '#d4af37', fontWeight: 700, letterSpacing: '0.04em', textTransform: 'uppercase' }}>Admin</span>
+                      <span style={{ fontSize: '0.825rem', color: '#ffffff', fontWeight: 700 }}>
+                        {userProfile?.displayName || userProfile?.email?.split('@')[0] || 'Administrator'}
+                      </span>
+                    </div>
+                  </button>
+                ) : (
                 <Link
                   to="/account"
                   style={{
@@ -633,6 +678,7 @@ export const Navbar: React.FC = () => {
                     </span>
                   </div>
                 </Link>
+                )
               ) : (
                 <Link
                   to="/login"
@@ -883,6 +929,29 @@ export const Navbar: React.FC = () => {
               </div>
 
               {/* 2. Profile Account Icon (Middle) */}
+              {currentUser && isAdmin ? (
+                <button
+                  type="button"
+                  onClick={() => setAdminGateOpen(true)}
+                  style={{
+                    width: '38px',
+                    height: '38px',
+                    borderRadius: '50%',
+                    backgroundColor: '#2f0d0e',
+                    border: '1px solid rgba(212, 175, 55, 0.45)',
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    color: '#d4af37',
+                    cursor: 'pointer',
+                    padding: 0
+                  }}
+                  aria-label="Administrator account options"
+                  title="Administrator"
+                >
+                  <ShieldCheck size={18} />
+                </button>
+              ) : (
               <Link
                 to={currentUser ? '/account' : '/login'}
                 style={{
@@ -908,6 +977,7 @@ export const Navbar: React.FC = () => {
                   <UserIcon size={18} style={{ color: currentUser ? '#ffffff' : '#2f0d0e' }} />
                 )}
               </Link>
+              )}
 
               {/* 3. Shopping Bag Cart Icon (Right) */}
               <Link
@@ -1337,6 +1407,9 @@ export const Navbar: React.FC = () => {
           }
         `}</style>
       </header>
+      {adminGateOpen && isAdmin && (
+        <AdminAccountGate variant="modal" onClose={() => setAdminGateOpen(false)} />
+      )}
     </>
   );
 };

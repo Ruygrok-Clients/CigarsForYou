@@ -188,12 +188,12 @@ export const Footer: React.FC = () => {
           </div>
         </div>
 
-        {/* Health Warning Box */}
+        {/* Health Warning + Age Compliance */}
         <div className="footer-warning" style={{
           backgroundColor: '#2f0d0e',
           border: '1px solid rgba(192, 101, 23, 0.3)',
           borderRadius: '8px',
-          padding: '1.25rem 1.5rem',
+          padding: '1.35rem 1.5rem 1.25rem',
           textAlign: 'center',
           marginBottom: '2rem',
           boxShadow: 'var(--shadow-md)'
@@ -208,9 +208,51 @@ export const Footer: React.FC = () => {
           }}>
             WARNING: TOBACCO SMOKE CAUSES FATAL DISEASES AND DISABILITY.
           </p>
-          <p style={{ color: 'rgba(245, 235, 230, 0.8)', fontSize: '0.8rem', marginTop: '0.4rem', marginBottom: 0 }}>
-            Strictly 18+. Age is verified when you create an account, or at checkout if you are not logged in.
+          <p style={{
+            color: 'rgba(245, 235, 230, 0.88)',
+            fontSize: '0.84rem',
+            lineHeight: 1.6,
+            margin: '0.75rem auto 0',
+            maxWidth: '46rem'
+          }}>
+            Strictly 18+. We go beyond reasonable steps to comply with Australian age-restricted tobacco laws and do not support or condone underage smoking. Every order is age-verified through our partner{' '}
+            <a
+              href="https://didit.me/"
+              target="_blank"
+              rel="noopener noreferrer"
+              style={{ color: '#f5ebe6', fontWeight: 700, textDecoration: 'underline', textUnderlineOffset: '2px' }}
+            >
+              Didit
+            </a>
+            , to 99.9% accuracy, at account creation or before checkout.
           </p>
+          <a
+            href="https://didit.me/"
+            target="_blank"
+            rel="noopener noreferrer"
+            aria-label="Learn more about Didit identity verification"
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '0.65rem',
+              marginTop: '1rem',
+              padding: '0.55rem 0.85rem',
+              borderRadius: '6px',
+              border: '1px solid rgba(245, 235, 230, 0.18)',
+              backgroundColor: 'rgba(0, 0, 0, 0.22)',
+              textDecoration: 'none',
+              color: 'rgba(245, 235, 230, 0.78)',
+              fontSize: '0.75rem',
+              letterSpacing: '0.02em'
+            }}
+          >
+            <span style={{ opacity: 0.75 }}>Age verification by</span>
+            <img
+              src="/didit-logo-wordmark-white.svg"
+              alt="Didit"
+              style={{ height: '18px', width: 'auto', display: 'block' }}
+            />
+          </a>
         </div>
 
         {/* Copyright */}

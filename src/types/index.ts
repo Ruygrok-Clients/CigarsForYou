@@ -30,6 +30,8 @@ export interface UserProfile {
   ageVerificationStatus?: string;
   diditSessionId?: string;
   ageVerifiedAt?: string;
+  /** Set by the legacy grandfather migration for pre-Didit accounts. */
+  ageVerificationSource?: string;
   /** Points earned from purchases in the rolling 30-day window. Written only by Cloud Functions. */
   loyaltyWindowPoints?: number;
   loyaltyTierUpdatedAt?: string;

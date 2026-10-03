@@ -5,8 +5,14 @@ import { db, functions } from '../../firebase';
 import { useAuth } from '../../context/AuthContext';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
-import type { UserProfile, UserRole } from '../../types';
-import { UserPlus, Trash2, Edit3, ShieldAlert, X, Mail, Send, CheckCircle } from 'lucide-react';
+import type { UserProfile } from '../../types';
+import { UserPlus, Trash2, Edit3, ShieldAlert, X, Mail, Send, CheckCircle, ShieldCheck, Users } from 'lucide-react';
+
+type StaffKind = 'admin' | 'member';
+
+type StaffModalState =
+  | { open: false }
+  | { open: true; kind: StaffKind; editing: UserProfile | null };
 
 export const AdminSettings: React.FC = () => {
   const { currentUser, isAdmin } = useAuth();
@@ -15,25 +21,24 @@ export const AdminSettings: React.FC = () => {
 
   const [portalUsers, setPortalUsers] = useState<UserProfile[]>([]);
   const [loading, setLoading] = useState(true);
-
-  // Modal State
-  const [isModalOpen, setIsModalOpen] = useState(false);
-  const [editingUser, setEditingUser] = useState<UserProfile | null>(null);
+  const [modal, setModal] = useState<StaffModalState>({ open: false });
   const [name, setName] = useState('');
   const [email, setEmail] = useState('');
-  const [role, setRole] = useState<UserRole>('member');
+  const [sendingTestAdminEmail, setSendingTestAdminEmail] = useState(false);
+  const [sendingTestCustomerEmail, setSendingTestCustomerEmail] = useState(false);
 
   const fetchUsers = async () => {
     setLoading(true);
     try {
       const snap = await getDocs(collection(db, 'users'));
       const list: UserProfile[] = [];
-      snap.forEach(d => {
+      snap.forEach((d) => {
         const u = { uid: d.id, ...d.data() } as UserProfile;
         if (u.role === 'admin' || u.role === 'member') {
           list.push(u);
         }
       });
+      list.sort((a, b) => (a.displayName || a.email).localeCompare(b.displayName || b.email));
       setPortalUsers(list);
     } catch (err) {
       console.error('Error fetching portal users:', err);
@@ -48,7 +53,6 @@ export const AdminSettings: React.FC = () => {
     }
   }, [isAdmin]);
 
-  // Admin Role Access Guard Check
   if (!isAdmin) {
     return (
       <div style={{ padding: '3rem 0', textAlign: 'center' }}>
@@ -63,46 +67,64 @@ export const AdminSettings: React.FC = () => {
     );
   }
 
-  const handleOpenAddModal = () => {
-    setEditingUser(null);
+  const admins = portalUsers.filter((u) => u.role === 'admin');
+  const members = portalUsers.filter((u) => u.role === 'member');
+
+  const openAdd = (kind: StaffKind) => {
+    setModal({ open: true, kind, editing: null });
     setName('');
     setEmail('');
-    setRole('member');
-    setIsModalOpen(true);
   };
 
-  const handleOpenEditModal = (u: UserProfile) => {
-    setEditingUser(u);
+  const openEdit = (u: UserProfile) => {
+    const kind: StaffKind = u.role === 'admin' ? 'admin' : 'member';
+    setModal({ open: true, kind, editing: u });
     setName(u.displayName || '');
     setEmail(u.email);
-    setRole(u.role);
-    setIsModalOpen(true);
   };
 
-  const handleSaveUser = async (e: React.FormEvent) => {
+  const closeModal = () => setModal({ open: false });
+
+  const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (screenLocked) return;
+    if (screenLocked || !modal.open) return;
+
+    const kind = modal.kind;
+    const trimmedName = name.trim();
+    const trimmedEmail = email.trim().toLowerCase();
+    if (!trimmedName || !trimmedEmail) {
+      showToast('Name and email are required.', 'error');
+      return;
+    }
 
     try {
-      if (editingUser) {
-        await updateDoc(doc(db, 'users', editingUser.uid), {
-          displayName: name.trim(),
-          role
+      if (modal.editing) {
+        await updateDoc(doc(db, 'users', modal.editing.uid), {
+          displayName: trimmedName,
+          role: kind
         });
-        showToast(`Updated user ${email}`);
+        showToast(`Updated ${kind === 'admin' ? 'administrator' : 'staff member'} ${trimmedEmail}`);
       } else {
         const uid = `user-${Math.random().toString(36).substring(2, 9)}`;
-        await setDoc(doc(db, 'users', uid), {
+        const payload: Record<string, unknown> = {
           uid,
-          email: email.trim(),
-          displayName: name.trim(),
-          role,
-          createdAt: new Date().toISOString(),
-          dateOfBirth: '1990-01-01'
-        });
-        showToast(`Added new ${role} ${email}`);
+          email: trimmedEmail,
+          displayName: trimmedName,
+          role: kind,
+          createdAt: new Date().toISOString()
+        };
+        // Members may later link to a full customer-style profile; admins stay lean.
+        if (kind === 'member') {
+          payload.addresses = [];
+        }
+        await setDoc(doc(db, 'users', uid), payload);
+        showToast(
+          kind === 'admin'
+            ? `Administrator record added for ${trimmedEmail}. They still need a matching Firebase Auth login to sign in.`
+            : `Staff member record added for ${trimmedEmail}. They still need a matching Firebase Auth login to sign in.`
+        );
       }
-      setIsModalOpen(false);
+      closeModal();
       fetchUsers();
     } catch (err) {
       console.error('Error saving portal user:', err);
@@ -116,19 +138,18 @@ export const AdminSettings: React.FC = () => {
       showToast('Cannot delete your own active administrator account', 'error');
       return;
     }
-    if (!window.confirm(`Remove portal access for ${u.email}?`)) return;
+    const label = u.role === 'admin' ? 'administrator' : 'staff member';
+    if (!window.confirm(`Remove ${label} access for ${u.email}?`)) return;
 
     try {
       await deleteDoc(doc(db, 'users', u.uid));
-      setPortalUsers(prev => prev.filter(item => item.uid !== u.uid));
+      setPortalUsers((prev) => prev.filter((item) => item.uid !== u.uid));
       showToast(`Removed ${u.email}`);
     } catch (err) {
       console.error('Error deleting user:', err);
+      showToast('Failed to remove user', 'error');
     }
   };
-
-  const [sendingTestAdminEmail, setSendingTestAdminEmail] = useState(false);
-  const [sendingTestCustomerEmail, setSendingTestCustomerEmail] = useState(false);
 
   const handleSendTestAdminEmail = async () => {
     if (screenLocked) return;
@@ -169,45 +190,100 @@ export const AdminSettings: React.FC = () => {
     }
   };
 
-  const adminCount = portalUsers.filter(u => u.role === 'admin').length;
-  const memberCount = portalUsers.filter(u => u.role === 'member').length;
+  const renderStaffTable = (kind: StaffKind, rows: UserProfile[]) => {
+    const emptyLabel = kind === 'admin' ? 'No administrator accounts yet.' : 'No staff members yet.';
+    return (
+      <div className="card" style={{ padding: '1rem' }}>
+        <div style={{ overflowX: 'auto' }}>
+          <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
+            <thead>
+              <tr style={{ borderBottom: '1px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)' }}>
+                <th style={{ padding: '0.75rem' }}>Name</th>
+                <th style={{ padding: '0.75rem' }}>Email</th>
+                <th style={{ padding: '0.75rem' }}>Account type</th>
+                <th style={{ padding: '0.75rem' }}>Created</th>
+                <th style={{ padding: '0.75rem', textAlign: 'right' }}>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              {rows.length === 0 ? (
+                <tr>
+                  <td colSpan={5} style={{ padding: '1.5rem 0.75rem', color: 'var(--text-muted)' }}>
+                    {emptyLabel}
+                  </td>
+                </tr>
+              ) : (
+                rows.map((u) => (
+                  <tr key={u.uid} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-primary)', fontWeight: 600 }}>
+                      {u.displayName || (kind === 'admin' ? 'Administrator' : 'Staff Member')}
+                      {u.uid === currentUser?.uid && (
+                        <span className="badge badge-gold" style={{ marginLeft: '0.5rem', fontSize: '0.65rem' }}>You</span>
+                      )}
+                    </td>
+                    <td style={{ padding: '0.75rem', color: 'var(--accent-gold)' }}>{u.email}</td>
+                    <td style={{ padding: '0.75rem' }}>
+                      <span className={`badge ${kind === 'admin' ? 'badge-gold' : 'badge-gray'}`} style={{ textTransform: 'uppercase' }}>
+                        {kind}
+                      </span>
+                    </td>
+                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>
+                      {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-AU') : '—'}
+                    </td>
+                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
+                      <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
+                        <button type="button" className="btn btn-secondary btn-sm" onClick={() => openEdit(u)}>
+                          <Edit3 size={14} />
+                        </button>
+                        {u.uid !== currentUser?.uid && (
+                          <button
+                            type="button"
+                            className="btn btn-danger btn-sm"
+                            disabled={screenLocked}
+                            onClick={() => handleDeleteUser(u)}
+                          >
+                            <Trash2 size={14} />
+                          </button>
+                        )}
+                      </div>
+                    </td>
+                  </tr>
+                ))
+              )}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    );
+  };
 
   return (
     <div>
-      {/* Header */}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '2rem', flexWrap: 'wrap', gap: '1rem' }}>
         <div>
           <span className="badge badge-gold" style={{ marginBottom: '0.4rem' }}>
-            Role-Based Access Control
+            Portal access
           </span>
           <h1 style={{ fontSize: '2.2rem', color: 'var(--text-primary)' }}>Portal Settings & Staff</h1>
+          <p style={{ color: 'var(--text-secondary)', margin: '0.4rem 0 0', maxWidth: '40rem', lineHeight: 1.5 }}>
+            Administrators and staff members are managed separately. Admin accounts only need a name, email, and account type.
+          </p>
         </div>
-
-        <button
-          className="btn btn-primary btn-sm"
-          disabled={screenLocked}
-          onClick={handleOpenAddModal}
-          style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
-        >
-          <UserPlus size={16} /> Add Portal User
-        </button>
       </div>
 
-      {/* Summary Cards */}
       <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(200px, 1fr))', gap: '1.25rem', marginBottom: '2rem' }}>
         <div className="card" style={{ padding: '1.25rem' }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Administrators</span>
-          <h3 style={{ fontSize: '2rem', color: 'var(--accent-gold)' }}>{adminCount}</h3>
-          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Full portal settings & staff access</span>
+          <h3 style={{ fontSize: '2rem', color: 'var(--accent-gold)' }}>{admins.length}</h3>
+          <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Lean accounts — name, email, admin access</span>
         </div>
         <div className="card" style={{ padding: '1.25rem' }}>
           <span style={{ fontSize: '0.8rem', color: 'var(--text-muted)', textTransform: 'uppercase' }}>Staff Members</span>
-          <h3 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>{memberCount}</h3>
+          <h3 style={{ fontSize: '2rem', color: 'var(--text-primary)' }}>{members.length}</h3>
           <span style={{ fontSize: '0.75rem', color: 'var(--text-secondary)' }}>Orders & products operational access</span>
         </div>
       </div>
 
-      {/* Resend Email Integration Status Card */}
       <div className="card" style={{ padding: '1.5rem', marginBottom: '2rem', borderLeft: '4px solid var(--accent-gold)' }}>
         <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', flexWrap: 'wrap', gap: '1.5rem' }}>
           <div>
@@ -258,126 +334,129 @@ export const AdminSettings: React.FC = () => {
         </div>
       </div>
 
-      {/* Users Table */}
       {loading ? (
         <div style={{ padding: '3rem 0', textAlign: 'center', color: 'var(--text-muted)' }}>Loading staff users...</div>
       ) : (
-        <div className="card" style={{ padding: '1rem' }}>
-          <div style={{ overflowX: 'auto' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.875rem' }}>
-              <thead>
-                <tr style={{ borderBottom: '1px solid var(--border-subtle)', textAlign: 'left', color: 'var(--text-muted)' }}>
-                  <th style={{ padding: '0.75rem' }}>Display Name</th>
-                  <th style={{ padding: '0.75rem' }}>Email Address</th>
-                  <th style={{ padding: '0.75rem' }}>Role</th>
-                  <th style={{ padding: '0.75rem' }}>Created Date</th>
-                  <th style={{ padding: '0.75rem', textAlign: 'right' }}>Actions</th>
-                </tr>
-              </thead>
-              <tbody>
-                {portalUsers.map(u => (
-                  <tr key={u.uid} style={{ borderBottom: '1px solid var(--border-subtle)' }}>
-                    <td style={{ padding: '0.75rem', color: 'var(--text-primary)', fontWeight: 600 }}>
-                      {u.displayName || 'Staff Member'}
-                      {u.uid === currentUser?.uid && <span className="badge badge-gold" style={{ marginLeft: '0.5rem', fontSize: '0.65rem' }}>You</span>}
-                    </td>
-                    <td style={{ padding: '0.75rem', color: 'var(--accent-gold)' }}>
-                      {u.email}
-                    </td>
-                    <td style={{ padding: '0.75rem' }}>
-                      <span className={`badge ${u.role === 'admin' ? 'badge-gold' : 'badge-gray'}`} style={{ textTransform: 'uppercase' }}>
-                        {u.role}
-                      </span>
-                    </td>
-                    <td style={{ padding: '0.75rem', color: 'var(--text-muted)' }}>
-                      {u.createdAt ? new Date(u.createdAt).toLocaleDateString('en-AU') : 'System'}
-                    </td>
-                    <td style={{ padding: '0.75rem', textAlign: 'right' }}>
-                      <div style={{ display: 'inline-flex', gap: '0.4rem' }}>
-                        <button
-                          className="btn btn-secondary btn-sm"
-                          onClick={() => handleOpenEditModal(u)}
-                        >
-                          <Edit3 size={14} />
-                        </button>
-                        {u.uid !== currentUser?.uid && (
-                          <button
-                            className="btn btn-danger btn-sm"
-                            disabled={screenLocked}
-                            onClick={() => handleDeleteUser(u)}
-                          >
-                            <Trash2 size={14} />
-                          </button>
-                        )}
-                      </div>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
+        <div style={{ display: 'flex', flexDirection: 'column', gap: '2.25rem' }}>
+          <section>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+                  <ShieldCheck size={18} style={{ color: 'var(--accent-gold)' }} />
+                  <h2 style={{ fontSize: '1.35rem', color: 'var(--text-primary)', margin: 0 }}>Administrators</h2>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                  Core fields only: account type, name, and email. Full portal and settings access.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-primary btn-sm"
+                disabled={screenLocked}
+                onClick={() => openAdd('admin')}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <UserPlus size={16} /> Add administrator
+              </button>
+            </div>
+            {renderStaffTable('admin', admins)}
+          </section>
+
+          <section>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-end', gap: '1rem', flexWrap: 'wrap', marginBottom: '0.85rem' }}>
+              <div>
+                <div style={{ display: 'flex', alignItems: 'center', gap: '0.45rem', marginBottom: '0.25rem' }}>
+                  <Users size={18} style={{ color: 'var(--text-primary)' }} />
+                  <h2 style={{ fontSize: '1.35rem', color: 'var(--text-primary)', margin: 0 }}>Staff members</h2>
+                </div>
+                <p style={{ margin: 0, fontSize: '0.85rem', color: 'var(--text-secondary)', lineHeight: 1.45 }}>
+                  Operational access to orders and products. Managed separately from administrator accounts.
+                </p>
+              </div>
+              <button
+                type="button"
+                className="btn btn-secondary btn-sm"
+                disabled={screenLocked}
+                onClick={() => openAdd('member')}
+                style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}
+              >
+                <UserPlus size={16} /> Add staff member
+              </button>
+            </div>
+            {renderStaffTable('member', members)}
+          </section>
         </div>
       )}
 
-      {/* Modal */}
-      {isModalOpen && (
+      {modal.open && (
         <div className="modal-overlay">
           <div className="modal-content" style={{ maxWidth: '440px', position: 'relative' }}>
             <button
-              onClick={() => setIsModalOpen(false)}
+              type="button"
+              onClick={closeModal}
               style={{ position: 'absolute', top: '1.25rem', right: '1.25rem', color: 'var(--text-muted)', background: 'none', border: 'none', cursor: 'pointer' }}
             >
               <X size={20} />
             </button>
 
-            <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
-              {editingUser ? 'Edit User Role' : 'Add Portal User'}
+            <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', marginBottom: '0.35rem' }}>
+              {modal.editing
+                ? modal.kind === 'admin'
+                  ? 'Edit administrator'
+                  : 'Edit staff member'
+                : modal.kind === 'admin'
+                  ? 'Add administrator'
+                  : 'Add staff member'}
             </h2>
+            <p style={{ color: 'var(--text-secondary)', fontSize: '0.85rem', marginBottom: '1.25rem', lineHeight: 1.5 }}>
+              {modal.kind === 'admin'
+                ? 'Administrators only need an account type, name, and email.'
+                : 'Staff members get orders and products access in the portal.'}
+            </p>
 
-            <form onSubmit={handleSaveUser}>
+            <form onSubmit={handleSave}>
               <div className="form-group">
-                <label className="form-label">Full Name</label>
+                <label className="form-label">Account type</label>
+                <input
+                  type="text"
+                  className="form-control"
+                  value={modal.kind === 'admin' ? 'Administrator' : 'Staff member'}
+                  disabled
+                  readOnly
+                />
+              </div>
+
+              <div className="form-group">
+                <label className="form-label">Full name</label>
                 <input
                   type="text"
                   required
                   className="form-control"
-                  placeholder="e.g. Sarah Connor"
+                  placeholder={modal.kind === 'admin' ? 'e.g. Alex Admin' : 'e.g. Sarah Connor'}
                   value={name}
                   onChange={(e) => setName(e.target.value)}
                 />
               </div>
 
               <div className="form-group">
-                <label className="form-label">Email Address</label>
+                <label className="form-label">Email address</label>
                 <input
                   type="email"
                   required
-                  disabled={!!editingUser}
+                  disabled={!!modal.editing}
                   className="form-control"
-                  placeholder="staff@cigarsforyou.com.au"
+                  placeholder="name@cigarsforyou.com.au"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
                 />
               </div>
 
-              <div className="form-group">
-                <label className="form-label">Assigned Role</label>
-                <select
-                  className="form-control"
-                  value={role}
-                  onChange={(e) => setRole(e.target.value as any)}
-                >
-                  <option value="member">Member (Orders & Products Access)</option>
-                  <option value="admin">Administrator (Full Portal & Settings Access)</option>
-                </select>
-              </div>
-
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={() => setIsModalOpen(false)}>
+                <button type="button" className="btn btn-secondary" style={{ flex: 1 }} onClick={closeModal}>
                   Cancel
                 </button>
                 <button type="submit" className="btn btn-primary" style={{ flex: 2 }} disabled={screenLocked}>
-                  Save User
+                  {modal.editing ? 'Save changes' : modal.kind === 'admin' ? 'Add administrator' : 'Add staff member'}
                 </button>
               </div>
             </form>

@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
+import { AdminAccountGate } from '../components/AdminAccountGate';
 import { RewardsProgramPanel } from '../components/RewardsProgramPanel';
 import type { Order, StockNotification, Product, Address } from '../types';
 import { normalizeLoyaltyTier, spendablePoints, tierLabel, TIER_COLORS } from '../utils/rewards';
@@ -38,7 +39,7 @@ function accountTabFromQuery(value: string | null): AccountTab | null {
 }
 
 export const AccountPage: React.FC = () => {
-  const { currentUser, userProfile, logOut, updateUserProfile } = useAuth();
+  const { currentUser, userProfile, logOut, updateUserProfile, isAdmin } = useAuth();
   const { addToCart } = useCart();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -388,21 +389,23 @@ export const AccountPage: React.FC = () => {
 
   return (
     <div className="account-page">
-      <header className="account-banner" style={{ backgroundColor: TIER_COLORS[tier] }}>
+      <header className="account-banner" style={{ backgroundColor: isAdmin ? '#2f0d0e' : TIER_COLORS[tier] }}>
         <div className="account-banner-inner">
           <div className="account-banner-identity">
             <div className="account-banner-top">
-              <div className="account-avatar" aria-hidden="true">{initial}</div>
+              <div className="account-avatar" aria-hidden="true" style={isAdmin ? { backgroundColor: 'rgba(212, 175, 55, 0.25)', color: '#d4af37' } : undefined}>
+                {isAdmin ? <ShieldCheck size={22} /> : initial}
+              </div>
               <div className="account-banner-titles">
-                <div className="account-banner-eyebrow">Customer Portal</div>
-                <div className="account-banner-tier">{tierLabel(tier)} member</div>
+                <div className="account-banner-eyebrow">{isAdmin ? 'Administrator' : 'Customer Portal'}</div>
+                <div className="account-banner-tier">{isAdmin ? 'Admin account' : `${tierLabel(tier)} member`}</div>
               </div>
             </div>
             <div className="account-banner-details">
               <h1 className="account-banner-name">{displayName}</h1>
               <div className="account-banner-meta">
                 <span><Mail size={14} /> {userProfile.email}</span>
-                {userProfile.phone && <span><Phone size={14} /> {userProfile.phone}</span>}
+                {!isAdmin && userProfile.phone && <span><Phone size={14} /> {userProfile.phone}</span>}
               </div>
             </div>
           </div>
@@ -416,6 +419,22 @@ export const AccountPage: React.FC = () => {
         </div>
       </header>
 
+      {isAdmin ? (
+        <div className="account-content-band">
+          <div className="account-content" style={{ paddingTop: '1.75rem' }}>
+            <AdminAccountGate variant="inline" />
+            <div className="card" style={{ padding: '1.5rem' }}>
+              <h3 style={{ fontSize: '1.15rem', color: 'var(--text-primary)', margin: '0 0 0.5rem' }}>
+                Admin accounts are not customer profiles
+              </h3>
+              <p style={{ margin: 0, color: 'var(--text-secondary)', fontSize: '0.9rem', lineHeight: 1.55 }}>
+                Loyalty, orders, addresses, and shopping tools stay on customer accounts. Use the options above to open the admin portal or sign in with a customer account instead.
+              </p>
+            </div>
+          </div>
+        </div>
+      ) : (
+      <>
       <nav className="account-tabs" aria-label="Account sections">
         <div className="account-tabs-inner">
           <button type="button" className={`account-tab ${activeTab === 'account' ? 'active' : ''}`} onClick={() => chooseTab('account')}>
@@ -1043,6 +1062,8 @@ export const AccountPage: React.FC = () => {
         )}
       </div>
       </div>
+      </>
+      )}
     </div>
   );
 };
