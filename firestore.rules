@@ -156,6 +156,18 @@ service cloud.firestore {
       allow read, write: if isMemberOrAdmin();
     }
 
+    // Customer contact enquiries
+    match /enquiries/{id} {
+      allow create: if true;
+      allow read, update, delete: if isMemberOrAdmin();
+    }
+
+    // B2B / partnerships enquiries
+    match /b2bEnquiries/{id} {
+      allow create: if true;
+      allow read, update, delete: if isMemberOrAdmin();
+    }
+
     // Live product-page presence (anonymous storefront visitors)
     match /productPresence/{productId}/sessions/{sessionId} {
       allow read: if true;
@@ -196,6 +208,11 @@ service cloud.firestore {
 
     match /diditWebhookEvents/{eventId} {
       allow read, write: if false;
+    }
+
+    // Internal process documents for the admin Operational Systems page.
+    match /operationalSystems/{systemId} {
+      allow read, write: if isMemberOrAdmin();
     }
   }
 }

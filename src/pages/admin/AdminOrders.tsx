@@ -3,6 +3,7 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, increment } from 'fireb
 import { db } from '../../firebase';
 import type { Order, OrderStatus } from '../../types';
 import { orderSourceLabel } from '../../utils/rewards';
+import { resolveImmediateDispatch } from '../../services/immediateDispatchRemediation';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
 import { Modal } from '../../components/Modal';
@@ -93,6 +94,9 @@ export const AdminOrders: React.FC = () => {
   const [refundSelected, setRefundSelected] = useState(false);
   const [restoreStockByIndex, setRestoreStockByIndex] = useState<Record<number, boolean>>({});
   const [cancelling, setCancelling] = useState(false);
+  const [dispatchBusy, setDispatchBusy] = useState(false);
+  const [dispatchRefundTarget, setDispatchRefundTarget] = useState<Order | null>(null);
+  const [dispatchRestoreStock, setDispatchRestoreStock] = useState<Record<number, boolean>>({});
 
   const fetchOrders = async () => {
     setLoading(true);
@@ -230,6 +234,96 @@ export const AdminOrders: React.FC = () => {
       showToast('Failed to cancel order', 'error');
     } finally {
       setCancelling(false);
+    }
+  };
+
+  const applyResolvedOrder = (orderId: string, next: Order) => {
+    setOrders(prev => prev.map(o => o.id === orderId ? { ...o, ...next, id: orderId } : o));
+    setSelectedOrder(prev => prev && prev.id === orderId ? { ...prev, ...next, id: orderId } : prev);
+  };
+
+  const callableErrorMessage = (err: unknown, fallback: string) => {
+    if (err && typeof err === 'object' && 'message' in err && typeof err.message === 'string' && err.message.trim()) {
+      return err.message.replace(/^FirebaseError:\s*/i, '');
+    }
+    return fallback;
+  };
+
+  const handleMarkImmediateUnavailable = async (order: Order) => {
+    if (screenLocked || !order.id) {
+      if (screenLocked) showToast('Screen Lock active (View-Only Mode)', 'info');
+      return;
+    }
+    setDispatchBusy(true);
+    try {
+      const result = await resolveImmediateDispatch({ orderId: order.id, action: 'mark_unavailable' });
+      applyResolvedOrder(order.id, result.order);
+      if (result.emailSent === false) {
+        showToast(`Order ${order.orderNumber} marked unavailable, but the customer email did not send`, 'error');
+      } else {
+        showToast(
+          result.resendOnly
+            ? `Unavailable email resent for ${order.orderNumber}`
+            : `Customer notified that Immediate Dispatch is unavailable for ${order.orderNumber}`
+        );
+      }
+    } catch (err) {
+      console.error('Error marking Immediate Dispatch unavailable:', err);
+      showToast(callableErrorMessage(err, 'Failed to mark Immediate Dispatch unavailable'), 'error');
+    } finally {
+      setDispatchBusy(false);
+    }
+  };
+
+  const openDispatchRefund = (order: Order) => {
+    if (screenLocked) {
+      showToast('Screen Lock active (View-Only Mode)', 'info');
+      return;
+    }
+    setDispatchRefundTarget(order);
+    setDispatchRestoreStock({});
+  };
+
+  const handleDispatchFullRefund = async () => {
+    if (screenLocked || !dispatchRefundTarget?.id) return;
+    setDispatchBusy(true);
+    try {
+      const order = dispatchRefundTarget;
+      const restoreStockIndexes = order.items
+        .map((item, idx) => (item.stockRestored || dispatchRestoreStock[idx] ? idx : -1))
+        .filter(idx => idx >= 0);
+      const result = await resolveImmediateDispatch({
+        orderId: order.id!,
+        action: 'full_refund',
+        restoreStockIndexes,
+      });
+      applyResolvedOrder(order.id!, result.order);
+      setDispatchRefundTarget(null);
+      showToast(`Order ${order.orderNumber} cancelled and marked fully refunded`);
+    } catch (err) {
+      console.error('Error recording Immediate Dispatch refund:', err);
+      showToast(callableErrorMessage(err, 'Failed to record the full refund'), 'error');
+    } finally {
+      setDispatchBusy(false);
+    }
+  };
+
+  const handleExpressUpgrade = async (order: Order) => {
+    if (screenLocked || !order.id) {
+      if (screenLocked) showToast('Screen Lock active (View-Only Mode)', 'info');
+      return;
+    }
+    setDispatchBusy(true);
+    try {
+      const result = await resolveImmediateDispatch({ orderId: order.id, action: 'express_upgrade' });
+      applyResolvedOrder(order.id, result.order);
+      const fee = order.shippingFee ?? 0;
+      showToast(`Order ${order.orderNumber} moved to complimentary Express. Immediate fee $${fee.toFixed(2)} marked refunded.`);
+    } catch (err) {
+      console.error('Error recording Express upgrade:', err);
+      showToast(callableErrorMessage(err, 'Failed to record the Express upgrade'), 'error');
+    } finally {
+      setDispatchBusy(false);
     }
   };
 
@@ -448,6 +542,12 @@ export const AdminOrders: React.FC = () => {
                       {order.refundedAt && (
                         <span className="badge badge-amber" style={{ marginLeft: '0.35rem' }}>Refunded</span>
                       )}
+                      {order.immediateDispatchResolution === 'pending_customer' && (
+                        <span className="badge badge-red" style={{ marginLeft: '0.35rem' }}>Dispatch unavailable</span>
+                      )}
+                      {order.immediateDispatchResolution === 'express_upgrade' && (
+                        <span className="badge badge-amber" style={{ marginLeft: '0.35rem' }}>Express upgrade</span>
+                      )}
                     </td>
                     <td style={{ padding: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       {order.source === 'Reward' ? (
@@ -575,6 +675,16 @@ export const AdminOrders: React.FC = () => {
                   Refunded
                 </span>
               )}
+              {selectedOrder.immediateDispatchResolution === 'pending_customer' && (
+                <span className="badge badge-red" style={{ marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'inline-block' }}>
+                  Dispatch unavailable
+                </span>
+              )}
+              {selectedOrder.immediateDispatchResolution === 'express_upgrade' && (
+                <span className="badge badge-amber" style={{ marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'inline-block' }}>
+                  Complimentary Express
+                </span>
+              )}
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
                 Order Detail & Audit
               </h2>
@@ -686,6 +796,12 @@ export const AdminOrders: React.FC = () => {
                       <span>{selectedOrder.deliveryMethod === 'immediate' ? 'Immediate Dispatch' : 'Express Delivery'}</span>
                       <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${(selectedOrder.shippingFee ?? 0).toFixed(2)} AUD</span>
                     </div>
+                    {(selectedOrder.immediateDispatchFeeRefunded ?? 0) > 0 && (
+                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', padding: '0.2rem 0', fontWeight: 600 }}>
+                        <span>Immediate Dispatch fee refunded</span>
+                        <span>-${selectedOrder.immediateDispatchFeeRefunded?.toFixed(2)} AUD</span>
+                      </div>
+                    )}
                   </div>
                 </div>
               </div>
@@ -695,6 +811,71 @@ export const AdminOrders: React.FC = () => {
                 <span style={{ color: 'var(--text-primary)' }}>{selectedOrder.source === 'Reward' ? 'Due now' : 'Total Paid'}</span>
                 <span style={{ color: 'var(--accent-gold)', fontSize: '1.4rem' }}>${selectedOrder.totalAmount.toFixed(2)} AUD</span>
               </div>
+
+              {selectedOrder.deliveryMethod === 'immediate' && selectedOrder.status !== 'Cancelled' && selectedOrder.status !== 'Delivered' && selectedOrder.immediateDispatchResolution !== 'full_refund' && (
+                <div
+                  style={{
+                    border: '1px solid var(--border-subtle)',
+                    borderRadius: 'var(--radius-md)',
+                    padding: '1rem',
+                    backgroundColor: 'var(--bg-surface-elevated)'
+                  }}
+                >
+                  <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.35rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                    Immediate Dispatch
+                  </span>
+                  {selectedOrder.immediateDispatchResolution === 'pending_customer' ? (
+                    <>
+                      <p style={{ margin: '0 0 0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        The customer has been emailed. After they reply or call, record their choice. A full refund cancels the order. Complimentary Express refunds the Immediate Dispatch fee and ships at $0.
+                      </p>
+                      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap' }}>
+                        <button
+                          type="button"
+                          className="btn btn-danger"
+                          style={{ flex: '1 1 180px' }}
+                          disabled={screenLocked || dispatchBusy}
+                          onClick={() => openDispatchRefund(selectedOrder)}
+                        >
+                          Record Full Refund
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-primary"
+                          style={{ flex: '1 1 180px' }}
+                          disabled={screenLocked || dispatchBusy}
+                          onClick={() => handleExpressUpgrade(selectedOrder)}
+                        >
+                          Record Complimentary Express
+                        </button>
+                        <button
+                          type="button"
+                          className="btn btn-secondary"
+                          style={{ flex: '1 1 180px' }}
+                          disabled={screenLocked || dispatchBusy}
+                          onClick={() => handleMarkImmediateUnavailable(selectedOrder)}
+                        >
+                          Resend Email
+                        </button>
+                      </div>
+                    </>
+                  ) : (
+                    <>
+                      <p style={{ margin: '0 0 0.85rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                        If Didi cannot take this delivery, mark it unavailable. The customer receives an email with a full refund or complimentary Express, and you record their reply here.
+                      </p>
+                      <button
+                        type="button"
+                        className="btn btn-secondary"
+                        disabled={screenLocked || dispatchBusy}
+                        onClick={() => handleMarkImmediateUnavailable(selectedOrder)}
+                      >
+                        {dispatchBusy ? 'Sending…' : 'Mark Immediate Dispatch Unavailable'}
+                      </button>
+                    </>
+                  )}
+                </div>
+              )}
 
               {/* Actions in Modal */}
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
@@ -844,6 +1025,114 @@ export const AdminOrders: React.FC = () => {
                 onClick={handleCancelOrder}
               >
                 {cancelling ? 'Cancelling…' : 'Cancel Order'}
+              </button>
+            </div>
+          </div>
+        </Modal>
+      )}
+
+      {dispatchRefundTarget && (
+        <Modal onClick={() => { if (!dispatchBusy) setDispatchRefundTarget(null); }}>
+          <div
+            className="modal-content"
+            style={{ maxWidth: '560px', position: 'relative' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              onClick={() => { if (!dispatchBusy) setDispatchRefundTarget(null); }}
+              aria-label="Close"
+              disabled={dispatchBusy}
+              style={{
+                position: 'absolute',
+                top: '1.25rem',
+                right: '1.25rem',
+                color: 'var(--text-muted)',
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '0.25rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                borderRadius: 'var(--radius-sm)'
+              }}
+            >
+              <X size={20} />
+            </button>
+
+            <div style={{ marginBottom: '1.25rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
+              <span className="badge badge-red" style={{ marginBottom: '0.5rem', display: 'inline-block' }}>
+                Ref: {dispatchRefundTarget.orderNumber}
+              </span>
+              <h2 style={{ fontSize: '1.6rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>
+                Full Refund
+              </h2>
+              <p style={{ color: 'var(--text-muted)', margin: '0.5rem 0 0', fontSize: '0.9rem', lineHeight: 1.5 }}>
+                Cancels the order and records a manual refund of ${dispatchRefundTarget.totalAmount.toFixed(2)} AUD, including the Immediate Dispatch fee. Payment is not sent back automatically.
+              </p>
+            </div>
+
+            <div style={{ marginBottom: '1.25rem' }}>
+              <span style={{ color: 'var(--text-muted)', fontSize: '0.8rem', display: 'block', marginBottom: '0.5rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.04em' }}>
+                Stock
+              </span>
+              <div style={{ display: 'flex', flexDirection: 'column', gap: '0.65rem' }}>
+                {dispatchRefundTarget.items.map((item, idx) => (
+                  <label
+                    key={`${item.productId}-${idx}`}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'flex-start',
+                      gap: '0.65rem',
+                      cursor: item.stockRestored ? 'default' : 'pointer',
+                      padding: '0.75rem',
+                      border: '1px solid var(--border-subtle)',
+                      borderRadius: 'var(--radius-md)',
+                      backgroundColor: 'var(--bg-surface-elevated)'
+                    }}
+                  >
+                    <input
+                      type="checkbox"
+                      checked={item.stockRestored === true || dispatchRestoreStock[idx] === true}
+                      disabled={dispatchBusy || item.stockRestored === true}
+                      onChange={(e) => {
+                        setDispatchRestoreStock(prev => ({ ...prev, [idx]: e.target.checked }));
+                      }}
+                      style={{ marginTop: '0.2rem' }}
+                    />
+                    <span>
+                      <span style={{ display: 'block', color: 'var(--text-primary)', fontWeight: 600 }}>
+                        Restore {item.quantity}x {item.brand} {item.name}
+                      </span>
+                      <span style={{ display: 'block', color: 'var(--text-muted)', fontSize: '0.82rem', marginTop: '0.2rem' }}>
+                        {item.stockRestored
+                          ? 'Stock was already restored for this item.'
+                          : 'Leave unchecked to keep this quantity deducted.'}
+                      </span>
+                    </span>
+                  </label>
+                ))}
+              </div>
+            </div>
+
+            <div style={{ display: 'flex', gap: '0.75rem' }}>
+              <button
+                type="button"
+                className="btn btn-secondary"
+                style={{ flex: 1 }}
+                disabled={dispatchBusy}
+                onClick={() => setDispatchRefundTarget(null)}
+              >
+                Back
+              </button>
+              <button
+                type="button"
+                className="btn btn-danger"
+                style={{ flex: 1 }}
+                disabled={dispatchBusy || screenLocked}
+                onClick={handleDispatchFullRefund}
+              >
+                {dispatchBusy ? 'Recording…' : 'Record Full Refund'}
               </button>
             </div>
           </div>

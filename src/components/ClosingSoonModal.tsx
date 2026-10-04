@@ -66,13 +66,13 @@ export const ClosingSoonModal: React.FC = () => {
               <strong style={{ fontSize: '0.88rem', color: '#2f0d0e' }}>{IMMEDIATE_DISPATCH_NAME}</strong>
             </div>
             <p style={{ margin: 0, fontSize: '0.82rem', color: '#515154', lineHeight: 1.45 }}>
-              Uber Commercial Courier, usually 1–3 hours. Order before 7:00pm or it leaves next morning at 7:00am.
+              Official Didi partner delivery, usually 1–3 hours. Order before 7:00pm or it leaves next morning at 7:00am.
             </p>
           </div>
           <div style={{ padding: '0.85rem 0.95rem', backgroundColor: '#faf6f5', borderRadius: '6px', border: '1px solid rgba(47, 13, 14, 0.08)' }}>
             <strong style={{ display: 'block', fontSize: '0.88rem', color: '#2f0d0e', marginBottom: '0.3rem' }}>{EXPRESS_DELIVERY_NAME}</strong>
             <p style={{ margin: 0, fontSize: '0.82rem', color: '#515154', lineHeight: 1.45 }}>
-              Priority express with courier partners such as DHL or AusPost.
+              Priority express with courier partners such as StarTrack or AusPost.
             </p>
           </div>
         </div>

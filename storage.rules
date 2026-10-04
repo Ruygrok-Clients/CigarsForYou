@@ -2,9 +2,31 @@ rules_version = '2';
 
 service firebase.storage {
   match /b/{bucket}/o {
+    function isStaff() {
+      return request.auth != null
+        && firestore.exists(/databases/(default)/documents/users/$(request.auth.uid))
+        && (
+          firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'admin'
+          || firestore.get(/databases/(default)/documents/users/$(request.auth.uid)).data.role == 'member'
+        );
+    }
+
+    function isOperationalSystemPath(path) {
+      return path.matches('operational-systems/.*');
+    }
+
+    // Process PDFs are staff-only. Download tokens are not stored; the portal opens files through the SDK.
+    match /operational-systems/{systemId}/{fileName} {
+      allow read: if isStaff();
+      allow create, update: if isStaff()
+        && request.resource.contentType == 'application/pdf'
+        && request.resource.size < 25 * 1024 * 1024;
+      allow delete: if isStaff();
+    }
+
     match /{allPaths=**} {
-      allow read: if true;
-      allow write: if request.auth != null;
+      allow read: if !isOperationalSystemPath(allPaths);
+      allow write: if request.auth != null && !isOperationalSystemPath(allPaths);
     }
   }
 }

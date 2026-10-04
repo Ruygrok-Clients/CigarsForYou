@@ -128,17 +128,17 @@ export function immediateDispatchHoursMessage(window: DeliveryWindow): string {
     return "You're lucky — we opened early today, so we can offer you immediate dispatch.";
   }
   if (window === 'closed') {
-    return "We're closed right now. We'll dispatch this first thing tomorrow morning at 7am with Uber Commercial Courier, so it should arrive between 7am and 10am.";
+    return "We're closed right now. We'll dispatch this first thing tomorrow morning at 7am with our official Didi partners, so it should arrive between 7am and 10am.";
   }
   return "We'll dispatch this straight away. It should arrive within 1–3 hours.";
 }
 
 export function freeExpressHoursMessage(window: DeliveryWindow): string {
   if (window === 'closed') {
-    return "We're closed right now. Express Delivery is dispatched first thing tomorrow morning with courier partners such as DHL or AusPost.";
+    return "We're closed right now. Express Delivery is dispatched first thing tomorrow morning with courier partners such as StarTrack or AusPost.";
   }
   if (window === 'early') {
-    return "You're lucky — we opened early today. Express Delivery goes out with courier partners such as DHL or AusPost.";
+    return "You're lucky — we opened early today. Express Delivery goes out with courier partners such as StarTrack or AusPost.";
   }
-  return 'Priority express delivery with logistics and courier partners such as DHL or AusPost.';
+  return 'Priority express delivery with logistics and courier partners such as StarTrack or AusPost.';
 }

@@ -10,7 +10,7 @@ import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBa
 import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import { AUSTRALIAN_STATES } from '../constants/locations';
-import { EXPRESS_DELIVERY_FEE, EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME, UBER_PARTNER_BLURB } from '../constants/deliveryCopy';
+import { DIDI_PARTNER_BLURB, EXPRESS_DELIVERY_FEE, EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
 import { quoteImmediateDispatch } from '../services/immediateDispatch';
 import {
   freeExpressHoursMessage,
@@ -502,7 +502,7 @@ export const CustomerDetailsPage: React.FC = () => {
                         )}
                         {openInfo === 'immediate' && (
                           <p style={{ margin: '0.65rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                            {UBER_PARTNER_BLURB}
+                            {DIDI_PARTNER_BLURB}
                           </p>
                         )}
                       </div>
@@ -545,7 +545,7 @@ export const CustomerDetailsPage: React.FC = () => {
                         </p>
                         {openInfo === 'express' && deliveryWindow === 'open' && (
                           <p style={{ margin: '0.65rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
-                            Flat ${EXPRESS_DELIVERY_FEE.toFixed(2)} AUD, available Australia-wide with courier partners such as DHL or AusPost.
+                            Flat ${EXPRESS_DELIVERY_FEE.toFixed(2)} AUD, available Australia-wide with courier partners such as StarTrack or AusPost.
                           </p>
                         )}
                       </div>

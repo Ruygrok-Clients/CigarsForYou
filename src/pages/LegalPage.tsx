@@ -1,6 +1,5 @@
 import React from 'react';
 import { useLocation, Link } from 'react-router-dom';
-import { ShieldAlert } from 'lucide-react';
 
 export const LegalPage: React.FC = () => {
   const location = useLocation();
@@ -13,7 +12,12 @@ export const LegalPage: React.FC = () => {
     title = 'Privacy Policy';
   } else if (path.includes('refund')) {
     title = 'Refund & Return Policy';
+  } else if (path.includes('compliance')) {
+    title = 'Compliance';
+    badge = 'Age & Delivery Compliance';
   }
+
+  const updatedOn = path.includes('compliance') ? '4 October 2026' : '3 October 2026';
 
   return (
     <div style={{ padding: '3rem 0 6rem 0' }}>
@@ -25,32 +29,12 @@ export const LegalPage: React.FC = () => {
           </span>
           <h1 style={{ fontSize: '2.8rem', color: 'var(--text-primary)' }}>{title}</h1>
           <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem', marginTop: '0.25rem' }}>
-            Last updated: 3 October 2026 · CigarsForYou Australia
+            Last updated: {updatedOn} · CigarsForYou Australia
           </p>
         </div>
 
-        {/* Legal Counsel Notice */}
-        <div style={{
-          padding: '1.25rem',
-          backgroundColor: 'rgba(212, 175, 55, 0.1)',
-          border: '1px solid var(--accent-gold)',
-          borderRadius: 'var(--radius-md)',
-          marginBottom: '2.5rem',
-          fontSize: '0.875rem',
-          color: 'var(--text-secondary)',
-          display: 'flex',
-          gap: '0.85rem',
-          alignItems: 'flex-start'
-        }}>
-          <ShieldAlert size={22} style={{ color: 'var(--accent-gold)', flexShrink: 0, marginTop: '2px' }} />
-          <div>
-            <strong style={{ color: 'var(--text-primary)', display: 'block', marginBottom: '0.2rem' }}>Legal Review Advisory</strong>
-            This document represents a comprehensive starter draft for CigarsForYou Australia. Given the regulated nature of tobacco products and age-restriction enforcement in Australia, this text should be formally reviewed by qualified Australian legal counsel prior to commercial launch.
-          </div>
-        </div>
-
         {/* Navigation Sub-Tabs */}
-        <div style={{ display: 'flex', gap: '1rem', marginBottom: '2.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '1rem', marginBottom: '2.5rem', borderBottom: '1px solid var(--border-subtle)', paddingBottom: '1rem' }}>
           <Link to="/terms" className={`btn btn-sm ${path.includes('terms') ? 'btn-primary' : 'btn-secondary'}`}>
             Terms & Conditions
           </Link>
@@ -59,6 +43,9 @@ export const LegalPage: React.FC = () => {
           </Link>
           <Link to="/refund-policy" className={`btn btn-sm ${path.includes('refund') ? 'btn-primary' : 'btn-secondary'}`}>
             Refund & Return Policy
+          </Link>
+          <Link to="/compliance" className={`btn btn-sm ${path.includes('compliance') ? 'btn-primary' : 'btn-secondary'}`}>
+            Compliance
           </Link>
         </div>
 
@@ -94,6 +81,43 @@ export const LegalPage: React.FC = () => {
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>4. Australian Privacy Principles (APPs)</h2>
               <p>
                 We adhere to the Privacy Act 1988 (Cth). You may request access to, correction of, or deletion of your personal data by contacting our Privacy Officer at privacy@cigarsforyou.com.au. Requests relating to data processed solely by Didit may need to be directed to Didit in accordance with their privacy policy.
+              </p>
+            </div>
+          ) : path.includes('compliance') ? (
+            <div>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>1. Two-Step Age Compliance</h2>
+              <p>
+                Tobacco products may only be sold and delivered to adults aged 18 years or older, and only to customers in New South Wales. CigarsForYou uses two separate checks: an online age verification before an order can be paid, and a photo ID check by the courier before the order is handed over.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>2. Online Age Verification (Didit)</h2>
+              <p>
+                Online age verification is performed by{' '}
+                <a href="https://didit.me/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
+                  Didit
+                </a>
+                . The check starts with a facial age estimation. If that estimate does not indicate the person is 18 or older, the same flow asks for a government-issued photo ID, such as a driver licence. An order cannot be paid until this check has been approved at least once.
+              </p>
+              <p style={{ marginTop: '1rem' }}>
+                An account cannot be created until Didit approves the check. Once that approval is stored on the account, later orders placed while signed in to that account do not repeat the online check. If you are not signed in, the check is completed at checkout before any payment details are collected. A guest check is not saved for reuse, so a later checkout while still signed out must be verified again.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>3. Delivery Age Verification</h2>
+              <p>
+                Immediate Dispatch is handled by our official partner, Didi. Express Delivery is handled by courier partners such as StarTrack or AusPost, under arrangements that include tobacco delivery and an ID check. In both cases the person receiving the order must be 18 or older, must present appropriate photo ID, and must match the customer details on the order. The order cannot be left unattended. If the ID check fails, the order is returned to CigarsForYou. For Express Delivery, it may instead be held at a local post office with instructions that the same age check is completed before collection.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>4. Immediate Dispatch</h2>
+              <p>
+                At checkout we quote Immediate Dispatch from the delivery address, using a conservative distance-based price, alongside flat-fee Express Delivery. If you choose Immediate Dispatch and pay, our team arranges the delivery with Didi.
+              </p>
+              <p style={{ marginTop: '1rem' }}>
+                If Didi cannot take the delivery, we email you two options. You can take a full refund, including the Immediate Dispatch fee, or move the order to complimentary Express Delivery. On that upgrade we refund the Immediate Dispatch fee and send the order by Express Delivery at no delivery charge to you. Reply to the email or call us and we will record your choice. We do not change the order until we hear from you.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>5. Transit Insurance</h2>
+              <p>
+                Didi does not insure the goods it carries. Immediate Dispatch orders are covered by our external insurance provider for loss or damage in transit.
               </p>
             </div>
           ) : path.includes('refund') ? (

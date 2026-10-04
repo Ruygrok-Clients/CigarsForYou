@@ -8,6 +8,8 @@ import {
   sendNewOrderAdminNotification,
   sendOutOfStockAdminAlert,
   sendStockNotificationAdminAlert,
+  sendCustomerEnquiryAdminAlert,
+  sendB2BEnquiryAdminAlert,
   sendCustomerOrderConfirmationEmail,
   sendTestAdminNotification,
 } from "./email";
@@ -25,6 +27,7 @@ import { googleMapsApiKey } from "./immediateDispatchFee";
 
 export { createDiditSession, getDiditStatus, claimDiditForUser, completeSignup, diditWebhook } from "./didit";
 export { quoteImmediateDispatch } from "./immediateDispatchFee";
+export { resolveImmediateDispatch } from "./immediateDispatchRemediation";
 
 admin.initializeApp();
 const db = admin.firestore();
@@ -356,6 +359,44 @@ export const onStockNotificationCreated = onDocumentCreated(
       logger.info(`Social proof stock_notify entry written for ${notifData.productName}.`);
     } catch (err) {
       logger.error("Failed to write social proof entry for stock notification:", err);
+    }
+  }
+);
+
+/**
+ * FIRESTORE TRIGGER: NEW CUSTOMER ENQUIRY
+ * Sends a Resend notification from noreply@ to hello@cigarsforyou.com.au.
+ */
+export const onEnquiryCreated = onDocumentCreated(
+  { document: "enquiries/{enquiryId}", secrets: ["RESEND_API_KEY"] },
+  async (event) => {
+    const enquiry = event.data?.data();
+    if (!enquiry) return;
+
+    logger.info(`New customer enquiry from ${enquiry.email}. Sending Resend alert to hello@cigarsforyou.com.au...`);
+    try {
+      await sendCustomerEnquiryAdminAlert(enquiry);
+    } catch (err) {
+      logger.error("Failed to process Resend customer enquiry email:", err);
+    }
+  }
+);
+
+/**
+ * FIRESTORE TRIGGER: NEW B2B PARTNERSHIP ENQUIRY
+ * Sends a Resend notification from noreply@ to hello@cigarsforyou.com.au.
+ */
+export const onB2BEnquiryCreated = onDocumentCreated(
+  { document: "b2bEnquiries/{enquiryId}", secrets: ["RESEND_API_KEY"] },
+  async (event) => {
+    const enquiry = event.data?.data();
+    if (!enquiry) return;
+
+    logger.info(`New B2B enquiry from ${enquiry.email} (${enquiry.businessName}). Sending Resend alert to hello@cigarsforyou.com.au...`);
+    try {
+      await sendB2BEnquiryAdminAlert(enquiry);
+    } catch (err) {
+      logger.error("Failed to process Resend B2B enquiry email:", err);
     }
   }
 );

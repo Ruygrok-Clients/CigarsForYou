@@ -797,6 +797,9 @@ export const Navbar: React.FC = () => {
                 <Link to="/news" className="medicart-pill-btn">
                   News
                 </Link>
+                <Link to="/partnerships" className="medicart-pill-btn">
+                  Partnerships
+                </Link>
                 <Link to="/contact" className="medicart-pill-btn">
                   Contact Us
                 </Link>
@@ -1297,6 +1300,9 @@ export const Navbar: React.FC = () => {
                 </Link>
                 <Link to="/news" className="medicart-pill-btn" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
                   News
+                </Link>
+                <Link to="/partnerships" className="medicart-pill-btn" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                  Partnerships
                 </Link>
                 <Link to="/contact" className="medicart-pill-btn" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
                   Contact Us

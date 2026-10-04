@@ -157,6 +157,7 @@ export const Footer: React.FC = () => {
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: 0, margin: 0 }}>
               <li><Link to="/about" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>About Us</Link></li>
               <li><Link to="/news" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>News</Link></li>
+              <li><Link to="/partnerships" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Partnerships</Link></li>
               <li><Link to="/contact" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Contact Us</Link></li>
               <li><Link to="/shop" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Shop All Cigars</Link></li>
               <li><Link to="/cigarettes" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Cigarettes</Link></li>
@@ -187,6 +188,7 @@ export const Footer: React.FC = () => {
               <li><Link to="/terms" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Terms & Conditions</Link></li>
               <li><Link to="/privacy" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Privacy Policy</Link></li>
               <li><Link to="/refund-policy" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Refund & Return Policy</Link></li>
+              <li><Link to="/compliance" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Compliance</Link></li>
             </ul>
           </div>
         </div>

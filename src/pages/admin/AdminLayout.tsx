@@ -10,6 +10,8 @@ import {
   Tag, 
   Award,
   Newspaper,
+  Mail,
+  ClipboardList,
   Settings, 
   Lock, 
   Unlock, 
@@ -51,6 +53,7 @@ export const AdminLayout: React.FC = () => {
         { label: 'Coupons', path: '/admin/marketing', icon: Tag },
         { label: 'Loyalty Program', path: '/admin/rewards', icon: Award },
         { label: 'Stock Notifications', path: '/admin/stock-notifications', icon: Bell },
+        { label: 'Enquiries', path: '/admin/enquiries', icon: Mail },
         { label: 'News & Blogs', path: '/admin/news', icon: Newspaper }
       ];
 
@@ -58,7 +61,8 @@ export const AdminLayout: React.FC = () => {
     ? []
     : [
         { label: 'Products & Stock', path: '/admin/products', icon: Box },
-        { label: 'Orders', path: '/admin/orders', icon: ShoppingBag }
+        { label: 'Orders', path: '/admin/orders', icon: ShoppingBag },
+        { label: 'Operational Systems', path: '/admin/operational-systems', icon: ClipboardList }
       ];
 
   const systemItems = [
@@ -104,9 +108,11 @@ export const AdminLayout: React.FC = () => {
     if (path.startsWith('/admin/marketing')) return { section: 'Marketing', title: 'Coupons' };
     if (path.startsWith('/admin/rewards')) return { section: 'Marketing', title: 'Loyalty Program' };
     if (path.startsWith('/admin/stock-notifications')) return { section: 'Marketing', title: 'Stock Notifications' };
+    if (path.startsWith('/admin/enquiries')) return { section: 'Marketing', title: 'Enquiries' };
     if (path.startsWith('/admin/news')) return { section: 'Marketing', title: isMarketingStaff ? 'News & SEO' : 'News & Blogs' };
     if (path.startsWith('/admin/products')) return { section: 'Operations', title: 'Products & Stock' };
     if (path.startsWith('/admin/orders')) return { section: 'Operations', title: 'Orders' };
+    if (path.startsWith('/admin/operational-systems')) return { section: 'Operations', title: 'Operational Systems' };
     if (path.startsWith('/admin/settings')) return { section: 'Settings', title: 'Portal Settings & Staff' };
     return { section: 'Admin', title: 'Dashboard' };
   };

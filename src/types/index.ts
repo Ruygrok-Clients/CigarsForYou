@@ -212,10 +212,13 @@ export interface OrderItem {
 
 export type RefundMethod = 'manual' | 'processor';
 
+export type ImmediateDispatchResolution = 'pending_customer' | 'full_refund' | 'express_upgrade';
+
 export interface OrderStatusHistory {
   status: OrderStatus;
   timestamp: string;
   updatedBy?: string;
+  note?: string;
 }
 
 export interface Order {
@@ -246,6 +249,13 @@ export interface Order {
   refundMethod?: RefundMethod;
   /** Amount recorded as refunded. Defaults to the order total when an admin records a refund. */
   refundAmount?: number;
+  /** Set when Immediate Dispatch cannot be fulfilled and the customer is notified. */
+  immediateDispatchUnavailableAt?: string;
+  /** Customer choice is recorded by staff after they reply or call. */
+  immediateDispatchResolution?: ImmediateDispatchResolution;
+  immediateDispatchResolutionAt?: string;
+  /** Immediate Dispatch fee recorded as refunded when the order is moved to complimentary Express. */
+  immediateDispatchFeeRefunded?: number;
   /** Points granted for this paid order. Absent until earn has been processed. */
   pointsEarned?: number;
   pointsClawedBack?: boolean;
@@ -286,6 +296,47 @@ export interface EmailSubscriber {
   email: string;
   source: 'cigars-coming-soon' | 'cigarettes-coming-soon' | 'accessories-coming-soon';
   subscribedAt: string;
+}
+
+export interface Enquiry {
+  id?: string;
+  name: string;
+  email: string;
+  phone?: string;
+  subject: string;
+  message: string;
+  createdAt: string;
+  status: 'new' | 'reviewed';
+}
+
+export interface B2BEnquiry {
+  id?: string;
+  name: string;
+  businessName: string;
+  email: string;
+  phone: string;
+  abn?: string;
+  interest: 'Wholesale' | 'Venue stocking' | 'Licensed retail' | 'Other';
+  message: string;
+  createdAt: string;
+  status: 'new' | 'reviewed';
+}
+
+export interface OperationalSystemFile {
+  id: string;
+  /** Name shown in the portal. Defaults to the PDF filename and can be changed. */
+  displayName: string;
+  originalFileName: string;
+  storagePath: string;
+  uploadedAt: string;
+}
+
+export interface OperationalSystem {
+  id?: string;
+  name: string;
+  createdAt: string;
+  updatedAt: string;
+  files: OperationalSystemFile[];
 }
 
 export interface PortalStats {

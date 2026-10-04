@@ -1,5 +1,7 @@
 import React, { useState } from 'react';
 import { Mail, Phone, Truck, Send, HelpCircle, ChevronDown, CheckCircle2, MessageSquare, ShieldAlert } from 'lucide-react';
+import { addDoc, collection } from 'firebase/firestore';
+import { db } from '../firebase';
 import { useToast } from '../components/Toast';
 
 export const ContactUsPage: React.FC = () => {
@@ -19,7 +21,7 @@ export const ContactUsPage: React.FC = () => {
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(0);
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!formData.name.trim() || !formData.email.trim() || !formData.message.trim()) {
       showToast('Please fill in all required fields.', 'error');
@@ -27,8 +29,16 @@ export const ContactUsPage: React.FC = () => {
     }
 
     setSubmitting(true);
-    setTimeout(() => {
-      setSubmitting(false);
+    try {
+      await addDoc(collection(db, 'enquiries'), {
+        name: formData.name.trim(),
+        email: formData.email.trim(),
+        phone: formData.phone.trim(),
+        subject: formData.subject,
+        message: formData.message.trim(),
+        createdAt: new Date().toISOString(),
+        status: 'new'
+      });
       setSubmitted(true);
       showToast('Thank you! Your message has been sent successfully. Our team will contact you shortly.', 'success');
       setFormData({
@@ -38,13 +48,18 @@ export const ContactUsPage: React.FC = () => {
         subject: 'General Inquiry',
         message: ''
       });
-    }, 1000);
+    } catch (err) {
+      console.error('Error saving enquiry:', err);
+      showToast('We could not send your message. Please try again.', 'error');
+    } finally {
+      setSubmitting(false);
+    }
   };
 
   const faqs = [
     {
       q: 'How does delivery work?',
-      a: 'There are two options. Immediate Dispatch (1-3hrs Delivery): we are an official partner with the Uber Commercial Courier program, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Express Delivery: priority express with logistics and courier partners such as DHL or AusPost.'
+      a: 'There are two options. Immediate Dispatch (1-3hrs Delivery): we are an official partner with Didi, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Express Delivery: priority express with logistics and courier partners such as StarTrack or AusPost.'
     },
     {
       q: 'How is age verification handled upon delivery?',
@@ -494,7 +509,7 @@ export const ContactUsPage: React.FC = () => {
                         Immediate Dispatch (1-3hrs Delivery)
                       </div>
                       <div style={{ fontSize: '0.85rem', color: '#d1d5db', lineHeight: 1.45, marginTop: '0.2rem' }}>
-                        Or Express Delivery with partners such as DHL or AusPost.
+                        Or Express Delivery with partners such as StarTrack or AusPost.
                       </div>
                     </div>
                   </div>
@@ -518,7 +533,7 @@ export const ContactUsPage: React.FC = () => {
                     Delivery Options
                   </h4>
                   <p style={{ fontSize: '0.85rem', color: '#6b7280', lineHeight: 1.5, margin: 0 }}>
-                    Immediate Dispatch (1-3hrs Delivery) is handled by our Uber Commercial Courier partners. Express Delivery is priority express with courier partners such as DHL or AusPost.
+                    Immediate Dispatch (1-3hrs Delivery) is handled by our official Didi partners. Express Delivery is priority express with courier partners such as StarTrack or AusPost.
                   </p>
                 </div>
               </div>

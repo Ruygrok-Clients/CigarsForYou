@@ -38,6 +38,7 @@ import { LegalPage } from './pages/LegalPage';
 import { AgeRestrictedPage } from './pages/AgeRestrictedPage';
 import { AboutUsPage } from './pages/AboutUsPage';
 import { ContactUsPage } from './pages/ContactUsPage';
+import { PartnershipsPage } from './pages/PartnershipsPage';
 import { NewsPage } from './pages/NewsPage';
 import { NewsArticlePage } from './pages/NewsArticlePage';
 
@@ -50,10 +51,12 @@ import { AdminDashboard } from './pages/admin/AdminDashboard';
 import { AdminOrders } from './pages/admin/AdminOrders';
 import { AdminProducts } from './pages/admin/AdminProducts';
 import { AdminStockNotifications } from './pages/admin/AdminStockNotifications';
+import { AdminEnquiries } from './pages/admin/AdminEnquiries';
 import { AdminMarketing } from './pages/admin/AdminMarketing';
 import { AdminRewards } from './pages/admin/AdminRewards';
 import { AdminNews } from './pages/admin/AdminNews';
 import { AdminSettings } from './pages/admin/AdminSettings';
+import { AdminOperationalSystems } from './pages/admin/AdminOperationalSystems';
 
 const queryClient = new QueryClient();
 
@@ -141,9 +144,11 @@ export default function App() {
                       <Route path="/terms" element={<LegalPage />} />
                       <Route path="/privacy" element={<LegalPage />} />
                       <Route path="/refund-policy" element={<LegalPage />} />
+                      <Route path="/compliance" element={<LegalPage />} />
                       <Route path="/about" element={<AboutUsPage />} />
                       <Route path="/news" element={<NewsPage />} />
                       <Route path="/news/:slug" element={<NewsArticlePage />} />
+                      <Route path="/partnerships" element={<PartnershipsPage />} />
                       <Route path="/contact" element={<ContactUsPage />} />
                       <Route path="/age-restricted" element={<AgeRestrictedPage />} />
 
@@ -153,8 +158,10 @@ export default function App() {
                         <Route element={<AdminLayout />}>
                           <Route path="/admin" element={<AdminDashboard />} />
                           <Route path="/admin/orders" element={<AdminOrders />} />
+                          <Route path="/admin/operational-systems" element={<AdminOperationalSystems />} />
                           <Route path="/admin/products" element={<AdminProducts />} />
                           <Route path="/admin/stock-notifications" element={<AdminStockNotifications />} />
+                          <Route path="/admin/enquiries" element={<AdminEnquiries />} />
                           <Route path="/admin/marketing" element={<AdminMarketing />} />
                           <Route path="/admin/rewards" element={<AdminRewards />} />
                           <Route path="/admin/news" element={<AdminNews />} />

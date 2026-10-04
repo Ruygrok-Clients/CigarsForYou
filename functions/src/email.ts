@@ -16,6 +16,20 @@ export const ORDERS_FROM_EMAIL =
   NOREPLY_FROM_EMAIL;
 
 const DEFAULT_ADMIN_FALLBACK_EMAIL = "notifications@cigarsforyou.com.au";
+const ENQUIRY_INBOX = "hello@cigarsforyou.com.au";
+
+function escapeHtml(value: unknown): string {
+  return String(value ?? "")
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;");
+}
+
+function formatEnquiryMessage(value: unknown): string {
+  return escapeHtml(value).replace(/\n/g, "<br>");
+}
 
 /**
  * Fetch all admin staff recipient emails from Firestore users collection
@@ -671,6 +685,10 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
   const discount = Number(order.discountAmount || 0);
   const shipping = Number(order.shippingFee || 0);
   const grandTotal = Number(order.totalAmount || 0);
+  const shippingLabel =
+    order.deliveryMethod === "immediate"
+      ? "Shipping (Immediate Dispatch):"
+      : "Shipping (Express Delivery):";
 
   const bodyContent = `
     <div class="order-hero">
@@ -727,7 +745,7 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
       : ""
     }
       <div class="total-line">
-        <span>Shipping (Express Courier):</span>
+        <span>${shippingLabel}</span>
         <span>${shipping > 0 ? `$${shipping.toFixed(2)} AUD` : "FREE"}</span>
       </div>
       <div class="grand-total">
@@ -758,6 +776,68 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
 
   const subject = `✨ Order Confirmation #${order.orderNumber} - CigarsForYou`;
   const html = wrapCustomerEmailTemplate("Order Confirmation - CigarsForYou", bodyContent);
+
+  return sendResendEmail({
+    from: ORDERS_FROM_EMAIL,
+    to: [customerEmail],
+    replyTo: "orders@cigarsforyou.com.au",
+    subject,
+    html,
+  });
+}
+
+/**
+ * Informational email when Immediate Dispatch cannot be booked with Didi.
+ * The customer replies or calls; staff record the choice in admin. No action links.
+ */
+export async function sendImmediateDispatchUnavailableEmail(order: any) {
+  const customerEmail = order.customerEmail;
+  if (!customerEmail || !customerEmail.includes("@")) {
+    logger.warn("Skipping Immediate Dispatch unavailable email: no valid customer email.", {
+      orderNumber: order.orderNumber,
+    });
+    return { success: false, reason: "No valid customer email" };
+  }
+
+  const fee = Number(order.shippingFee || 0);
+  const feeLabel = `$${fee.toFixed(2)} AUD`;
+
+  const bodyContent = `
+    <div class="order-hero">
+      <h2>Immediate Dispatch is unavailable for order #${order.orderNumber}</h2>
+      <p>Our official Didi partners could not take this Immediate Dispatch delivery. Your order has not been sent.</p>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="summary-label">Order Number:</span>
+        <span class="summary-val" style="color: #d4af37; font-family: monospace; font-size: 15px;">#${order.orderNumber}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Immediate Dispatch fee:</span>
+        <span class="summary-val">${feeLabel}</span>
+      </div>
+    </div>
+
+    <p style="font-size: 15px; line-height: 1.6; color: #e5e7eb;">
+      Please reply to this email or call us on <strong>1300 244 277</strong> and tell us which option you would like:
+    </p>
+    <div class="notice-box">
+      <strong style="color: #d4af37;">1. Full refund</strong><br>
+      We cancel the order and refund the full amount you paid, including the Immediate Dispatch fee of ${feeLabel}.
+      <br><br>
+      <strong style="color: #d4af37;">2. Complimentary Express Delivery</strong><br>
+      We refund the Immediate Dispatch fee of ${feeLabel} in full, then send the order by Express Delivery at no delivery charge to you.
+    </div>
+    <p style="font-size: 14px; line-height: 1.6; color: #d1d5db;">
+      We will not change the order until we hear from you. Reply to this email or contact
+      <a href="mailto:orders@cigarsforyou.com.au" style="color: #d4af37;">orders@cigarsforyou.com.au</a>
+      / 1300 244 277.
+    </p>
+  `;
+
+  const subject = `Immediate Dispatch unavailable for order #${order.orderNumber}`;
+  const html = wrapCustomerEmailTemplate("Immediate Dispatch Unavailable - CigarsForYou", bodyContent);
 
   return sendResendEmail({
     from: ORDERS_FROM_EMAIL,
@@ -847,5 +927,101 @@ export async function sendLoyaltyTierEmail(input: {
     to: [to],
     subject,
     html,
+  });
+}
+
+/**
+ * Notify hello@ when a customer contact enquiry is created.
+ * From: noreply@cigarsforyou.com.au
+ */
+export async function sendCustomerEnquiryAdminAlert(enquiry: any) {
+  const submittedAt = new Date(enquiry.createdAt || Date.now()).toLocaleString("en-AU");
+  const bodyContent = `
+    <span class="badge badge-blue">Customer Enquiry</span>
+    <h2 style="color: #60a5fa; margin-top: 12px; margin-bottom: 4px;">New customer enquiry</h2>
+    <p style="color: #9ca3af; font-size: 14px; margin-top: 0;">Submitted on ${escapeHtml(submittedAt)}</p>
+
+    <div class="info-box" style="border-left-color: #3b82f6;">
+      <div class="info-row">
+        <span class="info-label">Name:</span>
+        <span class="info-val">${escapeHtml(enquiry.name)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email:</span>
+        <span class="info-val" style="color: #60a5fa;">${escapeHtml(enquiry.email)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Phone:</span>
+        <span class="info-val">${escapeHtml(enquiry.phone || "Not provided")}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Topic:</span>
+        <span class="info-val">${escapeHtml(enquiry.subject || "General Inquiry")}</span>
+      </div>
+    </div>
+
+    <p style="font-size: 14px; color: #d1d5db; line-height: 1.6;">
+      ${formatEnquiryMessage(enquiry.message)}
+    </p>
+  `;
+
+  return sendResendEmail({
+    from: NOTIFICATIONS_FROM_EMAIL,
+    to: [ENQUIRY_INBOX],
+    replyTo: enquiry.email,
+    subject: `New customer enquiry: ${enquiry.subject || "General Inquiry"} (${enquiry.name})`,
+    html: wrapAdminEmailTemplate("Customer Enquiry", bodyContent),
+  });
+}
+
+/**
+ * Notify hello@ when a B2B partnership enquiry is created.
+ * From: noreply@cigarsforyou.com.au
+ */
+export async function sendB2BEnquiryAdminAlert(enquiry: any) {
+  const submittedAt = new Date(enquiry.createdAt || Date.now()).toLocaleString("en-AU");
+  const bodyContent = `
+    <span class="badge badge-gold">B2B Partnership Enquiry</span>
+    <h2 style="color: #d4af37; margin-top: 12px; margin-bottom: 4px;">New partnership enquiry</h2>
+    <p style="color: #9ca3af; font-size: 14px; margin-top: 0;">Submitted on ${escapeHtml(submittedAt)}</p>
+
+    <div class="info-box" style="border-left-color: #d4af37;">
+      <div class="info-row">
+        <span class="info-label">Contact:</span>
+        <span class="info-val">${escapeHtml(enquiry.name)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Business:</span>
+        <span class="info-val">${escapeHtml(enquiry.businessName)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Email:</span>
+        <span class="info-val" style="color: #d4af37;">${escapeHtml(enquiry.email)}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Phone:</span>
+        <span class="info-val">${escapeHtml(enquiry.phone || "Not provided")}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">ABN:</span>
+        <span class="info-val">${escapeHtml(enquiry.abn || "Not provided")}</span>
+      </div>
+      <div class="info-row">
+        <span class="info-label">Interest:</span>
+        <span class="info-val">${escapeHtml(enquiry.interest)}</span>
+      </div>
+    </div>
+
+    <p style="font-size: 14px; color: #d1d5db; line-height: 1.6;">
+      ${formatEnquiryMessage(enquiry.message)}
+    </p>
+  `;
+
+  return sendResendEmail({
+    from: NOTIFICATIONS_FROM_EMAIL,
+    to: [ENQUIRY_INBOX],
+    replyTo: enquiry.email,
+    subject: `New B2B enquiry: ${enquiry.businessName || enquiry.name} (${enquiry.interest || "Partnership"})`,
+    html: wrapAdminEmailTemplate("B2B Partnership Enquiry", bodyContent),
   });
 }
