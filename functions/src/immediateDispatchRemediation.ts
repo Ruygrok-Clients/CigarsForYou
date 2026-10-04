@@ -185,9 +185,9 @@ export const resolveImmediateDispatch = onCall({ secrets: ["RESEND_API_KEY"] }, 
   });
 
   if (result.stockRestore && Array.isArray(result.stockRestore)) {
-    const stockCollection = result.order.source === "Reward" ? "rewardProducts" : "products";
     for (const line of result.stockRestore) {
       if (!line.productId || line.quantity <= 0) continue;
+      const stockCollection = line.source === "Reward" ? "rewardProducts" : "products";
       try {
         await db.collection(stockCollection).doc(line.productId).update({
           stock: admin.firestore.FieldValue.increment(line.quantity),
