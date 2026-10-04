@@ -1,0 +1,15 @@
+User-agent: *
+Allow: /
+
+Disallow: /admin
+Disallow: /cart
+Disallow: /checkout
+Disallow: /checkout-details
+Disallow: /account
+Disallow: /login
+Disallow: /signup
+Disallow: /forgot-password
+Disallow: /order-confirmation
+Disallow: /age-restricted
+
+Sitemap: https://cigarsforyou.com.au/sitemap.xml
