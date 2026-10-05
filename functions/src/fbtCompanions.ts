@@ -175,39 +175,3 @@ export async function rewriteFbtCompanions(db: admin.firestore.Firestore): Promi
   logger.info(`Rewrote Frequently Bought Together companions on ${writes.length} product(s).`);
   return writes.length;
 }
-
-export async function backfillFbtFields(db: admin.firestore.Firestore): Promise<void> {
-  const productSnap = await db.collection("products").get();
-  const catalog = productSnap.docs.map((entry) => asProduct(entry.id, entry.data()));
-  const defaults = starterDefaultIds(catalog);
-  const orderSnap = await db.collection("orders").get();
-  const pairs = pairCountsFromOrders(orderSnap.docs.map((entry) => entry.data()));
-
-  const prepared = catalog.map((product) => {
-    const existingDefaults = product.fbtDefaultIds.filter(Boolean);
-    const fbtDefaultIds = existingDefaults.length > 0 ? existingDefaults : defaults.filter((id) => id !== product.id);
-    return { ...product, fbtDefaultIds };
-  });
-
-  const writes: Array<{ id: string; data: Record<string, unknown> }> = [];
-  prepared.forEach((product) => {
-    const original = catalog.find((item) => item.id === product.id);
-    const data: Record<string, unknown> = {
-      fbtCompanionIds: chooseCompanionIds(product, prepared, pairs.get(product.id) || new Map()),
-    };
-    if (!original?.fbtDefaultIds.length) data.fbtDefaultIds = product.fbtDefaultIds;
-    if (typeof original?.fbtStat !== "number") {
-      data.fbtStat = 20 + Math.floor(Math.random() * 19);
-    }
-    writes.push({ id: product.id, data });
-  });
-
-  for (let index = 0; index < writes.length; index += 400) {
-    const batch = db.batch();
-    writes.slice(index, index + 400).forEach((write) => {
-      batch.update(db.collection("products").doc(write.id), write.data);
-    });
-    await batch.commit();
-  }
-  logger.info(`Backfilled Frequently Bought Together fields on ${writes.length} product(s).`);
-}

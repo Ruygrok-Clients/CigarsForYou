@@ -1,5 +1,5 @@
 import { setGlobalOptions } from "firebase-functions";
-import { onRequest, onCall, HttpsError } from "firebase-functions/v2/https";
+import { onCall, HttpsError } from "firebase-functions/v2/https";
 import { onSchedule } from "firebase-functions/v2/scheduler";
 import { onDocumentCreated, onDocumentUpdated, onDocumentWritten } from "firebase-functions/v2/firestore";
 import * as logger from "firebase-functions/logger";
@@ -42,111 +42,6 @@ admin.initializeApp();
 const db = admin.firestore();
 
 setGlobalOptions({ maxInstances: 10, region: "us-central1", secrets: ["RESEND_API_KEY"] });
-
-/**
- * PAYPAL WEBHOOK HANDLER (Scaffolded)
- * Handles PayPal order captures & subscription lifecycle events.
- */
-export const paypalWebhook = onRequest(async (req, res) => {
-  const paypalClientId = process.env.PAYPAL_CLIENT_ID || "PAYPAL_CLIENT_ID_PLACEHOLDER";
-  const paypalClientSecret = process.env.PAYPAL_CLIENT_SECRET || "PAYPAL_CLIENT_SECRET_PLACEHOLDER";
-
-  logger.info("PayPal webhook received", {
-    configuredIdPresent: !!process.env.PAYPAL_CLIENT_ID,
-    clientIdPrefix: paypalClientId.substring(0, 6),
-    secretPrefix: paypalClientSecret.substring(0, 6)
-  });
-
-  const event = req.body;
-
-  try {
-    if (event.event_type === "PAYMENT.SALE.COMPLETED") {
-      logger.info("PayPal payment sale completed for resource:", event.resource?.id);
-    } else if (event.event_type === "BILLING.SUBSCRIPTION.CANCELLED") {
-      const paypalSubId = event.resource?.id;
-      if (paypalSubId) {
-        const subQuery = await db.collection("subscriptions")
-          .where("paypalSubscriptionId", "==", paypalSubId)
-          .get();
-        subQuery.forEach(async (docSnap) => {
-          await docSnap.ref.update({ status: "cancelled" });
-        });
-      }
-    }
-
-    res.status(200).json({ received: true });
-  } catch (err: any) {
-    logger.error("Error processing PayPal webhook:", err);
-    res.status(400).send(`PayPal Webhook Error: ${err.message}`);
-  }
-});
-
-/**
- * RECURRING SUBSCRIPTION BILLING CYCLE CRON
- * Runs daily to check active subscriptions due for billing and generates automated orders.
- */
-export const processRecurringSubscriptions = onSchedule("every 24 hours", async (event) => {
-  logger.info("Processing daily subscription billing cycles...");
-
-  const nowIso = new Date().toISOString();
-  const dueSubs = await db.collection("subscriptions")
-    .where("status", "==", "active")
-    .where("nextBillingDate", "<=", nowIso)
-    .get();
-
-  logger.info(`Found ${dueSubs.size} subscription(s) due for renewal.`);
-
-  for (const subDoc of dueSubs.docs) {
-    const subData = subDoc.data();
-    const orderNumber = `CFY-SUB-${Math.floor(100000 + Math.random() * 900000)}`;
-
-    const newOrder = {
-      orderNumber,
-      customerId: subData.customerId,
-      customerName: subData.customerName,
-      customerEmail: subData.customerEmail,
-      items: [
-        {
-          productId: subData.productId,
-          name: subData.productName,
-          brand: subData.productBrand,
-          price: subData.pricePerDelivery / subData.quantity,
-          quantity: subData.quantity,
-          isSubscription: true,
-          frequencyWeeks: subData.frequencyWeeks
-        }
-      ],
-      subtotal: subData.pricePerDelivery,
-      discountAmount: 0,
-      totalAmount: subData.pricePerDelivery,
-      currency: "AUD",
-      status: "Verified",
-      source: "Subscription-generated",
-      paymentMethod: "Pending",
-      deliveryAddress: subData.deliveryAddress,
-      ageConfirmed: true,
-      isSubscriptionOrder: true,
-      subscriptionId: subDoc.id,
-      createdAt: new Date().toISOString(),
-      statusHistory: [
-        { status: "Verified", timestamp: new Date().toISOString(), updatedBy: "Subscription Auto-Billing" }
-      ],
-      archived: false
-    };
-
-    await db.collection("orders").add(newOrder);
-
-    // Calculate next billing date based on frequencyWeeks
-    const nextBillingDate = new Date();
-    nextBillingDate.setDate(nextBillingDate.getDate() + (subData.frequencyWeeks * 7));
-
-    await subDoc.ref.update({
-      nextBillingDate: nextBillingDate.toISOString()
-    });
-
-    logger.info(`Created subscription order ${orderNumber} for ${subData.customerEmail}`);
-  }
-});
 
 /**
  * Awards points when a non-reward order is paid, and claws them back if it is
@@ -428,27 +323,6 @@ export const onEmailSubscriberCreated = onDocumentCreated(
     }
   }
 );
-
-/**
- * CALLABLE FUNCTION: Set User Role Claim
- */
-export const setUserRole = onCall(async (request) => {
-  const authUid = request.auth?.uid;
-  if (!authUid) {
-    throw new HttpsError("unauthenticated", "User must be authenticated");
-  }
-
-  const { targetUid, role } = request.data;
-  if (!["admin", "member", "marketing", "customer"].includes(role)) {
-    throw new HttpsError("invalid-argument", "Invalid role specified");
-  }
-
-  // Update Firestore user profile role
-  await db.collection("users").doc(targetUid).update({ role });
-  await admin.auth().setCustomUserClaims(targetUid, { role });
-
-  return { success: true, targetUid, role };
-});
 
 /**
  * CALLABLE FUNCTION: Send Test Resend Email
