@@ -17,7 +17,7 @@ Direct `gtag.js` only. There is no Google Tag Manager container.
 | Currency | `AUD` |
 | Admin paths | `/admin` and `/admin/*` do not send page views or click events |
 
-The tag loads on every page, including the age gate and under-18 exit. No consent banner is installed.
+The tag loads on every page, including the age gate and under-18 exit. No consent banner is installed; cookies and analytics run by default. The public disclosure is at `/cookies` (Cookies Policy).
 
 ### Code layout
 

@@ -187,6 +187,7 @@ export const Footer: React.FC = () => {
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: 0, margin: 0 }}>
               <li><Link to="/terms" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Terms & Conditions</Link></li>
               <li><Link to="/privacy" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Privacy Policy</Link></li>
+              <li><Link to="/cookies" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Cookies Policy</Link></li>
               <li><Link to="/refund-policy" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Refund & Return Policy</Link></li>
               <li><Link to="/compliance" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Compliance</Link></li>
             </ul>

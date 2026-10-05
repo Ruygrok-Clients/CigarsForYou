@@ -25,6 +25,7 @@ const CORE_PATHS = [
   '/partnerships',
   '/terms',
   '/privacy',
+  '/cookies',
   '/refund-policy',
   '/compliance'
 ];

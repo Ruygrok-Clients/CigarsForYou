@@ -145,6 +145,7 @@ export default function App() {
                       <Route path="/forgot-password" element={<ForgotPasswordPage />} />
                       <Route path="/terms" element={<LegalPage />} />
                       <Route path="/privacy" element={<LegalPage />} />
+                      <Route path="/cookies" element={<LegalPage />} />
                       <Route path="/refund-policy" element={<LegalPage />} />
                       <Route path="/compliance" element={<LegalPage />} />
                       <Route path="/about" element={<AboutUsPage />} />

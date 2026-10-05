@@ -8,7 +8,9 @@ export const LegalPage: React.FC = () => {
   let title = 'Terms & Conditions';
   let badge = 'Legal Compliance';
 
-  if (path.includes('privacy')) {
+  if (path.includes('cookies')) {
+    title = 'Cookies Policy';
+  } else if (path.includes('privacy')) {
     title = 'Privacy Policy';
   } else if (path.includes('refund')) {
     title = 'Refund & Return Policy';
@@ -17,7 +19,11 @@ export const LegalPage: React.FC = () => {
     badge = 'Age & Delivery Compliance';
   }
 
-  const updatedOn = path.includes('compliance') ? '4 October 2026' : '3 October 2026';
+  const updatedOn = path.includes('cookies')
+    ? '5 October 2026'
+    : path.includes('compliance')
+      ? '4 October 2026'
+      : '3 October 2026';
 
   return (
     <div style={{ padding: '3rem 0 6rem 0' }}>
@@ -41,6 +47,9 @@ export const LegalPage: React.FC = () => {
           <Link to="/privacy" className={`btn btn-sm ${path.includes('privacy') ? 'btn-primary' : 'btn-secondary'}`}>
             Privacy Policy
           </Link>
+          <Link to="/cookies" className={`btn btn-sm ${path.includes('cookies') ? 'btn-primary' : 'btn-secondary'}`}>
+            Cookies Policy
+          </Link>
           <Link to="/refund-policy" className={`btn btn-sm ${path.includes('refund') ? 'btn-primary' : 'btn-secondary'}`}>
             Refund & Return Policy
           </Link>
@@ -51,7 +60,75 @@ export const LegalPage: React.FC = () => {
 
         {/* Content Body */}
         <div className="card" style={{ padding: '2.5rem', backgroundColor: 'var(--bg-surface)', color: 'var(--text-secondary)', lineHeight: 1.8 }}>
-          {path.includes('privacy') ? (
+          {path.includes('cookies') ? (
+            <div>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>1. How Cookies and Similar Technologies Work on This Site</h2>
+              <p>
+                CigarsForYou uses cookies, local browser storage, and similar technologies so the storefront can function, meet age-restricted tobacco compliance requirements, and understand how visitors use the site. These technologies run by default when you browse cigarsforyou.com.au. We do not show a separate cookie consent banner before they operate.
+              </p>
+              <p style={{ marginTop: '1rem' }}>
+                This Cookies Policy explains what we use, why we use it, and how you can ask us not to collect your data. It should be read with our{' '}
+                <Link to="/privacy" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Privacy Policy</Link>.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>2. Analytics and Tracking Cookies</h2>
+              <p>
+                We use <strong>Google Analytics 4</strong> (measurement ID <code>G-SRZFLMB8X7</code>) via Google&apos;s gtag.js tag. The tag loads on storefront pages, including the age gate. Google may set its own cookies (for example <code>_ga</code> and related identifiers) to distinguish browsers or sessions and measure traffic.
+              </p>
+              <p style={{ marginTop: '1rem' }}>
+                We send events such as page views, product and cart interactions, checkout steps, lead form submissions, and similar engagement signals. Event payloads are configured so they do not include your name, email address, phone number, or free-text message content. Admin paths under <code>/admin</code> do not send storefront analytics page views or click events.
+              </p>
+              <p style={{ marginTop: '1rem' }}>
+                Staff-only browser flags may also be stored as first-party cookies when a special URL parameter is used: <code>cfy_ga_internal</code> (marks internal traffic) and <code>cfy_ga_debug</code> (enables debug mode for Analytics testing). These are operational tools, not customer marketing profiles.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>3. Essential Site Storage</h2>
+              <p>
+                The site also stores data in your browser (cookies, localStorage, or sessionStorage) so core features work. This includes, for example:
+              </p>
+              <ul style={{ marginTop: '1rem', paddingLeft: '1.25rem' }}>
+                <li style={{ marginBottom: '0.5rem' }}>Age-gate confirmation that you self-attested you are 18+ (<code>cfy_age_verified_v1</code>)</li>
+                <li style={{ marginBottom: '0.5rem' }}>Cart contents and applied coupons</li>
+                <li style={{ marginBottom: '0.5rem' }}>Rewards cart and loyalty-related session helpers</li>
+                <li style={{ marginBottom: '0.5rem' }}>Selected store location preference</li>
+                <li style={{ marginBottom: '0.5rem' }}>Guest age-verification session references related to our Didit check</li>
+                <li style={{ marginBottom: '0.5rem' }}>Anonymous session identifiers used for live site/product presence indicators</li>
+                <li>Short-lived flags that control closing-time or similar operational notices within a browsing session</li>
+              </ul>
+              <p style={{ marginTop: '1rem' }}>
+                Firebase / Google authentication may also set cookies or storage needed to keep you signed in. Online age verification through{' '}
+                <a href="https://didit.me/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
+                  Didit
+                </a>{' '}
+                may use its own cookies or storage under Didit&apos;s terms and privacy policy.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>4. Your Right Not to Have Data Collected</h2>
+              <p>
+                You have the right to ask that your personal data not be collected, and to ask that data we hold about you be permanently deleted, subject to any legal retention we must keep (for example age-verification or order records required under Australian tobacco and consumer laws).
+              </p>
+              <p style={{ marginTop: '1rem' }}>
+                If you do not want your data collected, or you want data permanently deleted, contact us directly at{' '}
+                <a href="mailto:privacy@cigarsforyou.com.au" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
+                  privacy@cigarsforyou.com.au
+                </a>{' '}
+                or{' '}
+                <a href="mailto:hello@cigarsforyou.com.au" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
+                  hello@cigarsforyou.com.au
+                </a>
+                , or use our{' '}
+                <Link to="/contact" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Contact</Link> page. Tell us that you want collection stopped and/or a permanent deletion, and include enough detail for us to identify your account or prior contact (for example the email address you used). We will action verified requests as soon as reasonably practicable.
+              </p>
+              <p style={{ marginTop: '1rem' }}>
+                You can also clear cookies and site data in your browser settings at any time. Doing so may reset age-gate confirmation, cart contents, and sign-in state on this device. Blocking Google Analytics in your browser or via privacy tools may reduce analytics collection from that browser.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>5. Updates</h2>
+              <p>
+                We may update this Cookies Policy when our cookies, storage, or tracking practices change. The &quot;Last updated&quot; date at the top of this page will be revised when we do.
+              </p>
+            </div>
+          ) : path.includes('privacy') ? (
             <div>
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginBottom: '1rem' }}>1. Information We Collect</h2>
               <p>
@@ -78,7 +155,13 @@ export const LegalPage: React.FC = () => {
                 Online card payments are not currently offered while a new payment processor is being set up. CigarsForYou does not store raw credit card credentials on its servers. Database infrastructure and user authentication services are provided via <strong>Firebase / Google Cloud Platform</strong>. Online age verification is provided by <strong>Didit</strong>. When you start an age check, relevant session information is shared with Didit solely to complete that verification.
               </p>
 
-              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>4. Australian Privacy Principles (APPs)</h2>
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>4. Cookies and Analytics</h2>
+              <p>
+                We use cookies, browser storage, and Google Analytics to operate the storefront and measure site usage. These technologies run by default. Full details, including your right to ask that data not be collected and to request permanent deletion, are in our{' '}
+                <Link to="/cookies" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Cookies Policy</Link>.
+              </p>
+
+              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>5. Australian Privacy Principles (APPs)</h2>
               <p>
                 We adhere to the Privacy Act 1988 (Cth). You may request access to, correction of, or deletion of your personal data by contacting our Privacy Officer at privacy@cigarsforyou.com.au. Requests relating to data processed solely by Didit may need to be directed to Didit in accordance with their privacy policy.
               </p>
