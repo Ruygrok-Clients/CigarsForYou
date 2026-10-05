@@ -24,6 +24,15 @@ import {
 import { placeRewardOrderForUser, reevaluateLoyaltyTiers, syncOrderRewards } from "./rewards";
 import { rewriteFbtCompanions } from "./fbtCompanions";
 import { googleMapsApiKey } from "./immediateDispatchFee";
+import {
+  shouldNotifyCategory,
+  shouldNotifyNews,
+  shouldNotifyProduct,
+  submitIndexNowUrls,
+  urlsForCategoryChange,
+  urlsForNewsChange,
+  urlsForProductChange,
+} from "./indexNow";
 
 export { createDiditSession, getDiditStatus, claimDiditForUser, completeSignup, diditWebhook } from "./didit";
 export { quoteImmediateDispatch } from "./immediateDispatchFee";
@@ -498,5 +507,41 @@ export const sendTestAdminEmail = onCall(
 
     const result = await sendTestAdminNotification(targetEmails);
     return result;
+  }
+);
+
+/**
+ * IndexNow: notify Bing (and other IndexNow engines) when catalogue URLs change.
+ * Skips stock-only / FBT-only product writes so monthly companion jobs do not spam submissions.
+ */
+export const onProductIndexNow = onDocumentWritten(
+  "products/{productId}",
+  async (event) => {
+    const before = event.data?.before.exists ? event.data.before.data() : undefined;
+    const after = event.data?.after.exists ? event.data.after.data() : undefined;
+    if (!shouldNotifyProduct(before, after)) return;
+    await submitIndexNowUrls(urlsForProductChange(before, after));
+  }
+);
+
+/** IndexNow for category add / rename / delete. */
+export const onCatalogCategoryIndexNow = onDocumentWritten(
+  "catalogCategories/{categoryId}",
+  async (event) => {
+    const before = event.data?.before.exists ? event.data.before.data() : undefined;
+    const after = event.data?.after.exists ? event.data.after.data() : undefined;
+    if (!shouldNotifyCategory(before, after)) return;
+    await submitIndexNowUrls(urlsForCategoryChange(before, after));
+  }
+);
+
+/** IndexNow for news publish / update / unpublish / delete. */
+export const onNewsPostIndexNow = onDocumentWritten(
+  "newsPosts/{postId}",
+  async (event) => {
+    const before = event.data?.before.exists ? event.data.before.data() : undefined;
+    const after = event.data?.after.exists ? event.data.after.data() : undefined;
+    if (!shouldNotifyNews(before, after)) return;
+    await submitIndexNowUrls(urlsForNewsChange(before, after, event.params.postId));
   }
 );

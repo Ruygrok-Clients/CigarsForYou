@@ -187,8 +187,88 @@ curl -sS \
 
 `ga4-reader@cigarsforyou-ea835.iam.gserviceaccount.com` exists, and `cigars4uss@gmail.com` has `roles/iam.serviceAccountTokenCreator` on it. Impersonation from gcloud currently returns `PERMISSION_DENIED` on `iam.serviceAccounts.getAccessToken`, so the API connection is not using this account yet. No key file was created.
 
+## Bing Webmaster Tools
+
+Verified via Google Search Console import. Site URL Bing expects: `https://cigarsforyou.com.au/`.
+
+### Connection (local agent / CLI)
+
+Same idea as Search Console: credentials stay on the machine, not in Firebase secrets and not in git.
+
+| Item | Value |
+|------|--------|
+| Site URL | `https://cigarsforyou.com.au/` |
+| Auth | API key (Settings → API Access → API Key) |
+| Key file | [`tracking/secrets.local.env`](secrets.local.env) (gitignored) |
+| Example template | [`tracking/secrets.local.env.example`](secrets.local.env.example) |
+| API base | `https://ssl.bing.com/webmaster/api.svc/json` |
+
+```bash
+cp tracking/secrets.local.env.example tracking/secrets.local.env
+# paste BING_WEBMASTER_API_KEY=… into secrets.local.env, then:
+set -a && source tracking/secrets.local.env && set +a
+```
+
+### Common calls
+
+```bash
+set -a && source tracking/secrets.local.env && set +a
+SITE='https://cigarsforyou.com.au/'
+BASE='https://ssl.bing.com/webmaster/api.svc/json'
+
+# List verified sites
+curl -sS "${BASE}/GetUserSites?apikey=${BING_WEBMASTER_API_KEY}"
+
+# List / submit sitemap (JSON POST)
+curl -sS "${BASE}/GetFeeds?apikey=${BING_WEBMASTER_API_KEY}&siteUrl=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${SITE}', safe=''))")"
+curl -sS -X POST "${BASE}/SubmitFeed?apikey=${BING_WEBMASTER_API_KEY}" \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d '{"siteUrl":"https://cigarsforyou.com.au/","feedUrl":"https://cigarsforyou.com.au/sitemap.xml"}'
+
+# Crawl / issues / search performance
+curl -sS "${BASE}/GetCrawlStats?apikey=${BING_WEBMASTER_API_KEY}&siteUrl=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${SITE}', safe=''))")"
+curl -sS "${BASE}/GetCrawlIssues?apikey=${BING_WEBMASTER_API_KEY}&siteUrl=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${SITE}', safe=''))")"
+curl -sS "${BASE}/GetRankAndTrafficStats?apikey=${BING_WEBMASTER_API_KEY}&siteUrl=$(python3 -c "import urllib.parse; print(urllib.parse.quote('${SITE}', safe=''))")"
+```
+
+Do **not** use OAuth Client for this workflow — API Key is enough for local CLI, same role ADC plays for Search Console.
+
+## IndexNow
+
+Real-time URL change notifications for Bing and other IndexNow engines. Complements the XML sitemap (discovery) with push updates (freshness).
+
+| Item | Value |
+|------|--------|
+| Key | `778303fccee6212d5b66503c3f71025f` (public by design) |
+| Key file | [`public/778303fccee6212d5b66503c3f71025f.txt`](../public/778303fccee6212d5b66503c3f71025f.txt) → `https://cigarsforyou.com.au/778303fccee6212d5b66503c3f71025f.txt` |
+| Endpoint | `https://api.indexnow.org/IndexNow` |
+| Implementation | [`functions/src/indexNow.ts`](../functions/src/indexNow.ts) |
+| Triggers | `onProductIndexNow`, `onCatalogCategoryIndexNow`, `onNewsPostIndexNow` |
+
+### When URLs are submitted
+
+| Change | Collection | URLs notified |
+|--------|------------|---------------|
+| Product added / updated / removed | `products` | `/product/{slug}` (old + new if slug changes); range listing when create/delete/active/range changes |
+| Category added / renamed / removed | `catalogCategories` | category path + parent range listing |
+| News published / updated / unpublished / removed | `newsPosts` | `/news/{slug}`; `/news` when active state changes |
+
+Product stock-only and FBT-companion-only writes are ignored so automated jobs do not flood IndexNow.
+
+### Manual test ping
+
+```bash
+set -a && source tracking/secrets.local.env && set +a
+curl -sS -X POST 'https://api.indexnow.org/IndexNow' \
+  -H 'Content-Type: application/json; charset=utf-8' \
+  -d "{\"host\":\"cigarsforyou.com.au\",\"key\":\"${INDEXNOW_KEY}\",\"keyLocation\":\"https://cigarsforyou.com.au/${INDEXNOW_KEY}.txt\",\"urlList\":[\"https://cigarsforyou.com.au/\"]}"
+```
+
+`200` = accepted. `202` = accepted, key validation pending. Activity also appears under Bing Webmaster Tools → IndexNow.
+
 ## Notes
 
 - GSC reporting data typically lags 2–3 days.
 - New properties often return empty `searchAnalytics` until Google has crawl/impression data.
 - No sitemaps were registered via API at setup time (`sitemaps` list was empty).
+- Bing sitemap submitted via `SubmitFeed` after GSC import; as of 5 Oct 2026 status is `Success` with 109 URLs. Crawl/traffic stats can still be empty until Bing has search impressions.

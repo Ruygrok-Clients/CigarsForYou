@@ -180,9 +180,39 @@ There is nothing for a structured-data report to list until JSON-LD is in the HT
 
 `searchAnalytics.query` for 2026-09-04 through 2026-10-02 succeeded (`200`) for `query`, `page`, `device`, and `date`. Each returned **0 rows**. Collection is wired; Google has not recorded impressions in that window yet. Data usually lags 2–3 days after pages start appearing in search.
 
+## Bing Webmaster checklist
+
+Re-checked 5 Oct 2026 (UTC+11) via Bing Webmaster API. Setup: [config.md](config.md).
+
+| # | Check | Result |
+|---|--------|--------|
+| 1 | Site ownership | Pass — `https://cigarsforyou.com.au/` verified (GSC import) |
+| 2 | XML sitemap | Pass — `https://cigarsforyou.com.au/sitemap.xml`, Status `Success`, **109 URLs**, file size 9559 |
+| 3 | Crawlability (live) | Pass — Bingbot UA gets 200 on `/` and `/sitemap.xml`; `robots.txt` allows public pages |
+| 4 | Indexing | Early — sitemap ingested; per-URL crawl dates not populated yet |
+| 5 | Crawl issues | Pass — none reported (`GetCrawlIssues` empty) |
+| 6 | Site diagnostics | Manual in Bing UI (Site Scan) if desired — no API equivalent; crawl issues already clear |
+| 7 | Search performance | Wired — `GetRankAndTrafficStats` empty until Bing has impressions |
+
+URL submission quota (Bing URL Submission API, separate from IndexNow): daily 100 / monthly 2700.
+
+## IndexNow checklist
+
+Implemented in repo and production build (`dist/` includes the key file). **Live deploy was not run** (deploy approval skipped) — run the commands in Follow-ups to go live.
+
+| # | Check | Result |
+|---|--------|--------|
+| 1 | Key file in build | `public/778303fccee6212d5b66503c3f71025f.txt` → `dist/` (live URL after hosting deploy) |
+| 2 | Product add / update / remove | Cloud Function `onProductIndexNow` (deploy pending) |
+| 3 | Category changes | Cloud Function `onCatalogCategoryIndexNow` (deploy pending) |
+| 4 | News publish / update / remove | Cloud Function `onNewsPostIndexNow` (deploy pending) |
+| 5 | Stock / FBT-only product writes | Ignored (no IndexNow spam) |
+
 ## Follow-ups
 
-- Wait for sitemap processing, then re-check indexing on the priority URLs
+- **Deploy IndexNow:** `npm run deploy:hosting` then `firebase deploy --only functions:onProductIndexNow,functions:onCatalogCategoryIndexNow,functions:onNewsPostIndexNow` (or batch one-at-a-time if Cloud Run CPU quota bites)
+- After hosting deploy, confirm `https://cigarsforyou.com.au/778303fccee6212d5b66503c3f71025f.txt` returns the key, then run the manual IndexNow test ping in [config.md](config.md)
+- Wait for Google + Bing to crawl priority URLs after sitemap success, then re-check indexing
 - Fix `www` TLS (certificate or redirect to apex)
 - Add HTML canonicals and JSON-LD if rich results matter
 - Run `npm run generate:sitemap` when products or news change, then redeploy hosting

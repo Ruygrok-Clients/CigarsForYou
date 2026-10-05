@@ -27,6 +27,13 @@
           { "key": "Content-Type", "value": "application/xml; charset=utf-8" },
           { "key": "Cache-Control", "value": "public, max-age=3600" }
         ]
+      },
+      {
+        "source": "/778303fccee6212d5b66503c3f71025f.txt",
+        "headers": [
+          { "key": "Content-Type", "value": "text/plain; charset=utf-8" },
+          { "key": "Cache-Control", "value": "public, max-age=3600" }
+        ]
       }
     ],
     "rewrites": [
