@@ -13,6 +13,7 @@ import {
   Flame,
   Tag
 } from 'lucide-react';
+import { trackSearch, trackViewItemList } from '../lib/analytics';
 
 export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) => {
   const params = useParams<{ brandSlug?: string; categorySlug?: string }>();
@@ -139,6 +140,22 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
     });
   }, [products, selectedCategory, inStockOnly, searchQuery, sortBy]);
 
+  const listName = selectedCategory === 'all' ? copy.title : `${selectedCategory} ${copy.titledSuffix}`;
+
+  useEffect(() => {
+    if (loading || products.length === 0 || filteredProducts.length === 0) return;
+    trackViewItemList(range, listName, filteredProducts);
+  }, [loading, products.length, filteredProducts, range, listName]);
+
+  useEffect(() => {
+    const term = searchQuery.trim();
+    if (!term || loading) return;
+    const timer = window.setTimeout(() => {
+      trackSearch(term, 'catalog');
+    }, 700);
+    return () => window.clearTimeout(timer);
+  }, [searchQuery, loading]);
+
   if (loading) {
     return (
       <div style={{ backgroundColor: '#f9f8f6', minHeight: '100vh', padding: '5rem 0', textAlign: 'center', color: '#8c8c8e' }}>
@@ -151,7 +168,7 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
     return <RangeComingSoon range={range} />;
   }
 
-  const heading = selectedCategory === 'all' ? copy.title : `${selectedCategory} ${copy.titledSuffix}`;
+  const heading = listName;
 
   return (
     <div style={{ backgroundColor: '#f9f8f6', minHeight: '100vh', padding: '2.5rem 0 6rem 0' }}>
@@ -356,6 +373,8 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                   <ProductCard
                     key={product.id || product.slug}
                     product={product}
+                    listId={range}
+                    listName={listName}
                     onOpenNotifyModal={(item) => setSelectedNotifyProduct(item)}
                   />
                 ))}

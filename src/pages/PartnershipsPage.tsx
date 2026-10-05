@@ -3,6 +3,7 @@ import { Handshake, Store, Mail, Phone, Send, CheckCircle2, Building2 } from 'lu
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useToast } from '../components/Toast';
+import { trackEvent } from '../lib/analytics';
 
 const INTEREST_OPTIONS = ['Wholesale', 'Venue stocking', 'Licensed retail', 'Other'] as const;
 
@@ -68,6 +69,7 @@ export const PartnershipsPage: React.FC = () => {
         status: 'new'
       });
       setSubmitted(true);
+      trackEvent('b2b_enquiry', { lead_type: 'b2b', interest: formData.interest });
       setFormData(emptyForm);
       showToast('Thank you. Our partnerships team will be in touch shortly.', 'success');
     } catch (err) {

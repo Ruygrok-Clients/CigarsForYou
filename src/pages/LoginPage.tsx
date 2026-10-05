@@ -3,6 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { LogIn, Lock, Mail, Eye, EyeOff } from 'lucide-react';
+import { trackEvent } from '../lib/analytics';
 
 export const LoginPage: React.FC = () => {
   const { logIn } = useAuth();
@@ -19,6 +20,7 @@ export const LoginPage: React.FC = () => {
     setLoading(true);
     try {
       await logIn(email, password);
+      trackEvent('login', { method: 'email' });
       showToast('Welcome back!');
       navigate('/account');
     } catch (err: any) {

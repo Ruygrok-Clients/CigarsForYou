@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
@@ -7,6 +7,7 @@ import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBa
 import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
 import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
+import { couponLabel, toGaItem, trackViewCart } from '../lib/analytics';
 import {
   ShoppingBag,
   Trash2,
@@ -42,6 +43,17 @@ export const CartPage: React.FC = () => {
     0,
     subtotal - Math.min(couponDiscountAmount + spendPromoDiscount, subtotal)
   );
+
+  const viewedCart = useRef(false);
+  useEffect(() => {
+    if (viewedCart.current || cart.length === 0) return;
+    viewedCart.current = true;
+    trackViewCart(
+      merchandiseTotal,
+      cart.map((item) => toGaItem(item.product, item.quantity)),
+      couponLabel(appliedCoupons.map((coupon) => coupon.code))
+    );
+  }, [cart, appliedCoupons, merchandiseTotal]);
 
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();

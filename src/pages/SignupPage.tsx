@@ -11,6 +11,7 @@ import {
   writeCachedDiditApproval
 } from '../lib/didit';
 import { ShieldCheck, UserPlus, Lock, Mail, User, Eye, EyeOff } from 'lucide-react';
+import { trackEvent } from '../lib/analytics';
 
 export const SignupPage: React.FC = () => {
   const { signUp } = useAuth();
@@ -33,6 +34,7 @@ export const SignupPage: React.FC = () => {
         try {
           await signUp(email, password, name, { sessionId: cached.sessionId });
           clearCachedDiditApproval();
+          trackEvent('sign_up', { method: 'email' });
           showToast('Account successfully created!');
           navigate('/account');
           return;
@@ -65,6 +67,7 @@ export const SignupPage: React.FC = () => {
       writeCachedDiditApproval(session.sessionId);
       await signUp(email, password, name, { pendingSignupId: session.pendingSignupId, sessionId: session.sessionId });
       clearCachedDiditApproval();
+      trackEvent('sign_up', { method: 'email' });
       showToast('Account successfully created!');
       navigate('/account');
     } catch (err) {

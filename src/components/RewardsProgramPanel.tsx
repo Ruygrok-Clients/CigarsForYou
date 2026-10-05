@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useRewardsCart } from '../context/RewardsCartContext';
 import { useToast } from './Toast';
+import { trackEvent } from '../lib/analytics';
 import type { RewardProduct, RewardsLedgerEntry } from '../types';
 import {
   DEFAULT_GOLD_THRESHOLD,
@@ -287,7 +288,13 @@ export const RewardsProgramPanel: React.FC<{ initialPanel?: RewardsPanel }> = ({
                 <button
                   type="button"
                   className="btn btn-primary btn-full"
-                  onClick={() => navigate('/checkout-details?mode=rewards')}
+                  onClick={() => {
+                    trackEvent('reward_redeem_begin', {
+                      points_total: rewardsCart.pointsTotal,
+                      item_count: rewardsCart.items.length
+                    });
+                    navigate('/checkout-details?mode=rewards');
+                  }}
                 >
                   Continue to delivery
                 </button>

@@ -17,6 +17,7 @@ import {
   unitPriceForTier
 } from '../utils/bulkPricing';
 import { rangeBasePath, rangeLabel } from '../constants/productRanges';
+import { trackViewItem } from '../lib/analytics';
 import { fetchBrandStory, fetchProducts } from '../services/catalog';
 import { 
   Bell, 
@@ -124,6 +125,11 @@ export const ProductDetailPage: React.FC = () => {
     if (!product || product.stock <= 0) return;
     if (quantity > product.stock) setQuantity(product.stock);
   }, [product, quantity]);
+
+  useEffect(() => {
+    if (!product) return;
+    trackViewItem(product);
+  }, [product]);
 
   if (loading) {
     return (

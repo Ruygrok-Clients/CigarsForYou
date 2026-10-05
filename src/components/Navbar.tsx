@@ -18,6 +18,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useLocationSelection } from '../context/LocationContext';
 import { useClosingSoon } from '../context/ClosingSoonContext';
+import { trackCta, trackSearch } from '../lib/analytics';
 import { AdminAccountGate } from './AdminAccountGate';
 import { AUSTRALIAN_STATES } from '../constants/locations';
 import { normalizeLoyaltyTier, TIER_COLORS } from '../utils/rewards';
@@ -185,6 +186,7 @@ export const Navbar: React.FC = () => {
     const params = new URLSearchParams();
     if (searchQuery.trim()) {
       params.append('search', searchQuery.trim());
+      trackSearch(searchQuery.trim(), 'navbar');
     }
     const qStr = params.toString();
     if (selectedCategory === 'Cigarettes') {
@@ -776,16 +778,16 @@ export const Navbar: React.FC = () => {
                   padding: '0 0.25rem'
                 }}
               >
-                <Link to="/shop?category=specials" className="medicart-pill-btn medicart-pill-btn--specials">
+                <Link to="/shop?category=specials" className="medicart-pill-btn medicart-pill-btn--specials" onClick={() => trackCta('nav_specials')}>
                   Specials
                 </Link>
-                <Link to="/shop?category=cigars" className="medicart-pill-btn" style={{ fontWeight: 600 }}>
+                <Link to="/shop?category=cigars" className="medicart-pill-btn" style={{ fontWeight: 600 }} onClick={() => trackCta('nav_cigars')}>
                   Cigars
                 </Link>
-                <Link to="/cigarettes" className="medicart-pill-btn" style={{ fontWeight: 600 }}>
+                <Link to="/cigarettes" className="medicart-pill-btn" style={{ fontWeight: 600 }} onClick={() => trackCta('nav_cigarettes')}>
                   Cigarettes
                 </Link>
-                <Link to="/accessories" className="medicart-pill-btn" style={{ fontWeight: 600 }}>
+                <Link to="/accessories" className="medicart-pill-btn" style={{ fontWeight: 600 }} onClick={() => trackCta('nav_accessories')}>
                   Accessories
                 </Link>
 
@@ -1280,16 +1282,16 @@ export const Navbar: React.FC = () => {
                   padding: '0 0.2rem'
                 }}
               >
-                <Link to="/shop?category=specials" className="medicart-pill-btn medicart-pill-btn--specials" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                <Link to="/shop?category=specials" className="medicart-pill-btn medicart-pill-btn--specials" style={{ fontSize: '0.75rem', padding: '0.35rem 0.75rem' }} onClick={() => trackCta('nav_specials')}>
                   Specials
                 </Link>
-                <Link to="/shop?category=cigars" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                <Link to="/shop?category=cigars" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }} onClick={() => trackCta('nav_cigars')}>
                   Cigars
                 </Link>
-                <Link to="/cigarettes" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                <Link to="/cigarettes" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }} onClick={() => trackCta('nav_cigarettes')}>
                   Cigarettes
                 </Link>
-                <Link to="/accessories" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }}>
+                <Link to="/accessories" className="medicart-pill-btn" style={{ fontWeight: 600, fontSize: '0.75rem', padding: '0.35rem 0.75rem' }} onClick={() => trackCta('nav_accessories')}>
                   Accessories
                 </Link>
 

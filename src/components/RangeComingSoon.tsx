@@ -5,6 +5,7 @@ import { db } from '../firebase';
 import { useToast } from './Toast';
 import type { ProductRange } from '../types';
 import { RANGE_COMING_SOON } from '../constants/productRanges';
+import { trackEvent } from '../lib/analytics';
 
 export const RangeComingSoon: React.FC<{ range: ProductRange }> = ({ range }) => {
   const copy = RANGE_COMING_SOON[range];
@@ -28,6 +29,7 @@ export const RangeComingSoon: React.FC<{ range: ProductRange }> = ({ range }) =>
         subscribedAt: new Date().toISOString()
       });
       setSubmitted(true);
+      trackEvent('waitlist_signup', { lead_type: 'waitlist', source: copy.source });
       showToast(copy.toast);
     } catch (err) {
       console.error('Error saving subscriber email:', err);

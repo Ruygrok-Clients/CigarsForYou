@@ -4,13 +4,16 @@ import { ShoppingBag, Bell, Flame } from 'lucide-react';
 import type { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useToast } from './Toast';
+import { trackSelectItem } from '../lib/analytics';
 
 interface ProductCardProps {
   product: Product;
   onOpenNotifyModal?: (product: Product) => void;
+  listId?: string;
+  listName?: string;
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyModal }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyModal, listId, listName }) => {
   const { addToCart } = useCart();
   const { showToast } = useToast();
   const isOutOfStock = product.stock <= 0;
@@ -24,6 +27,10 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
     }
     addToCart(product, 1);
     showToast(`Added 1x ${product.name} to cart`);
+  };
+
+  const handleSelect = () => {
+    trackSelectItem(product, listId, listName);
   };
 
   return (
@@ -41,7 +48,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
       transition: 'transform 0.25s ease, box-shadow 0.25s ease'
     }}>
       {/* Product Image Box (Warm Gray/Cream Background matching reference) */}
-      <Link to={`/product/${product.slug}`} style={{ textDecoration: 'none', display: 'block', position: 'relative' }}>
+      <Link to={`/product/${product.slug}`} onClick={handleSelect} style={{ textDecoration: 'none', display: 'block', position: 'relative' }}>
         {/* Stock / Sold Out Badge overlay */}
         <div style={{
           position: 'absolute',
@@ -117,7 +124,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
           {product.brand}
         </span>
 
-        <Link to={`/product/${product.slug}`} style={{ textDecoration: 'none' }}>
+        <Link to={`/product/${product.slug}`} onClick={handleSelect} style={{ textDecoration: 'none' }}>
           <h3 style={{
             fontSize: '1.15rem',
             fontWeight: 700,

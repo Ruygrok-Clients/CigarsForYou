@@ -1,6 +1,7 @@
-import React from 'react';
+import React, { useEffect, useRef } from 'react';
 import { Gift, PartyPopper } from 'lucide-react';
-import { getSpendPromoState } from '../constants/spendPromo';
+import { getSpendPromoState, SPEND_PROMO_DISCOUNT, SPEND_PROMO_THRESHOLD } from '../constants/spendPromo';
+import { trackSelectPromotion, trackViewPromotion } from '../lib/analytics';
 import './SpendThresholdPromoBar.css';
 
 interface SpendThresholdPromoBarProps {
@@ -15,6 +16,26 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
   className
 }) => {
   const { threshold, reward, remaining, progress, unlocked } = getSpendPromoState(subtotal);
+  const wasUnlocked = useRef(unlocked);
+
+  useEffect(() => {
+    trackViewPromotion(
+      'spend_400',
+      `Spend $${SPEND_PROMO_THRESHOLD} save $${SPEND_PROMO_DISCOUNT}`,
+      unlocked ? 'unlocked' : 'progress'
+    );
+  }, [unlocked]);
+
+  useEffect(() => {
+    if (unlocked && !wasUnlocked.current) {
+      trackSelectPromotion(
+        'spend_400',
+        `Spend $${SPEND_PROMO_THRESHOLD} save $${SPEND_PROMO_DISCOUNT}`,
+        'spend_threshold'
+      );
+    }
+    wasUnlocked.current = unlocked;
+  }, [unlocked]);
 
   return (
     <div

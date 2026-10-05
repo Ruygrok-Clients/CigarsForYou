@@ -2,6 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { CartItem, Coupon, DeliveryMethod, Product } from '../types';
 import { EXPRESS_DELIVERY_FEE } from '../constants/deliveryCopy';
 import { getSpendPromoState } from '../constants/spendPromo';
+import { couponLabel, trackAddToCart, trackRemoveFromCart, trackSelectPromotion } from '../lib/analytics';
 
 interface CartContextType {
   cart: CartItem[];
@@ -79,28 +80,51 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const addToCart = (product: Product, quantity: number = 1) => {
     // Unit price is frozen at add time (bulk discounts are applied on the product page).
     // Changing quantity in the cart does not re-resolve a bulk tier.
+    const requested = Math.max(1, quantity);
+    let trackedQty = 0;
+    let unitPrice = product.price;
     setCart((prev) => {
       const existingIndex = prev.findIndex(item => item.product.id === product.id);
 
       if (existingIndex > -1) {
         const updated = [...prev];
-        const newQty = updated[existingIndex].quantity + quantity;
+        const cap = product.stock || 100;
+        const newQty = Math.min(updated[existingIndex].quantity + requested, cap);
+        trackedQty = newQty - updated[existingIndex].quantity;
+        unitPrice = updated[existingIndex].product.price;
         updated[existingIndex] = {
           ...updated[existingIndex],
-          quantity: Math.min(newQty, product.stock || 100)
+          quantity: newQty
         };
         return updated;
-      } else {
-        return [...prev, {
-          product,
-          quantity: Math.min(quantity, product.stock || 100)
-        }];
       }
+
+      trackedQty = Math.min(requested, product.stock || 100);
+      unitPrice = product.price;
+      return [...prev, {
+        product,
+        quantity: trackedQty
+      }];
     });
+    if (trackedQty > 0) {
+      trackAddToCart(product, trackedQty, unitPrice, couponLabel(appliedCoupons.map((coupon) => coupon.code)));
+    }
   };
 
   const removeFromCart = (productId: string) => {
-    setCart(prev => prev.filter(item => item.product.id !== productId));
+    let removed: CartItem | undefined;
+    setCart(prev => {
+      removed = prev.find(item => item.product.id === productId);
+      return prev.filter(item => item.product.id !== productId);
+    });
+    if (removed && removed.quantity > 0) {
+      trackRemoveFromCart(
+        removed.product,
+        removed.quantity,
+        removed.product.price,
+        couponLabel(appliedCoupons.map((coupon) => coupon.code))
+      );
+    }
   };
 
   const updateQuantity = (productId: string, quantity: number) => {
@@ -109,15 +133,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       return;
     }
 
+    let delta = 0;
+    let changed: CartItem | undefined;
     setCart(prev => prev.map(item => {
-      if (item.product.id === productId) {
-        return {
-          ...item,
-          quantity: Math.min(quantity, item.product.stock || 100)
-        };
-      }
-      return item;
+      if (item.product.id !== productId) return item;
+      const nextQty = Math.min(quantity, item.product.stock || 100);
+      delta = nextQty - item.quantity;
+      changed = item;
+      return {
+        ...item,
+        quantity: nextQty
+      };
     }));
+    if (!changed || delta === 0) return;
+    const coupon = couponLabel(appliedCoupons.map((entry) => entry.code));
+    if (delta > 0) {
+      trackAddToCart(changed.product, delta, changed.product.price, coupon);
+    } else {
+      trackRemoveFromCart(changed.product, Math.abs(delta), changed.product.price, coupon);
+    }
   };
 
   const clearCart = () => {
@@ -127,16 +161,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const applyCoupon = (coupon: Coupon | null) => {
     if (!coupon) return;
+    const cleanCode = coupon.code.trim().toUpperCase();
+    let added = false;
     setAppliedCoupons(prev => {
-      const cleanCode = coupon.code.trim().toUpperCase();
       if (prev.some(c => c.code.toUpperCase() === cleanCode)) return prev;
+      added = true;
       return [...prev, coupon];
     });
+    if (added) trackSelectPromotion(cleanCode, cleanCode, 'coupon_apply');
   };
 
   const removeCoupon = (code: string) => {
     const cleanCode = code.trim().toUpperCase();
-    setAppliedCoupons(prev => prev.filter(c => c.code.toUpperCase() !== cleanCode));
+    let removed = false;
+    setAppliedCoupons(prev => {
+      const next = prev.filter(c => c.code.toUpperCase() !== cleanCode);
+      removed = next.length !== prev.length;
+      return next;
+    });
+    if (removed) trackSelectPromotion(cleanCode, cleanCode, 'coupon_remove');
   };
 
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('express');

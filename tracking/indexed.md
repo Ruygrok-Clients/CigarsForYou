@@ -1,6 +1,56 @@
-# Search Console checklist — cigarsforyou.com.au
+# Tracking health — cigarsforyou.com.au
 
-Checked 5 Oct 2026 (UTC+11). Property: `sc-domain:cigarsforyou.com.au`. Connection details: [config.md](config.md).
+Search Console checklist below was checked 5 Oct 2026 (UTC+11). Property: `sc-domain:cigarsforyou.com.au`. Setup: [config.md](config.md). Events: [tracking.md](tracking.md).
+
+## Google Analytics 4 — how it runs
+
+Checked in code and a production build on 5 Oct 2026 (UTC+11). Measurement ID `G-SRZFLMB8X7`.
+
+1. The browser loads one Google tag from root `index.html`. The first `gtag('config', …)` sets `send_page_view: false`, so the tag does not emit its own page view.
+2. After React Router is ready, `AnalyticsRouteListener` applies `?internal` / `?ga_debug` cookies, strips those parameters, and sends a single `page_view` for the storefront path.
+3. Route changes send another `page_view`. `/admin` and `/admin/*` send none.
+4. Shopping, lead, and engagement code calls `src/lib/analytics.ts`, which pushes the same measurement ID through `gtag('event', …)`.
+5. When `cfy_ga_internal=1`, each event includes `traffic_type=internal`. When `cfy_ga_debug=1`, each event includes `debug_mode=true` and shows in DebugView.
+
+```text
+page load → gtag config (no page_view) → SPA page_view → ecommerce / lead / engagement events
+```
+
+### What Realtime and DebugView should show
+
+| Journey | Events |
+|---------|--------|
+| Open the homepage | one `page_view` for `/` (not two) |
+| Accept or decline the age gate | `age_gate_accept` or `age_gate_decline` |
+| Open a catalogue | `view_item_list` |
+| Open a product | `select_item`, then `view_item` |
+| Add or remove a cart line | `add_to_cart` or `remove_from_cart` |
+| Open the cart | `view_cart` |
+| Continue to delivery details | `begin_checkout` |
+| Continue after delivery details | `add_shipping_info`, then `/checkout` |
+| Paid checkout screen (payments off) | `checkout_unavailable_view` — no `purchase` |
+| Rewards checkout screen | `add_payment_info` (`checkout_type=rewards`) |
+| Reward order actually placed | one `purchase` with that `transaction_id` |
+| Contact / partnerships form success | `generate_lead` or `b2b_enquiry` |
+| Staff browser after `?internal=1` | `traffic_type=internal` on later hits |
+
+`purchase.value` for a rewards order is the AUD shipping amount. Points are sent as `points_redeemed`, not as revenue. Paid `purchase` events stay absent until `trackPaidPurchase()` runs on a real successful payment.
+
+### Validation on 5 Oct 2026
+
+| Check | Result |
+|-------|--------|
+| One Google tag in `dist/index.html` | Pass — single snippet, `send_page_view: false` |
+| `public/index.html` did not replace the app shell | Pass — built file is the Vite storefront |
+| Bundle contains measurement ID and one `page_view` event name | Pass |
+| `gtag/js?id=G-SRZFLMB8X7` | HTTP 200 |
+| `tsc -b` | Pass |
+| Admin routes skip `page_view` | Pass in code (`pathname` starts with `/admin`) |
+| Live DebugView / Realtime in the GA4 UI | Not run in this change — use `?ga_debug=1` and the journey table above |
+| GA4 internal-traffic filter set to Active | Manual Admin step; not confirmed from the repo |
+| GA4 ↔ Search Console product link | Manual Admin step; not confirmed from the repo |
+
+## Search Console checklist
 
 | # | Check | Result |
 |---|--------|--------|

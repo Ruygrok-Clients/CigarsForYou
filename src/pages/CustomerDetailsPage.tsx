@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useCart } from '../context/CartContext';
 import { useRewardsCart } from '../context/RewardsCartContext';
@@ -21,6 +21,13 @@ import type { DeliveryMethod } from '../types';
 import { normalizeLoyaltyTier, resolveProductPointsCost } from '../utils/rewards';
 import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
 import { ensureAgeVerified } from '../lib/didit';
+import {
+  couponLabel,
+  toGaItem,
+  toRewardGaItem,
+  trackAddShippingInfo,
+  trackBeginCheckout
+} from '../lib/analytics';
 import {
   ShoppingBag,
   Tag,
@@ -211,6 +218,20 @@ export const CustomerDetailsPage: React.FC = () => {
     setImmediateDispatchFee(quotedFee);
   }, [deliveryMethod, quotedFee, quoteLoading, setImmediateDispatchFee]);
 
+  const checkoutItems = rewardsMode
+    ? rewardsCart.items.map((item) => toRewardGaItem(item.product, item.quantity))
+    : cart.map((item) => toGaItem(item.product, item.quantity));
+  const checkoutCoupon = rewardsMode ? undefined : couponLabel(appliedCoupons.map((coupon) => coupon.code));
+  const checkoutValue = rewardsMode ? rewardsCart.shippingFee : totalAmount;
+  const checkoutType = rewardsMode ? 'rewards' : 'paid';
+
+  const beganCheckout = useRef(false);
+  useEffect(() => {
+    if (beganCheckout.current || checkoutItems.length === 0) return;
+    beganCheckout.current = true;
+    trackBeginCheckout(checkoutValue, checkoutItems, checkoutCoupon, checkoutType);
+  }, [checkoutCoupon, checkoutItems, checkoutType, checkoutValue]);
+
   const handleApplyCoupon = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!couponCode.trim()) return;
@@ -268,6 +289,7 @@ export const CustomerDetailsPage: React.FC = () => {
         return;
       }
       if (currentUser) await refreshProfile();
+      trackAddShippingInfo(checkoutValue, deliveryMethod, checkoutItems, checkoutCoupon, checkoutType);
       if (destination === 'rewards') {
         rewardsCart.setCheckoutDraft({
           name: name.trim(),

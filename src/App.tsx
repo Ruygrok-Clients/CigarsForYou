@@ -17,6 +17,7 @@ import { ClerkGraceModal } from './components/ClerkGraceModal';
 import { FinalCallModal } from './components/FinalCallModal';
 import { LoadingScreen } from './components/LoadingScreen';
 import { ScrollToTop } from './components/ScrollToTop';
+import { AnalyticsRouteListener } from './components/AnalyticsRouteListener';
 import { SocialProofToast } from './components/SocialProofToast';
 import { useAgeGate } from './context/AgeGateContext';
 import { useSitePresence } from './hooks/useSitePresence';
@@ -122,6 +123,7 @@ export default function App() {
               <AdminContextProvider>
                 <BrowserRouter>
                   <ScrollToTop />
+                  <AnalyticsRouteListener />
                   <LayoutWrapper>
                     <Routes>
                       {/* Public Storefront Routes */}

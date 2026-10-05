@@ -3,6 +3,7 @@ import { Mail, Phone, Truck, Send, HelpCircle, ChevronDown, CheckCircle2, Messag
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useToast } from '../components/Toast';
+import { trackEvent } from '../lib/analytics';
 
 export const ContactUsPage: React.FC = () => {
   const { showToast } = useToast();
@@ -40,6 +41,7 @@ export const ContactUsPage: React.FC = () => {
         status: 'new'
       });
       setSubmitted(true);
+      trackEvent('generate_lead', { lead_type: 'contact', subject: formData.subject });
       showToast('Thank you! Your message has been sent successfully. Our team will contact you shortly.', 'success');
       setFormData({
         name: '',

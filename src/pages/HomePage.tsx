@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useRef } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { collection, query, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -13,6 +13,7 @@ import { SocialProofSlider } from '../components/SocialProofSlider';
 import { useCigarCategories } from '../hooks/useCigarCategories';
 import { Award, ChevronRight, Truck } from 'lucide-react';
 import bgVideo from '../assets/BG-Vid.mov';
+import { trackCta, trackEvent } from '../lib/analytics';
 
 export const HomePage: React.FC = () => {
   const cigarCategories = useCigarCategories();
@@ -73,8 +74,40 @@ export const HomePage: React.FC = () => {
     fetchFeatured();
   }, []);
 
+  const videoMilestones = useRef({ start: false, p25: false, p50: false, p75: false, complete: false });
+
+  const handleVideoPlay = () => {
+    if (videoMilestones.current.start) return;
+    videoMilestones.current.start = true;
+    trackEvent('video_start', { video_title: 'Home hero', video_provider: 'html5' });
+  };
+
+  const handleVideoProgress = (event: React.SyntheticEvent<HTMLVideoElement>) => {
+    const video = event.currentTarget;
+    if (!video.duration || !Number.isFinite(video.duration)) return;
+    const progress = video.currentTime / video.duration;
+    const steps: Array<['p25' | 'p50' | 'p75', number]> = [['p25', 0.25], ['p50', 0.5], ['p75', 0.75]];
+    for (const [key, mark] of steps) {
+      if (progress >= mark && !videoMilestones.current[key]) {
+        videoMilestones.current[key] = true;
+        trackEvent('video_progress', {
+          video_title: 'Home hero',
+          video_provider: 'html5',
+          video_percent: mark * 100
+        });
+      }
+    }
+  };
+
+  const handleVideoEnded = () => {
+    if (videoMilestones.current.complete) return;
+    videoMilestones.current.complete = true;
+    trackEvent('video_complete', { video_title: 'Home hero', video_provider: 'html5', video_percent: 100 });
+  };
+
   const handleHeroShopNow = (e: React.FormEvent) => {
     e.preventDefault();
+    trackCta('hero_shop_now');
     if (heroCategory === 'Cigarettes') {
       navigate('/cigarettes');
       return;
@@ -112,6 +145,9 @@ export const HomePage: React.FC = () => {
                 playsInline
                 preload="auto"
                 src="/BG-Vid.mov"
+                onPlay={handleVideoPlay}
+                onTimeUpdate={handleVideoProgress}
+                onEnded={handleVideoEnded}
                 style={{
                   position: 'absolute',
                   top: 0,
@@ -348,6 +384,9 @@ export const HomePage: React.FC = () => {
                 playsInline
                 preload="auto"
                 src="/BG-Vid.mov"
+                onPlay={handleVideoPlay}
+                onTimeUpdate={handleVideoProgress}
+                onEnded={handleVideoEnded}
                 style={{
                   position: 'absolute',
                   top: 0,

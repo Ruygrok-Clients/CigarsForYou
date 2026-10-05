@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import { ArrowRight, Lock, X } from 'lucide-react';
 import { useAgeGate } from '../context/AgeGateContext';
 import { useClosingSoon } from '../context/ClosingSoonContext';
+import { trackEvent } from '../lib/analytics';
 
 export const AgeGateModal: React.FC = () => {
   const { isAgeVerified, verifyAge, rejectAge } = useAgeGate();
@@ -17,10 +18,12 @@ export const AgeGateModal: React.FC = () => {
   }
 
   const handleYes = () => {
+    trackEvent('age_gate_accept');
     verifyAge();
   };
 
   const handleNo = () => {
+    trackEvent('age_gate_decline');
     rejectAge();
     navigate('/age-restricted');
   };

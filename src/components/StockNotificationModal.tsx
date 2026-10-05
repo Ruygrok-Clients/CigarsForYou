@@ -6,6 +6,7 @@ import { X, Bell, Check } from 'lucide-react';
 import { useToast } from './Toast';
 import { Modal } from './Modal';
 import { useAuth } from '../context/AuthContext';
+import { trackEvent } from '../lib/analytics';
 
 interface StockNotificationModalProps {
   product: Product | null;
@@ -55,6 +56,11 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         notified: false
       });
       setSubmitted(true);
+      trackEvent('stock_notify_signup', {
+        item_id: product.id || product.slug,
+        item_name: product.name,
+        item_category: product.category || 'cigars'
+      });
       showToast('Stock notification request saved!');
     } catch (err) {
       console.error('Error saving stock notification request:', err);
