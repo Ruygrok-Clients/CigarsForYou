@@ -2,6 +2,8 @@
 
 Search Console checklist below was checked 5 Oct 2026 (UTC+11). Property: `sc-domain:cigarsforyou.com.au`. Setup: [config.md](config.md). Events: [tracking.md](tracking.md).
 
+Initial crawl and content inventory, same day: [seo-crawl.md](seo-crawl.md), [seo-inventory.md](seo-inventory.md), [seo-inventory.csv](seo-inventory.csv).
+
 ## Google Analytics 4 — how it runs
 
 Checked in code and a production build on 5 Oct 2026 (UTC+11). Measurement ID `G-SRZFLMB8X7`.
