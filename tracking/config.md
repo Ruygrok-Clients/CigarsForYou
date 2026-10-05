@@ -112,7 +112,9 @@ curl -sS "${H[@]}" "https://www.googleapis.com/webmasters/v3/sites/${SITE_ENC}/s
 curl -sS -X PUT "${H[@]}" "https://www.googleapis.com/webmasters/v3/sites/${SITE_ENC}/sitemaps/$(python3 -c "import urllib.parse; print(urllib.parse.quote('https://cigarsforyou.com.au/sitemap.xml', safe=''))")"
 ```
 
-### Re-auth (if scopes expire or ADC is wiped)
+### Re-auth (Search Console only)
+
+Do **not** add `analytics.readonly` to this command. Google blocks the shared gcloud app from requesting Analytics. See the Analytics API section below.
 
 ```bash
 gcloud config set project cigarsforyou-ea835
@@ -122,6 +124,68 @@ gcloud auth application-default set-quota-project cigarsforyou-ea835
 ```
 
 Sign in as the Google account that owns the GSC property (currently the account used for `cigars4uss@gmail.com` / site owner).
+
+## Google Analytics API
+
+The Data and Admin APIs are enabled on `cigarsforyou-ea835`:
+
+- `analyticsdata.googleapis.com`
+- `analyticsadmin.googleapis.com`
+
+Measurement ID on the site: `G-SRZFLMB8X7`. This property is not linked from Firebase (`analyticsDetails` returns not found), so access is granted in the GA4 property itself.
+
+### Why the Google page says "This app is blocked"
+
+`gcloud auth application-default login` normally uses Google's shared Cloud SDK app. That app is allowed to ask for Cloud Platform and Search Console. It is **not** allowed to ask for Google Analytics. Adding `https://www.googleapis.com/auth/analytics.readonly` opens the account picker, then Google shows "This app is blocked". That login did not change the existing Search Console credentials.
+
+### Connection that Google allows
+
+Use a Desktop OAuth client owned by this project, then pass it to gcloud.
+
+1. Open [Google Auth Platform → Clients](https://console.cloud.google.com/auth/clients?project=cigarsforyou-ea835) for project `cigarsforyou-ea835`.
+2. If the consent screen is not set up yet: audience **External**, publishing status **Testing**, and add `cigars4uss@gmail.com` as a test user.
+3. Under data access, add scope `https://www.googleapis.com/auth/analytics.readonly`.
+4. Create a client of type **Desktop app**. Download the JSON and save it outside the repo:
+
+```bash
+mkdir -p ~/.config/gcloud
+# move the downloaded file, then:
+chmod 600 ~/.config/gcloud/cfy-ga-client.json
+```
+
+5. Sign in with that client (this replaces the blocked shared-app request):
+
+```bash
+gcloud auth application-default login \
+  --client-id-file="$HOME/.config/gcloud/cfy-ga-client.json" \
+  --scopes="https://www.googleapis.com/auth/cloud-platform,https://www.googleapis.com/auth/webmasters,https://www.googleapis.com/auth/analytics.readonly"
+gcloud auth application-default set-quota-project cigarsforyou-ea835
+```
+
+On the consent screen, Google may say the app is not verified because it is in Testing. Continue as `cigars4uss@gmail.com`. That is a different page from "This app is blocked".
+
+6. Confirm the property is visible (no token is printed):
+
+```bash
+curl -sS \
+  -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+  -H "x-goog-user-project: cigarsforyou-ea835" \
+  "https://analyticsadmin.googleapis.com/v1beta/accountSummaries"
+```
+
+Look for the account that contains measurement ID `G-SRZFLMB8X7`, then list its streams with the property resource name from that response:
+
+```bash
+# PROPERTY is like properties/123456789
+curl -sS \
+  -H "Authorization: Bearer $(gcloud auth application-default print-access-token)" \
+  -H "x-goog-user-project: cigarsforyou-ea835" \
+  "https://analyticsadmin.googleapis.com/v1beta/PROPERTY/dataStreams"
+```
+
+### Service account
+
+`ga4-reader@cigarsforyou-ea835.iam.gserviceaccount.com` exists, and `cigars4uss@gmail.com` has `roles/iam.serviceAccountTokenCreator` on it. Impersonation from gcloud currently returns `PERMISSION_DENIED` on `iam.serviceAccounts.getAccessToken`, so the API connection is not using this account yet. No key file was created.
 
 ## Notes
 
