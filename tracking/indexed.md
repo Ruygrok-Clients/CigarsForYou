@@ -77,19 +77,19 @@ page load → gtag config (no page_view) → SPA page_view → ecommerce / lead 
 
 ## 2. XML sitemap
 
-Live files (after hosting deploy):
+Live files (hosting deploy 5 Oct 2026, afternoon):
 
-- `https://cigarsforyou.com.au/robots.txt` — `text/plain`, points at the sitemap, disallows account/checkout/admin paths
-- `https://cigarsforyou.com.au/sitemap.xml` — `application/xml`, **109 URLs** (core pages, catalog categories, active products, published news)
+- `https://cigarsforyou.com.au/robots.txt` — `text/plain`, points at the sitemap, disallows account/checkout/admin paths, and disallows `search`, `brand`, and `category` query URLs
+- `https://cigarsforyou.com.au/sitemap.xml` — `application/xml`, **106 URLs**. Includes core pages, brand categories that have products, active products, and published news. Omits empty brands (Bolivar, Trinidad), `/cigarettes`, and `/accessories`. Catalog and news URLs include `lastmod`.
 
-Submitted with `sitemaps.put` at `2026-10-04T16:42:22Z`.
+Submitted with `sitemaps.put` at `2026-10-04T16:42:22Z`, then again at `2026-10-05T05:20:50Z` after the crawlability pass (106 URLs).
 
 - `isPending`: true
 - `errors`: 0
 - `warnings`: 0
 - `isSitemapsIndex`: false
 
-Google has accepted the submission and has not finished processing it. Regenerate after catalog changes with `npm run generate:sitemap`, then redeploy hosting.
+Google has accepted the submission and has not finished processing it. Hosting deploys regenerate the sitemap before the frontend build (`scripts/deploy-firebase.sh`).
 
 ## 3–4. Crawling and indexing
 
@@ -157,12 +157,14 @@ There is nothing for a structured-data report to list until JSON-LD is in the HT
 ## 10. Canonicalisation
 
 - Homepage `googleCanonical`: `https://cigarsforyou.com.au/`
-- Homepage `userCanonical`: not set (no canonical tag in HTML)
-- Other inspected URLs: Google has not chosen a canonical yet
-- `www` cannot compete today because HTTPS on `www` fails
-- Risk: every route currently returns the same HTML document, so Google has no HTML-level canonical or unique content until it renders JavaScript
+- Homepage `userCanonical`: still unset in URL Inspection. The raw HTML shell has no canonical tag. After JavaScript, indexable routes set a self-referencing `https://cigarsforyou.com.au` canonical with no trailing slash and no query string.
+- Other inspected URLs: Google has not chosen a canonical yet (still unknown)
+- `www` cannot compete today because HTTPS on `www` fails. A Hosting redirect cannot run until TLS succeeds, so `www` → apex is not configured yet.
+- Trailing-slash URLs 301 to the slashless apex URL (`/shop/` → `/shop`, checked 5 Oct 2026 afternoon)
 
 ## 11. Priority URLs
+
+Re-inspected 5 Oct 2026 (afternoon), after the crawlability deploy. Unchanged from the morning check: only `/` is known to Google.
 
 | URL | Verdict | Coverage |
 |-----|---------|----------|
@@ -189,7 +191,7 @@ Re-checked 5 Oct 2026 (UTC+11) via Bing Webmaster API. Setup: [config.md](config
 | # | Check | Result |
 |---|--------|--------|
 | 1 | Site ownership | Pass — `https://cigarsforyou.com.au/` verified (GSC import) |
-| 2 | XML sitemap | Pass — `https://cigarsforyou.com.au/sitemap.xml`, Status `Success`, **109 URLs**, file size 9559 |
+| 2 | XML sitemap | Resubmitted 5 Oct 2026 afternoon — Status `Pending`. Last successful crawl still shows **109 URLs**, file size 9559, until Bing fetches the new 106-URL file |
 | 3 | Crawlability (live) | Pass — Bingbot UA gets 200 on `/` and `/sitemap.xml`; `robots.txt` allows public pages |
 | 4 | Indexing | Early — sitemap ingested; per-URL crawl dates not populated yet |
 | 5 | Crawl issues | Pass — none reported (`GetCrawlIssues` empty) |
@@ -200,21 +202,32 @@ URL submission quota (Bing URL Submission API, separate from IndexNow): daily 10
 
 ## IndexNow checklist
 
-Implemented in repo and production build (`dist/` includes the key file). **Live deploy was not run** (deploy approval skipped) — run the commands in Follow-ups to go live.
+Hosting for the key file was deployed 5 Oct 2026 (afternoon). `https://cigarsforyou.com.au/778303fccee6212d5b66503c3f71025f.txt` returns the key. IndexNow Cloud Functions are still not deployed.
 
 | # | Check | Result |
 |---|--------|--------|
-| 1 | Key file in build | `public/778303fccee6212d5b66503c3f71025f.txt` → `dist/` (live URL after hosting deploy) |
+| 1 | Key file in build | Live — `https://cigarsforyou.com.au/778303fccee6212d5b66503c3f71025f.txt` returns the key |
 | 2 | Product add / update / remove | Cloud Function `onProductIndexNow` (deploy pending) |
 | 3 | Category changes | Cloud Function `onCatalogCategoryIndexNow` (deploy pending) |
 | 4 | News publish / update / remove | Cloud Function `onNewsPostIndexNow` (deploy pending) |
 | 5 | Stock / FBT-only product writes | Ignored (no IndexNow spam) |
 
+## Crawlability pass — 5 Oct 2026 (afternoon)
+
+Checked with `curl` after the hosting deploy. No WAF or bot-block rules in the repo. Googlebot, Googlebot-Image, and Bingbot each received HTTP 200 on `/`, `/shop`, `/product/cohiba-black-supremo`, `/robots.txt`, `/sitemap.xml`, and `/assets/index-B4ocCJD3.js`.
+
+`robots.txt` is the static file (not the SPA shell). Disallow paths match the utility and admin routes in `src/App.tsx`. The sitemap line is `https://cigarsforyou.com.au/sitemap.xml` (106 `<loc>` entries; no Bolivar, Trinidad, `/cigarettes`, or `/accessories`).
+
+`/shop/` and `/product/cohiba-black-supremo/` return **301** to the slashless apex URL.
+
+`https://www.cigarsforyou.com.au/` still fails TLS (certificate has no `www` name). `http://www` 301s to `https://www`, which then fails. Connect `www.cigarsforyou.com.au` on Firebase Hosting so Google can issue a certificate, then redirect that host to `https://cigarsforyou.com.au`. Do not add the redirect before TLS works.
+
+Canonicals and `noindex` are applied in the browser after render (`src/components/RouteSeo.tsx`). The first HTML byte is still the shared shell, so Google only sees those tags after it renders JavaScript.
+
 ## Follow-ups
 
-- **Deploy IndexNow:** `npm run deploy:hosting` then `firebase deploy --only functions:onProductIndexNow,functions:onCatalogCategoryIndexNow,functions:onNewsPostIndexNow` (or batch one-at-a-time if Cloud Run CPU quota bites)
-- After hosting deploy, confirm `https://cigarsforyou.com.au/778303fccee6212d5b66503c3f71025f.txt` returns the key, then run the manual IndexNow test ping in [config.md](config.md)
-- Wait for Google + Bing to crawl priority URLs after sitemap success, then re-check indexing
-- Fix `www` TLS (certificate or redirect to apex)
-- Add HTML canonicals and JSON-LD if rich results matter
-- Run `npm run generate:sitemap` when products or news change, then redeploy hosting
+- **Deploy IndexNow functions:** `firebase deploy --only functions:onProductIndexNow,functions:onCatalogCategoryIndexNow,functions:onNewsPostIndexNow` (or batch one-at-a-time if Cloud Run CPU quota bites). Hosting and the key file are already live.
+- After the functions deploy, run the manual IndexNow test ping in [config.md](config.md)
+- Wait for Google to finish processing the 106-URL sitemap, then re-inspect priority URLs
+- Fix `www` TLS, then redirect `www` to the apex
+- JSON-LD is still absent (not part of this pass)

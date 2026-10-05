@@ -8,7 +8,7 @@ cd "$ROOT_DIR"
 
 # Gen2 functions share Cloud Run CPU quota per region. Deploy in small batches
 # and pause between them to avoid "Quota exceeded for total allowable CPU".
-BATCH_SIZE="${BATCH_SIZE:-5}"
+BATCH_SIZE="${BATCH_SIZE:-3}"
 PAUSE_SECONDS="${PAUSE_SECONDS:-60}"
 MAX_RETRIES="${MAX_RETRIES:-4}"
 RETRY_PAUSE_SECONDS="${RETRY_PAUSE_SECONDS:-90}"
@@ -21,13 +21,13 @@ usage() {
 Usage: scripts/deploy-firebase.sh [options]
 
 Deploys Firestore, Storage, Hosting, then Cloud Functions in batches
-(default: 5 functions per batch, 60s pause between batches).
+(default: 3 functions per batch, 60s pause between batches).
 
 Options:
   --skip-build       Skip the frontend Vite build
   --functions-only   Only deploy Cloud Functions (skip rules/hosting)
   --hosting-only     Only build + deploy Hosting (skip rules/functions)
-  --batch-size N     Functions per batch (default: 5)
+  --batch-size N     Functions per batch (default: 3)
   --pause N          Seconds to wait between batches (default: 60)
   --retries N        Retries per batch on quota/deploy failure (default: 4)
   -h, --help         Show this help
@@ -142,6 +142,8 @@ printf '    - %s\n' "${FUNCTIONS[@]}"
 
 if [[ "$HOSTING_ONLY" == true ]]; then
   if [[ "$SKIP_BUILD" != true ]]; then
+    log "Generating sitemap..."
+    npm run generate:sitemap
     log "Building frontend..."
     npm run build
   fi
@@ -153,6 +155,8 @@ fi
 
 if [[ "$FUNCTIONS_ONLY" != true ]]; then
   if [[ "$SKIP_BUILD" != true ]]; then
+    log "Generating sitemap..."
+    npm run generate:sitemap
     log "Building frontend..."
     npm run build
   fi

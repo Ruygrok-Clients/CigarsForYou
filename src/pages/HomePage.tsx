@@ -112,13 +112,14 @@ export const HomePage: React.FC = () => {
       navigate('/cigarettes');
       return;
     }
+    const brand = heroBrand !== 'Brands'
+      ? cigarCategories.find((item) => item.name === heroBrand)
+      : undefined;
+    const path = brand ? `/shop/${brand.slug}` : '/shop';
     const params = new URLSearchParams();
-    if (heroCategory === 'Cigars') params.append('category', 'cigars');
-    if (heroBrand !== 'Brands') params.append('brand', heroBrand);
-    if (skuInput.trim()) params.append('search', skuInput.trim());
-
-    const queryString = params.toString();
-    navigate(queryString ? `/shop?${queryString}` : '/shop');
+    if (skuInput.trim()) params.set('search', skuInput.trim());
+    const query = params.toString();
+    navigate(query ? `${path}?${query}` : path);
   };
 
   return (

@@ -12,4 +12,9 @@ Disallow: /forgot-password
 Disallow: /order-confirmation
 Disallow: /age-restricted
 
+# Crawl traps: search and filter query URLs
+Disallow: /*?*search=
+Disallow: /*?*brand=
+Disallow: /*?*category=
+
 Sitemap: https://cigarsforyou.com.au/sitemap.xml

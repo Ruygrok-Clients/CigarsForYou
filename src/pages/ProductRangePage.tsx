@@ -1,10 +1,10 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo } from 'react';
 import { useParams, useSearchParams } from 'react-router-dom';
 import type { CatalogCategory, Product, ProductRange } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { RangeComingSoon } from '../components/RangeComingSoon';
-import { DEFAULT_CIGAR_CATEGORIES, RANGE_CATALOGUE } from '../constants/productRanges';
+import { DEFAULT_CIGAR_CATEGORIES, RANGE_CATALOGUE, rangeBasePath, slugifyLabel } from '../constants/productRanges';
 import { fetchCatalogCategories, fetchProducts, isPublishedProduct } from '../services/catalog';
 import {
   Search,
@@ -14,6 +14,7 @@ import {
   Tag
 } from 'lucide-react';
 import { trackSearch, trackViewItemList } from '../lib/analytics';
+import { absoluteCanonical, applySeo } from '../lib/seo';
 
 export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) => {
   const params = useParams<{ brandSlug?: string; categorySlug?: string }>();
@@ -155,6 +156,67 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
     }, 700);
     return () => window.clearTimeout(timer);
   }, [searchQuery, loading]);
+
+  useLayoutEffect(() => {
+    const base = rangeBasePath(range);
+    const matched = categorySlug
+      ? sidebarCategories.find((item) => item.slug.toLowerCase() === categorySlug.toLowerCase())
+      : undefined;
+    const brandParam = (searchParams.get('brand') || '').trim();
+    const brandMatch = brandParam
+      ? sidebarCategories.find((item) => (
+        item.slug === slugifyLabel(brandParam) || item.name.toLowerCase() === brandParam.toLowerCase()
+      ))
+      : undefined;
+    const cleanPath = matched
+      ? `${base}/${matched.slug}`
+      : brandMatch
+        ? `${base}/${brandMatch.slug}`
+        : base;
+    const title = matched
+      ? `${matched.name} ${copy.titledSuffix} | Cigars For You`
+      : `${copy.title} | Cigars For You`;
+    const paramTrap = ['search', 'brand', 'category'].some((key) => (searchParams.get(key) || '').trim());
+
+    if (loading) {
+      applySeo({ title, robots: 'noindex,follow', canonical: absoluteCanonical(paramTrap ? cleanPath : base) });
+      return;
+    }
+
+    const countFor = (name: string) => products.filter((product) => {
+      const productBrand = product.brand.toLowerCase().replace(/[^a-z0-9]/g, '');
+      const selected = name.toLowerCase().replace(/[^a-z0-9]/g, '');
+      return productBrand.includes(selected) || selected.includes(productBrand);
+    }).length;
+
+    if (products.length === 0) {
+      applySeo({
+        title: `${copy.title} | Cigars For You`,
+        robots: 'noindex,follow',
+        canonical: categorySlug ? null : absoluteCanonical(base),
+      });
+      return;
+    }
+
+    if (categorySlug && !matched) {
+      applySeo({ title, robots: 'noindex,follow', canonical: null });
+      return;
+    }
+
+    const brandCount = matched ? countFor(matched.name) : products.length;
+    if (paramTrap) {
+      const target = matched && brandCount === 0 ? base : cleanPath;
+      applySeo({ title, robots: 'noindex,follow', canonical: absoluteCanonical(target) });
+      return;
+    }
+
+    if (matched && brandCount === 0) {
+      applySeo({ title, robots: 'noindex,follow', canonical: absoluteCanonical(cleanPath) });
+      return;
+    }
+
+    applySeo({ title, robots: 'index,follow', canonical: absoluteCanonical(cleanPath) });
+  }, [loading, products, sidebarCategories, categorySlug, searchParams, range, copy]);
 
   if (loading) {
     return (

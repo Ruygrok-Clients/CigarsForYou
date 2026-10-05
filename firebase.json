@@ -13,6 +13,13 @@
       "**/.*",
       "**/node_modules/**"
     ],
+    "redirects": [
+      {
+        "source": "/:path*/",
+        "destination": "https://cigarsforyou.com.au/:path*",
+        "type": 301
+      }
+    ],
     "headers": [
       {
         "source": "/robots.txt",

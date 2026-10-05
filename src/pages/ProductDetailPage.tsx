@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useMemo } from 'react';
+import React, { useState, useEffect, useLayoutEffect, useMemo } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -18,6 +18,7 @@ import {
 } from '../utils/bulkPricing';
 import { rangeBasePath, rangeLabel } from '../constants/productRanges';
 import { trackViewItem } from '../lib/analytics';
+import { absoluteCanonical, applySeo, productTitle } from '../lib/seo';
 import { fetchBrandStory, fetchProducts } from '../services/catalog';
 import { 
   Bell, 
@@ -130,6 +131,31 @@ export const ProductDetailPage: React.FC = () => {
     if (!product) return;
     trackViewItem(product);
   }, [product]);
+
+  useLayoutEffect(() => {
+    if (loading) {
+      applySeo({ robots: 'noindex,follow', canonical: null });
+      return;
+    }
+    if (!product) {
+      applySeo({
+        title: 'Product Not Found | Cigars For You',
+        robots: 'noindex,follow',
+        canonical: null,
+      });
+      return;
+    }
+    const title = productTitle(product.brand, product.name);
+    if (product.active !== true || !product.slug) {
+      applySeo({ title, robots: 'noindex,follow', canonical: null });
+      return;
+    }
+    applySeo({
+      title,
+      robots: 'index,follow',
+      canonical: absoluteCanonical(`/product/${product.slug}`),
+    });
+  }, [loading, product]);
 
   if (loading) {
     return (

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { NewsPost } from '../types';
 import { fetchPublishedNews, newsMetaLine } from '../services/news';
+import { absoluteCanonical, applySeo } from '../lib/seo';
 
 export const NewsPage: React.FC = () => {
   const [posts, setPosts] = useState<NewsPost[]>([]);
@@ -9,7 +10,11 @@ export const NewsPage: React.FC = () => {
   const [error, setError] = useState('');
 
   useEffect(() => {
-    document.title = 'News | Cigars For You';
+    applySeo({
+      title: 'News | Cigars For You',
+      robots: 'index,follow',
+      canonical: absoluteCanonical('/news'),
+    });
     let cancelled = false;
     (async () => {
       try {

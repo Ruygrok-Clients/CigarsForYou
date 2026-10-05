@@ -1,7 +1,8 @@
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { NewsPost } from '../types';
 import { fetchNewsBySlug, newsMetaLine, parseNewsBody } from '../services/news';
+import { absoluteCanonical, applySeo } from '../lib/seo';
 
 export const NewsArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -28,10 +29,8 @@ export const NewsArticlePage: React.FC = () => {
         if (cancelled) return;
         if (!found) {
           setMissing(true);
-          document.title = 'News | Cigars For You';
         } else {
           setPost(found);
-          document.title = `${found.title} | Cigars For You`;
         }
       } catch (err) {
         console.error('Error loading news article:', err);
@@ -45,6 +44,26 @@ export const NewsArticlePage: React.FC = () => {
       cancelled = true;
     };
   }, [slug]);
+
+  useLayoutEffect(() => {
+    if (loading) {
+      applySeo({ robots: 'noindex,follow', canonical: null });
+      return;
+    }
+    if (!post || missing) {
+      applySeo({
+        title: 'News | Cigars For You',
+        robots: 'noindex,follow',
+        canonical: null,
+      });
+      return;
+    }
+    applySeo({
+      title: `${post.title} | Cigars For You`,
+      robots: 'index,follow',
+      canonical: absoluteCanonical(`/news/${post.slug}`),
+    });
+  }, [loading, missing, post]);
 
   const blocks = post ? parseNewsBody(post.body) : [];
 
