@@ -482,10 +482,10 @@ export const ContactUsPage: React.FC = () => {
                     </div>
                     <div>
                       <span style={{ fontSize: '0.75rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block' }}>
-                        Toll-Free Phone Line
+                        Phone
                       </span>
-                      <a href="tel:1300244277" style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff', textDecoration: 'none' }}>
-                        1300 CIGARS (1300 244 277)
+                      <a href="tel:+61417772595" style={{ fontSize: '1rem', fontWeight: 600, color: '#ffffff', textDecoration: 'none' }}>
+                        +61 417 772 595
                       </a>
                     </div>
                   </div>

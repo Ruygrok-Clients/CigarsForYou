@@ -5,7 +5,7 @@
 Brand: CigarsForYou
 Domain: https://cigarsforyou.com.au
 Email: hello@cigarsforyou.com.au
-Phone: +61 1300 244 277
+Phone: +61 417 772 595
 ABN: 23 679 156 131
 
 This file is a curated reading list. It does not replace robots.txt, the XML sitemap, structured data, or the site architecture. Full URL set: https://cigarsforyou.com.au/sitemap.xml

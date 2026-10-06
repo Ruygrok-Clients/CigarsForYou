@@ -820,7 +820,7 @@ export async function sendImmediateDispatchUnavailableEmail(order: any) {
     </div>
 
     <p style="font-size: 15px; line-height: 1.6; color: #e5e7eb;">
-      Please reply to this email or call us on <strong>1300 244 277</strong> and tell us which option you would like:
+      Please reply to this email or call us on <strong>+61 417 772 595</strong> and tell us which option you would like:
     </p>
     <div class="notice-box">
       <strong style="color: #d4af37;">1. Full refund</strong><br>
@@ -832,7 +832,7 @@ export async function sendImmediateDispatchUnavailableEmail(order: any) {
     <p style="font-size: 14px; line-height: 1.6; color: #d1d5db;">
       We will not change the order until we hear from you. Reply to this email or contact
       <a href="mailto:orders@cigarsforyou.com.au" style="color: #d4af37;">orders@cigarsforyou.com.au</a>
-      / 1300 244 277.
+      / +61 417 772 595.
     </p>
   `;
 

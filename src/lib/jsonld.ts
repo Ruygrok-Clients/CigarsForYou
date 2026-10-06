@@ -37,7 +37,7 @@ export function organizationNode(): JsonLdNode {
     url: `${SITE_ORIGIN}/`,
     logo: `${SITE_ORIGIN}/logo.svg`,
     email: 'hello@cigarsforyou.com.au',
-    telephone: '+61-1300-244-277',
+    telephone: '+61-417-772-595',
     taxID: BRAND_ABN,
   };
 }
