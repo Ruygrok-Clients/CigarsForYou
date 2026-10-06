@@ -4,7 +4,10 @@ import { BRAND_NAME, brandTitle } from './brand';
 
 export const SITE_ORIGIN = 'https://cigarsforyou.com.au';
 
-export const DEFAULT_TITLE = `${BRAND_NAME} — Premium Cuban Cigars & Subscription Delivery`;
+export const DEFAULT_DESCRIPTION =
+  'Shop Cuban cigars online with 1–3hr delivery to your door. Cigarettes and tobacco accessories too, from CigarsForYou.';
+
+export const DEFAULT_TITLE = `${BRAND_NAME} — Cuban Cigars, 1–3hr Delivery to Your Door`;
 
 /** 1600×900 hero poster. Used when a page has no own image. */
 export const DEFAULT_SHARE_IMAGE = `${SITE_ORIGIN}/BG-Vid-poster.jpg`;
@@ -182,7 +185,7 @@ export function productDescription(input: {
 export const PUBLIC_PAGE_HEAD: Record<string, { title: string; description: string }> = {
   '/': {
     title: DEFAULT_TITLE,
-    description: "Australia's premier online humidor. Genuine Cuban cigars delivered to your door, with one-off orders and recurring delivery.",
+    description: DEFAULT_DESCRIPTION,
   },
   '/about': {
     title: brandTitle('About Us'),
@@ -241,10 +244,10 @@ export function categoryDescription(range: ProductRange, brandSlug?: string): st
   const brand = brandCatalogueCopy(brandSlug);
   if (range === 'cigars' && brand) return brand.meta;
   if (range === 'cigarettes') {
-    return `Retail cigarettes at ${BRAND_NAME}. This range opens for purchase once products are published.`;
+    return `Shop retail cigarettes online at ${BRAND_NAME}, with 1–3hr delivery to your door.`;
   }
   if (range === 'accessories') {
-    return `Lighters, cutters, and other smoking accessories at ${BRAND_NAME}, published as they become available.`;
+    return `Shop tobacco accessories online at ${BRAND_NAME} — lighters, cutters, and more, with 1–3hr delivery to your door.`;
   }
   return `Browse Cuban cigars at ${BRAND_NAME}. Cohiba, Montecristo, Partagás, and more, stored for delivery across Australia.`;
 }

@@ -1,6 +1,6 @@
 # CigarsForYou
 
-> CigarsForYou sells genuine Cuban cigars in Australia, with one-off orders and recurring delivery. Canonical site: https://cigarsforyou.com.au
+> CigarsForYou sells Cuban cigars online with 1–3hr delivery to your door, plus cigarettes and tobacco accessories. Canonical site: https://cigarsforyou.com.au
 
 Brand: CigarsForYou
 Domain: https://cigarsforyou.com.au
@@ -12,7 +12,9 @@ This file is a curated reading list. It does not replace robots.txt, the XML sit
 
 ## Pages
 
-- [Home](https://cigarsforyou.com.au/): Australia's premier online humidor. Genuine Cuban cigars delivered to your door, with one-off orders and recurring delivery.
+- [Home](https://cigarsforyou.com.au/): Shop Cuban cigars online with 1–3hr delivery to your door. Cigarettes and tobacco accessories too, from CigarsForYou.
+- [Cigarettes](https://cigarsforyou.com.au/cigarettes): Shop retail cigarettes online at CigarsForYou, with 1–3hr delivery to your door.
+- [Accessories](https://cigarsforyou.com.au/accessories): Shop tobacco accessories online at CigarsForYou — lighters, cutters, and more, with 1–3hr delivery to your door.
 - [About](https://cigarsforyou.com.au/about): How CigarsForYou stores Cuban cigars in Sydney and delivers them across Australia, from humidor conditions to sealed dispatch.
 - [Contact](https://cigarsforyou.com.au/contact): Orders, delivery, and the Cuban cigar catalogue. Email, phone, and the contact form.
 - [Partnerships](https://cigarsforyou.com.au/partnerships): Wholesale and venue stocking for licensed Australian businesses.

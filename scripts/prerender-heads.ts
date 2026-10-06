@@ -189,7 +189,6 @@ async function run() {
     }
 
     for (const range of ['cigars', 'cigarettes', 'accessories'] as const) {
-      if (!products.some((product) => (product.category || 'cigars') === range)) continue;
       const indexPath = rangeBasePath(range);
       const indexHead = catalogueHead(range);
       pages.set(indexPath, {

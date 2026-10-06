@@ -3,7 +3,7 @@ import { rangeBasePath, rangeLabel, slugifyLabel } from '../constants/productRan
 import type { NewsPost, Product, ProductRange } from '../types';
 import { getBulkTiers, isTobaccoRange, resolveTier, unitPriceForTier } from '../utils/bulkPricing';
 import { BRAND_ABN, BRAND_NAME } from './brand';
-import { absoluteCanonical, clampMetaDescription, productDescription, SITE_ORIGIN } from './seo';
+import { absoluteCanonical, clampMetaDescription, DEFAULT_DESCRIPTION, productDescription, SITE_ORIGIN } from './seo';
 
 export const ORGANIZATION_ID = `${SITE_ORIGIN}/#organization`;
 export const WEBSITE_ID = `${SITE_ORIGIN}/#website`;
@@ -33,6 +33,7 @@ export function organizationNode(): JsonLdNode {
     '@type': ['OnlineStore', 'Organization'],
     '@id': ORGANIZATION_ID,
     name: BRAND_NAME,
+    description: DEFAULT_DESCRIPTION,
     url: `${SITE_ORIGIN}/`,
     logo: `${SITE_ORIGIN}/logo.svg`,
     email: 'hello@cigarsforyou.com.au',
