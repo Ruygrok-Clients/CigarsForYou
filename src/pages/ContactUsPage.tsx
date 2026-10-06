@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Mail, Phone, Truck, Send, HelpCircle, ChevronDown, CheckCircle2, MessageSquare, ShieldAlert } from 'lucide-react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -69,11 +70,11 @@ export const ContactUsPage: React.FC = () => {
     },
     {
       q: 'How are cigars packaged to maintain humidity during transit?',
-      a: 'Every cigar order is packed inside airtight Boveda® humidity-sealed pouches maintaining 69% relative humidity, ensuring your cigars arrive soft, supple, and ready to smoke.'
+      a: <>Every cigar order is packed inside airtight <a href="https://bovedainc.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#c06517' }}>Boveda humidity-sealed pouches</a> maintaining 69% relative humidity, so cigars arrive soft and ready to smoke.</>
     },
     {
       q: 'Do you offer bulk, corporate, or wedding event orders?',
-      a: 'Yes! We frequently supply curated cigar selections and sampler boxes for weddings, corporate events, and private lounge gatherings. Contact our team via the form or email for tailored recommendations.'
+      a: <>Yes. We supply curated cigar selections for weddings, corporate events, and private lounges. Use the form on this page, or enquire through <Link to="/partnerships" style={{ color: '#c06517' }}>wholesale partnerships</Link> for licensed venues.</>
     }
   ];
 

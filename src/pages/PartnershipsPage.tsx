@@ -1,4 +1,5 @@
 import React, { useState } from 'react';
+import { Link } from 'react-router-dom';
 import { Handshake, Store, Mail, Phone, Send, CheckCircle2, Building2 } from 'lucide-react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -183,7 +184,7 @@ export const PartnershipsPage: React.FC = () => {
             margin: '0 auto',
             lineHeight: 1.6
           }}>
-            Stock CigarsForYou in your licensed store or venue. Purchase wholesale and in bulk, then sell our range under your own licence.
+            Stock CigarsForYou in your licensed store or venue. Purchase wholesale and in bulk, then sell our range under your own licence. Partners enquire about the same Cuban houses customers see in the <Link to="/shop" style={{ color: '#e59d5c' }}>cigar catalogue</Link>.
           </p>
         </div>
       </section>

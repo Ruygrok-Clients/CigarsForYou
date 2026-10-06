@@ -54,6 +54,7 @@ export function newsMetaLine(post: Pick<NewsPost, 'publishedAt' | 'readMinutes'>
   return date ? `${date} · ${label}` : label;
 }
 
+/** Paragraph text keeps markdown links for InlineMarkdown. "## " blocks are headings. */
 export function parseNewsBody(body: string): NewsBlock[] {
   const chunks = body.replace(/\r\n/g, '\n').split(/\n{2,}/);
   const blocks: NewsBlock[] = [];

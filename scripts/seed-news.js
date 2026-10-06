@@ -25,15 +25,15 @@ const POSTS = [
   {
     slug: 'store-cuban-cigars-australian-climate',
     title: 'How to store Cuban cigars in an Australian climate',
-    excerpt: 'Coastal humidity and inland heat pull a humidor in opposite directions. A steady 65 to 70 percent relative humidity keeps the leaf supple without inviting mould.',
+    excerpt: 'Coastal humidity and inland heat pull a humidor in opposite directions. Habanos, S.A. keeps finished cigars at 16°C to 18°C and 65 to 70 percent relative humidity.',
     imageUrl: '/news/australian-humidor.jpeg',
     publishedAt: '2026-09-12',
     readMinutes: 5,
-    body: `A Cuban cigar is finished when it leaves the factory, but it is not finished ageing. What happens in the box at home decides whether it smokes clean or tastes flat. Australian weather makes that harder than a temperate cellar: summer heat on the coast, dry inland winters, and air-conditioning that strips moisture out of a room overnight.
+    body: `A Cuban cigar is finished when it leaves the factory, but it is not finished ageing. What happens in the box at home decides whether it smokes clean or tastes flat. Australian weather makes that harder than a temperate cellar: summer heat on the coast, dry inland winters, and air-conditioning that strips moisture out of a room overnight. The cigars in the [Cuban cigar catalogue](/shop) leave the humidor on that basis.
 
 ## A stable range, not a perfect number
 
-Aim for 18°C to 20°C and 65 to 70 percent relative humidity. The exact point inside that band matters less than staying there. A swing from a hot car to a cold study dries the wrapper, then re-wets it, and the leaf cracks.
+Aim for 16°C to 18°C and 65 to 70 percent relative humidity, the range [Habanos, S.A. publishes for keeping Habanos](https://www.habanos.com/en/keeping-habanos/). The exact point inside that band matters less than staying there. A swing from a hot car to a cold study dries the wrapper, then re-wets it, and the leaf cracks.
 
 Keep the humidor off a west-facing sill and away from a split-system vent. If the room itself runs hot, a wine fridge set above typical wine temperatures is more reliable than adding more humidification packs.
 
@@ -50,11 +50,11 @@ A Spanish cedar lining buffers small swings. It does not replace a hygrometer. C
     imageUrl: '/news/cohiba-montecristo.jpeg',
     publishedAt: '2026-09-18',
     readMinutes: 4,
-    body: `Both names sit at the centre of the Cuban catalogue, and both are easy to buy for the wrong reason. Cohiba carries the reputation. Montecristo carries the volume. A first box is a better teacher if you pick the cigar you will actually smoke through.
+    body: `Both names sit at the centre of the Cuban catalogue, and both are easy to buy for the wrong reason. [Cohiba](/shop/cohiba) carries the reputation. [Montecristo](/shop/montecristo) carries the volume. A first box is a better teacher if you pick the cigar you will actually smoke through.
 
 ## What each house is built for
 
-Cohiba is rolled from the top leaves of the plant and is meant to be rich, creamy, and slow. It rewards a quiet hour and a cigar that has rested. Montecristo is broader: the No. 4 is the short, reliable smoke; the No. 2 is the figurado people recognise from a distance. Neither is a beginner cigar in strength, but Montecristo is easier to compare across sizes because the blend stays familiar.
+Cohiba is rolled from the top leaves of the plant and is meant to be rich, creamy, and slow. It rewards a quiet hour and a cigar that has rested. Montecristo is broader: the [No. 4](/product/montecristo-no-4) is the short, reliable smoke; the [No. 2](/product/montecristo-montecristo-no-2) is the figurado people recognise from a distance. Neither is a beginner cigar in strength, but Montecristo is easier to compare across sizes because the blend stays familiar.
 
 ## How to choose without collecting both
 
@@ -69,7 +69,7 @@ Buy the size you will finish. An unfinished cigar teaches you less than a modest
     imageUrl: '/news/box-pressed.jpeg',
     publishedAt: '2026-09-24',
     readMinutes: 3,
-    body: `“Box-pressed” sounds like a style, the way a torpedo or a robusto is a style. It is really a storage result. Round cigars packed tightly into a dress box settle into square shoulders. The roller did not intend a square cigar. The cabinet did.
+    body: `“Box-pressed” sounds like a style, the way a torpedo or a robusto is a style. It is really a storage result. Round cigars packed tightly into a dress box settle into square shoulders. The roller did not intend a square cigar. The cabinet did. You can see both shapes in the [Cuban cigar catalogue](/shop).
 
 ## What the press changes
 
@@ -88,11 +88,11 @@ Leave a box-pressed cigar in its square shape. Rolling it between your fingers t
     imageUrl: '/news/pairing.jpeg',
     publishedAt: '2026-09-28',
     readMinutes: 4,
-    body: `The point of a pairing is to leave the cigar audible. A sweet cocktail or a heavily peated whisky will talk over a mild Cuban and make a stronger one taste like smoke and nothing else. Coffee and a straightforward whisky are easier to keep in proportion.
+    body: `The point of a pairing is to leave the cigar audible. A sweet cocktail or a heavily peated whisky will talk over a mild Cuban and make a stronger one taste like smoke and nothing else. Coffee and a straightforward whisky are easier to keep in proportion. Start from a size you already know in the [cigar catalogue](/shop).
 
 ## Coffee
 
-Espresso and a short, fuller cigar — a robusto or a petit robusto — sit well together because both are concentrated. A longer, creamier cigar is happier with a filter coffee or a long black that is not bitter. Drink the coffee while it is hot. A cold cup next to a warm cigar tastes thin and makes the cigar seem harsh by comparison.
+Espresso and a short, fuller cigar — a robusto or a petit robusto, such as [Cohiba Robustos](/product/cohiba-robustos) — sit well together because both are concentrated. A longer, creamier cigar is happier with a filter coffee or a long black that is not bitter. Drink the coffee while it is hot. A cold cup next to a warm cigar tastes thin and makes the cigar seem harsh by comparison.
 
 Sugar is optional. Milk softens both sides and is fine if that is how you already take coffee. It is not required to “balance” the cigar.
 
@@ -109,7 +109,7 @@ Take the drink between puffs, not during them. You are comparing two finishes, n
     imageUrl: '/news/cigar-band.jpeg',
     publishedAt: '2026-10-02',
     readMinutes: 4,
-    body: `A genuine Habanos band is printed carefully, but it is still a printed paper ring on a handmade cigar. Counterfeits copy the logo first and get the paper, the glue, and the fit wrong. Looking only at the brand name is how fakes pass a glance.
+    body: `A genuine [Habanos](https://www.habanos.com/en/) band is printed carefully, but it is still a printed paper ring on a handmade cigar. Counterfeits copy the logo first and get the paper, the glue, and the fit wrong. Looking only at the brand name is how fakes pass a glance. Buy a format you can name from the [cigar catalogue](/shop) rather than a loose stick with only a familiar logo.
 
 ## What to look at before the logo
 
@@ -131,15 +131,17 @@ function firestoreValue(value) {
   return { stringValue: String(value) };
 }
 
-async function seedViaRest() {
-  console.log('Admin credentials cannot write. Seeding with gcloud access token...');
+async function seedViaRest(patchBodyOnly) {
+  console.log(patchBodyOnly ? 'Patching news bodies with gcloud access token...' : 'Admin credentials cannot write. Seeding with gcloud access token...');
   const token = execSync('gcloud auth print-access-token', { encoding: 'utf8' }).trim();
   const now = new Date().toISOString();
   const base = 'https://firestore.googleapis.com/v1/projects/cigarsforyou-ea835/databases/(default)/documents/newsPosts';
   let count = 0;
 
   for (const post of POSTS) {
-    const data = { ...post, active: true, createdAt: now, updatedAt: now };
+    const data = patchBodyOnly
+      ? { body: post.body, excerpt: post.excerpt, updatedAt: now }
+      : { ...post, active: true, createdAt: now, updatedAt: now };
     const fields = Object.fromEntries(Object.entries(data).map(([key, value]) => [key, firestoreValue(value)]));
     const mask = Object.keys(fields).map((key) => `updateMask.fieldPaths=${encodeURIComponent(key)}`).join('&');
     const res = await fetch(`${base}/${post.slug}?${mask}`, {
@@ -154,15 +156,16 @@ async function seedViaRest() {
       throw new Error(`Failed to seed ${post.slug}: ${await res.text()}`);
     }
     count += 1;
-    console.log(`Seeded ${post.slug}`);
+    console.log(`${patchBodyOnly ? 'Patched' : 'Seeded'} ${post.slug}`);
   }
 
-  console.log(`Successfully seeded ${count} news posts.`);
+  console.log(`Successfully ${patchBodyOnly ? 'patched' : 'seeded'} ${count} news posts.`);
 }
 
 async function seedNews() {
+  const patchBodyOnly = process.argv.includes('--patch-body');
   if (!db) {
-    await seedViaRest();
+    await seedViaRest(patchBodyOnly);
     return;
   }
 
@@ -171,22 +174,17 @@ async function seedNews() {
 
   try {
     for (const post of POSTS) {
-      await postsRef.doc(post.slug).set(
-        {
-          ...post,
-          active: true,
-          createdAt: now,
-          updatedAt: now
-        },
-        { merge: true }
-      );
-      console.log(`Seeded ${post.slug}`);
+      const payload = patchBodyOnly
+        ? { body: post.body, excerpt: post.excerpt, updatedAt: now }
+        : { ...post, active: true, createdAt: now, updatedAt: now };
+      await postsRef.doc(post.slug).set(payload, { merge: true });
+      console.log(`${patchBodyOnly ? 'Patched' : 'Seeded'} ${post.slug}`);
     }
-    console.log(`Successfully seeded ${POSTS.length} news posts.`);
+    console.log(`Successfully ${patchBodyOnly ? 'patched' : 'seeded'} ${POSTS.length} news posts.`);
   } catch (err) {
     const denied = err && (err.code === 7 || String(err.message || '').includes('PERMISSION_DENIED'));
     if (!denied) throw err;
-    await seedViaRest();
+    await seedViaRest(patchBodyOnly);
   }
 }
 

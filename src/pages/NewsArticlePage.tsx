@@ -3,6 +3,7 @@ import { Link, useParams } from 'react-router-dom';
 import type { NewsPost } from '../types';
 import { fetchNewsBySlug, newsMetaLine, parseNewsBody } from '../services/news';
 import { absoluteCanonical, applySeo } from '../lib/seo';
+import { InlineMarkdown } from '../components/InlineMarkdown';
 
 export const NewsArticlePage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -53,6 +54,7 @@ export const NewsArticlePage: React.FC = () => {
     if (!post || missing) {
       applySeo({
         title: 'News | Cigars For You',
+        description: null,
         robots: 'noindex,follow',
         canonical: null,
       });
@@ -60,6 +62,7 @@ export const NewsArticlePage: React.FC = () => {
     }
     applySeo({
       title: `${post.title} | Cigars For You`,
+      description: post.excerpt,
       robots: 'index,follow',
       canonical: absoluteCanonical(`/news/${post.slug}`),
     });
@@ -159,7 +162,7 @@ export const NewsArticlePage: React.FC = () => {
                 block.type === 'heading' ? (
                   <h2 key={index}>{block.text}</h2>
                 ) : (
-                  <p key={index}>{block.text}</p>
+                  <p key={index}><InlineMarkdown text={block.text} /></p>
                 )
               )}
             </div>

@@ -146,7 +146,7 @@ export interface NewsPost {
   title: string;
   excerpt: string;
   imageUrl: string;
-  /** Blank-line paragraphs. A block starting with "## " renders as a heading. */
+  /** Blank-line paragraphs. A block starting with "## " renders as a heading. Paragraphs may include [label](/path) or [label](https://…) links. */
   body: string;
   publishedAt: string;
   readMinutes: number;

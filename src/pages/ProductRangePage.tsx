@@ -1,10 +1,10 @@
 import React, { useState, useEffect, useLayoutEffect, useMemo } from 'react';
-import { useParams, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useParams, useSearchParams } from 'react-router-dom';
 import type { CatalogCategory, Product, ProductRange } from '../types';
 import { ProductCard } from '../components/ProductCard';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { RangeComingSoon } from '../components/RangeComingSoon';
-import { DEFAULT_CIGAR_CATEGORIES, RANGE_CATALOGUE, rangeBasePath, slugifyLabel } from '../constants/productRanges';
+import { brandCatalogueCopy, DEFAULT_CIGAR_CATEGORIES, RANGE_CATALOGUE, rangeBasePath, slugifyLabel } from '../constants/productRanges';
 import { fetchCatalogCategories, fetchProducts, isPublishedProduct } from '../services/catalog';
 import {
   Search,
@@ -14,17 +14,17 @@ import {
   Tag
 } from 'lucide-react';
 import { trackSearch, trackViewItemList } from '../lib/analytics';
-import { absoluteCanonical, applySeo } from '../lib/seo';
+import { absoluteCanonical, applySeo, categoryDescription } from '../lib/seo';
 
 export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) => {
   const params = useParams<{ brandSlug?: string; categorySlug?: string }>();
   const categorySlug = params.categorySlug || params.brandSlug;
   const copy = RANGE_CATALOGUE[range];
+  const navigate = useNavigate();
   const [searchParams, setSearchParams] = useSearchParams();
   const [products, setProducts] = useState<Product[]>([]);
   const [categories, setCategories] = useState<CatalogCategory[]>([]);
   const [loading, setLoading] = useState(true);
-  const [manualCategory, setManualCategory] = useState<string | null>(null);
   const [inStockOnly, setInStockOnly] = useState(false);
   const [sortBy, setSortBy] = useState<'featured' | 'price-asc' | 'price-desc' | 'name'>('featured');
   const [selectedNotifyProduct, setSelectedNotifyProduct] = useState<Product | null>(null);
@@ -65,18 +65,29 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
     return [];
   }, [categories, range]);
 
-  const brandQuery = searchParams.get('brand') || '';
   const searchQuery = searchParams.get('search') || '';
-  const routeCategory = categorySlug
-    ? (sidebarCategories.find((item) => item.slug.toLowerCase() === categorySlug.toLowerCase())?.name || categorySlug)
-    : (brandQuery || 'all');
-  const routeKey = `${range}:${categorySlug || ''}:${brandQuery}`;
-  const [trackedRoute, setTrackedRoute] = useState(routeKey);
-  if (trackedRoute !== routeKey) {
-    setTrackedRoute(routeKey);
-    setManualCategory(null);
-  }
-  const selectedCategory = manualCategory ?? routeCategory;
+  const matchedCategory = categorySlug
+    ? sidebarCategories.find((item) => item.slug.toLowerCase() === categorySlug.toLowerCase())
+    : undefined;
+  const selectedCategory = matchedCategory?.name || (categorySlug ? categorySlug : 'all');
+
+  useEffect(() => {
+    const brandParam = (searchParams.get('brand') || '').trim();
+    const categoryParam = (searchParams.get('category') || '').trim();
+    if (!brandParam && !categoryParam) return;
+    const next = new URLSearchParams(searchParams);
+    next.delete('brand');
+    next.delete('category');
+    const brandMatch = brandParam
+      ? sidebarCategories.find((item) => (
+        item.slug === slugifyLabel(brandParam) || item.name.toLowerCase() === brandParam.toLowerCase()
+      ))
+      : undefined;
+    const slug = brandMatch?.slug || (brandParam ? slugifyLabel(brandParam) : '');
+    const path = slug ? `${rangeBasePath(range)}/${slug}` : rangeBasePath(range);
+    const search = next.toString();
+    navigate(search ? `${path}?${search}` : path, { replace: true });
+  }, [navigate, range, searchParams, sidebarCategories]);
 
   const handleSearchInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
@@ -90,12 +101,8 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
   };
 
   const handleResetFilters = () => {
-    setManualCategory('all');
     setInStockOnly(false);
-    const newParams = new URLSearchParams(searchParams);
-    newParams.delete('search');
-    newParams.delete('brand');
-    setSearchParams(newParams, { replace: true });
+    navigate(rangeBasePath(range));
   };
 
   const categoriesList = useMemo(() => {
@@ -106,11 +113,13 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
 
     return [
       { name: copy.allLabel, slug: 'all', count: products.length },
-      ...sidebarCategories.map((item) => ({
-        name: item.name,
-        slug: item.slug,
-        count: getCount(item.name)
-      }))
+      ...sidebarCategories
+        .map((item) => ({
+          name: item.name,
+          slug: item.slug,
+          count: getCount(item.name)
+        }))
+        .filter((item) => item.count > 0)
     ];
   }, [products, sidebarCategories, copy.allLabel]);
 
@@ -176,10 +185,16 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
     const title = matched
       ? `${matched.name} ${copy.titledSuffix} | Cigars For You`
       : `${copy.title} | Cigars For You`;
+    const description = categoryDescription(range, matched?.slug || brandMatch?.slug);
     const paramTrap = ['search', 'brand', 'category'].some((key) => (searchParams.get(key) || '').trim());
 
     if (loading) {
-      applySeo({ title, robots: 'noindex,follow', canonical: absoluteCanonical(paramTrap ? cleanPath : base) });
+      applySeo({
+        title,
+        description,
+        robots: 'noindex,follow',
+        canonical: absoluteCanonical(paramTrap ? cleanPath : base),
+      });
       return;
     }
 
@@ -192,6 +207,7 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
     if (products.length === 0) {
       applySeo({
         title: `${copy.title} | Cigars For You`,
+        description: categoryDescription(range),
         robots: 'noindex,follow',
         canonical: categorySlug ? null : absoluteCanonical(base),
       });
@@ -199,23 +215,23 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
     }
 
     if (categorySlug && !matched) {
-      applySeo({ title, robots: 'noindex,follow', canonical: null });
+      applySeo({ title, description: null, robots: 'noindex,follow', canonical: null });
       return;
     }
 
     const brandCount = matched ? countFor(matched.name) : products.length;
     if (paramTrap) {
       const target = matched && brandCount === 0 ? base : cleanPath;
-      applySeo({ title, robots: 'noindex,follow', canonical: absoluteCanonical(target) });
+      applySeo({ title, description, robots: 'noindex,follow', canonical: absoluteCanonical(target) });
       return;
     }
 
     if (matched && brandCount === 0) {
-      applySeo({ title, robots: 'noindex,follow', canonical: absoluteCanonical(cleanPath) });
+      applySeo({ title, description, robots: 'noindex,follow', canonical: absoluteCanonical(cleanPath) });
       return;
     }
 
-    applySeo({ title, robots: 'index,follow', canonical: absoluteCanonical(cleanPath) });
+    applySeo({ title, description, robots: 'index,follow', canonical: absoluteCanonical(cleanPath) });
   }, [loading, products, sidebarCategories, categorySlug, searchParams, range, copy]);
 
   if (loading) {
@@ -261,7 +277,7 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
 
           <div style={{ display: 'flex', alignItems: 'center', flexWrap: 'wrap', gap: '0.75rem' }}>
             <p style={{ color: '#515154', fontSize: '1rem', margin: 0, lineHeight: 1.5 }}>
-              {copy.blurb(products.length)}
+              {brandCatalogueCopy(matchedCategory?.slug)?.blurb || copy.blurb(products.length)}
             </p>
             <span style={{
               width: '10px',
@@ -296,10 +312,12 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                     || cat.name.toLowerCase() === selectedCategory.toLowerCase();
                 const Icon = cat.slug === 'all' ? Flame : Tag;
 
+                const href = cat.slug === 'all' ? rangeBasePath(range) : `${rangeBasePath(range)}/${cat.slug}`;
+
                 return (
-                  <button
+                  <Link
                     key={cat.slug}
-                    onClick={() => setManualCategory(cat.slug === 'all' ? 'all' : cat.name)}
+                    to={href}
                     style={{
                       display: 'flex',
                       alignItems: 'center',
@@ -314,7 +332,9 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                       fontWeight: isSelected ? 600 : 500,
                       fontSize: '0.9rem',
                       cursor: 'pointer',
-                      textAlign: 'left'
+                      textAlign: 'left',
+                      textDecoration: 'none',
+                      boxSizing: 'border-box'
                     }}
                     onMouseEnter={(e) => {
                       if (!isSelected) e.currentTarget.style.backgroundColor = '#efece6';
@@ -330,7 +350,7 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                     <span style={{ fontSize: '0.85rem', fontWeight: isSelected ? 700 : 500, color: isSelected ? '#1a1a1a' : '#8c8c8e' }}>
                       {cat.count}
                     </span>
-                  </button>
+                  </Link>
                 );
               })}
             </div>

@@ -12,6 +12,7 @@ export const NewsPage: React.FC = () => {
   useEffect(() => {
     applySeo({
       title: 'News | Cigars For You',
+      description: 'Notes on storing, choosing, and smoking Cuban cigars from Cigars For You, written for Australian conditions.',
       robots: 'index,follow',
       canonical: absoluteCanonical('/news'),
     });

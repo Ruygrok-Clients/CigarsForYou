@@ -16,10 +16,12 @@ import {
   savingsPercent,
   unitPriceForTier
 } from '../utils/bulkPricing';
-import { rangeBasePath, rangeLabel } from '../constants/productRanges';
+import { rangeBasePath, rangeLabel, slugifyLabel } from '../constants/productRanges';
 import { trackViewItem } from '../lib/analytics';
-import { absoluteCanonical, applySeo, productTitle } from '../lib/seo';
+import { absoluteCanonical, applySeo, productDescription, productTitle } from '../lib/seo';
 import { fetchBrandStory, fetchProducts } from '../services/catalog';
+import { ProductCard } from '../components/ProductCard';
+import { InlineMarkdown } from '../components/InlineMarkdown';
 import { 
   Bell, 
   Flame, 
@@ -41,7 +43,9 @@ export const ProductDetailPage: React.FC = () => {
   const [quantity, setQuantity] = useState(1);
   const [notifyModalOpen, setNotifyModalOpen] = useState(false);
 
+  const [catalog, setCatalog] = useState<Product[]>([]);
   const [recommendedCigars, setRecommendedCigars] = useState<Product[]>([]);
+  const [relatedNotifyProduct, setRelatedNotifyProduct] = useState<Product | null>(null);
   const [selectedBundleItems, setSelectedBundleItems] = useState<Record<string, boolean>>({});
   const [brandStory, setBrandStory] = useState<BrandStory | null>(null);
   const viewerCount = useProductViewers(product?.id);
@@ -50,6 +54,7 @@ export const ProductDetailPage: React.FC = () => {
     const fetchProduct = async () => {
       if (!slug) return;
       setLoading(true);
+      setCatalog([]);
       try {
         const q = query(collection(db, 'products'), where('slug', '==', slug), limit(1));
         const snap = await getDocs(q);
@@ -70,9 +75,10 @@ export const ProductDetailPage: React.FC = () => {
         setQuantity(1);
 
         try {
-          const catalog = await fetchProducts();
+          const loadedCatalog = await fetchProducts();
+          setCatalog(loadedCatalog);
           const companionIds = foundProduct?.fbtCompanionIds || [];
-          const byId = new Map(catalog.filter((item) => item.active && item.id).map((item) => [item.id as string, item]));
+          const byId = new Map(loadedCatalog.filter((item) => item.active && item.id).map((item) => [item.id as string, item]));
           const shown = companionIds
             .map((id) => byId.get(id))
             .filter((item): item is Product => Boolean(item));
@@ -87,6 +93,7 @@ export const ProductDetailPage: React.FC = () => {
         } catch (err) {
           console.error('Error fetching related products:', err);
           setRecommendedCigars([]);
+          setCatalog([]);
         }
 
       } catch (err) {
@@ -134,28 +141,47 @@ export const ProductDetailPage: React.FC = () => {
 
   useLayoutEffect(() => {
     if (loading) {
-      applySeo({ robots: 'noindex,follow', canonical: null });
+      applySeo({ robots: 'noindex,follow', canonical: null, description: null });
       return;
     }
     if (!product) {
       applySeo({
         title: 'Product Not Found | Cigars For You',
+        description: null,
         robots: 'noindex,follow',
         canonical: null,
       });
       return;
     }
     const title = productTitle(product.brand, product.name);
+    const description = productDescription(product);
     if (product.active !== true || !product.slug) {
-      applySeo({ title, robots: 'noindex,follow', canonical: null });
+      applySeo({ title, description, robots: 'noindex,follow', canonical: null });
       return;
     }
     applySeo({
       title,
+      description,
       robots: 'index,follow',
       canonical: absoluteCanonical(`/product/${product.slug}`),
     });
   }, [loading, product]);
+
+  const sameBrandProducts = useMemo(() => {
+    if (!product) return [];
+    const brand = product.brand.trim().toLowerCase();
+    const excluded = new Set(recommendedCigars.map((item) => item.id || item.slug));
+    excluded.add(product.id || product.slug);
+    const others = catalog.filter((item) => {
+      if (!item.active || !item.slug) return false;
+      if ((item.brand || '').trim().toLowerCase() !== brand) return false;
+      const key = item.id || item.slug;
+      return !excluded.has(key);
+    });
+    const inStock = others.filter((item) => item.stock > 0);
+    const pool = inStock.length > 0 ? inStock : others;
+    return pool.slice(0, 4);
+  }, [catalog, product, recommendedCigars]);
 
   if (loading) {
     return (
@@ -170,7 +196,7 @@ export const ProductDetailPage: React.FC = () => {
     return (
       <div style={{ backgroundColor: '#ffffff', minHeight: '80vh', padding: '6rem 0', textAlign: 'center' }}>
         <div className="container">
-          <h2 style={{ color: '#2f0d0e', marginBottom: '1rem', fontFamily: 'var(--font-serif)', fontSize: '2rem' }}>Product Not Found</h2>
+          <h1 style={{ color: '#2f0d0e', marginBottom: '1rem', fontFamily: 'var(--font-serif)', fontSize: '2rem' }}>Product Not Found</h1>
           <p style={{ color: '#5c3537', marginBottom: '2rem' }}>
             The requested product could not be located in our catalogue.
           </p>
@@ -329,7 +355,7 @@ export const ProductDetailPage: React.FC = () => {
           <nav style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', fontSize: '0.85rem', color: '#6e6e73' }}>
             <Link to={rangePath} style={{ color: '#6e6e73', textDecoration: 'none' }}>{rangeLabel(productRange)}</Link>
             <ChevronRight size={14} style={{ opacity: 0.6 }} />
-            <Link to={`${rangePath}/${encodeURIComponent(product.brand.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/(^-|-$)/g, ''))}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>
+            <Link to={`${rangePath}/${encodeURIComponent(slugifyLabel(product.brand))}`} style={{ color: '#6e6e73', textDecoration: 'none' }}>
               {product.brand}
             </Link>
             <ChevronRight size={14} style={{ opacity: 0.6 }} />
@@ -698,7 +724,7 @@ export const ProductDetailPage: React.FC = () => {
               }}>
                 {story.split('\n\n').filter(Boolean).map((paragraph, idx) => (
                   <p key={idx} style={{ marginBottom: '1rem' }}>
-                    {paragraph}
+                    <InlineMarkdown text={paragraph} />
                   </p>
                 ))}
               </div>
@@ -1254,11 +1280,56 @@ export const ProductDetailPage: React.FC = () => {
       </div>
       )}
 
+      {recommendedCigars.length < 2 && sameBrandProducts.length > 0 && (
+        <div style={{ padding: '5rem 0 3rem 0', backgroundColor: '#ffffff' }}>
+          <div className="container">
+            <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
+              <h2 style={{
+                fontFamily: 'var(--font-serif)',
+                fontSize: '2.2rem',
+                fontWeight: 700,
+                color: '#1d1d1f'
+              }}>
+                More from {product.brand}
+              </h2>
+              <p style={{ color: '#6e6e73', fontSize: '0.95rem', marginTop: '0.4rem' }}>
+                Other {product.brand} cigars in the{' '}
+                <Link to={`${rangePath}/${encodeURIComponent(slugifyLabel(product.brand))}`} style={{ color: '#c06517' }}>
+                  {product.brand} catalogue
+                </Link>
+                .
+              </p>
+            </div>
+            <div style={{
+              display: 'grid',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(240px, 1fr))',
+              gap: '1.5rem'
+            }}>
+              {sameBrandProducts.map((item) => (
+                <ProductCard
+                  key={item.id || item.slug}
+                  product={item}
+                  listId={slugifyLabel(product.brand)}
+                  listName={`More from ${product.brand}`}
+                  onOpenNotifyModal={setRelatedNotifyProduct}
+                />
+              ))}
+            </div>
+          </div>
+        </div>
+      )}
+
       {/* Stock Notification Modal */}
       {notifyModalOpen && (
         <StockNotificationModal
           product={product}
           onClose={() => setNotifyModalOpen(false)}
+        />
+      )}
+      {relatedNotifyProduct && (
+        <StockNotificationModal
+          product={relatedNotifyProduct}
+          onClose={() => setRelatedNotifyProduct(null)}
         />
       )}
     </div>

@@ -231,7 +231,7 @@ export const HomePage: React.FC = () => {
                   fontWeight: 400,
                   textShadow: '0 2px 10px rgba(0, 0, 0, 0.7)'
                 }}>
-                  Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty.
+                  Hand-rolled Cuban classics from <Link to="/shop/cohiba" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Cohiba</Link>, <Link to="/shop/montecristo" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Montecristo</Link>, and <Link to="/shop/partagas" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Partagás</Link>. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty.
                 </p>
 
                 {/* Action Buttons */}
@@ -415,12 +415,13 @@ export const HomePage: React.FC = () => {
               <div style={{ position: 'relative', zIndex: 2, textAlign: 'center' }}>
 
                 {/* Headline (Scales up dynamically on increasing mobile screen size) */}
-                <h1 style={{
+                <p style={{
                   fontSize: 'clamp(2.4rem, 8.2vw, 4.2rem)',
                   fontWeight: 800,
                   color: '#ffffff',
                   lineHeight: 1.12,
                   letterSpacing: '-0.025em',
+                  marginTop: '0.67em',
                   marginBottom: '1.25rem',
                   textShadow: '0 4px 16px rgba(0, 0, 0, 0.6)',
                   maxWidth: '750px',
@@ -431,7 +432,7 @@ export const HomePage: React.FC = () => {
                   <span style={{ color: '#c06517', textShadow: '0 2px 12px rgba(0, 0, 0, 0.5)' }}>
                     Delivered To Your Door.
                   </span>
-                </h1>
+                </p>
 
                 {/* Subtitle set to 80% width relative to title text */}
                 <p style={{
@@ -445,7 +446,7 @@ export const HomePage: React.FC = () => {
                   maxWidth: '580px',
                   marginInline: 'auto'
                 }}>
-                  Hand-rolled Cuban classics from Cohiba, Montecristo, and Partagás. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. Choose Immediate Dispatch (1-3hr Delivery) or Express Delivery.
+                  Hand-rolled Cuban classics from <Link to="/shop/cohiba" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Cohiba</Link>, <Link to="/shop/montecristo" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Montecristo</Link>, and <Link to="/shop/partagas" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Partagás</Link>. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. Choose Immediate Dispatch (1-3hr Delivery) or Express Delivery.
                 </p>
 
                 {/* Action Buttons (Dynamically shrink on small screens via 100% width, max-width & horizontal margin) */}

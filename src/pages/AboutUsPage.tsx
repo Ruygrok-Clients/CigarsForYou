@@ -273,7 +273,7 @@ export const AboutUsPage: React.FC = () => {
               </p>
 
               <p style={{ fontSize: '1.075rem', color: '#4b5563', lineHeight: 1.8, marginBottom: '2.25rem' }}>
-                Whether you are seeking rare Limited Edition vitolas, daily classic Robustos like the Montecristo No.4, or celebratory Cohiba Siglo VI sticks, we curate every box with unyielding standards.
+                Whether you are seeking rare Limited Edition vitolas, daily classic Robustos like the <Link to="/shop/montecristo" style={{ color: 'inherit' }}>Montecristo</Link> No.4, or celebratory <Link to="/shop/cohiba" style={{ color: 'inherit' }}>Cohiba</Link> Siglo VI sticks, we curate every box with unyielding standards.
               </p>
 
               <div style={{ display: 'flex', gap: '1.25rem', flexWrap: 'wrap' }}>
@@ -500,7 +500,7 @@ export const AboutUsPage: React.FC = () => {
                   Cedar Aging & Vault Storage
                 </h3>
                 <p style={{ fontSize: '0.975rem', color: '#6b7280', lineHeight: 1.65 }}>
-                  Rolled vitolas rest inside Spanish cedar cabinets to harmonize essential oils, before being placed inside our Sydney climate-vault maintained at 65–70% relative humidity.
+                  Rolled vitolas rest inside Spanish cedar cabinets to harmonize essential oils, before being placed inside our Sydney climate-vault maintained at 65–70% relative humidity, the range <a href="https://www.habanos.com/en/keeping-habanos/" target="_blank" rel="noopener noreferrer" style={{ color: '#c06517' }}>Habanos, S.A. recommends for keeping Habanos</a>.
                 </p>
               </div>
             </div>
@@ -576,7 +576,7 @@ export const AboutUsPage: React.FC = () => {
                       Strict 18°C & 68% RH Micro-Climate
                     </h4>
                     <p style={{ fontSize: '0.925rem', color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-                      Our Sydney storage vaults are monitored 24/7 with industrial digital hygrometers to eliminate dryness or mold risk.
+                      Our Sydney storage vaults are monitored 24/7 with industrial digital hygrometers to eliminate dryness or mold risk. That setpoint sits inside the 16–18°C and 65–70% band published by <a href="https://www.habanos.com/en/keeping-habanos/" target="_blank" rel="noopener noreferrer" style={{ color: '#c06517' }}>Habanos, S.A.</a>
                     </p>
                   </div>
                 </div>
@@ -599,7 +599,7 @@ export const AboutUsPage: React.FC = () => {
                       Boveda® Sealed Travel Protection
                     </h4>
                     <p style={{ fontSize: '0.925rem', color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-                      Every single order is dispatched in airtight, foil-shielded Boveda® humidity packs so your sticks arrive in prime smoking condition.
+                      Every single order is dispatched in airtight, foil-shielded <a href="https://bovedainc.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#c06517' }}>Boveda humidity packs</a> so your sticks arrive in prime smoking condition.
                     </p>
                   </div>
                 </div>
@@ -622,7 +622,7 @@ export const AboutUsPage: React.FC = () => {
                       Habanos Barcode Verification
                     </h4>
                     <p style={{ fontSize: '0.925rem', color: '#6b7280', margin: 0, lineHeight: 1.5 }}>
-                      We guarantee zero counterfeit product. Every box includes official factory micro-stamps and official origin seals.
+                      We guarantee zero counterfeit product. Every box includes official factory micro-stamps and official origin seals from <a href="https://www.habanos.com/en/" target="_blank" rel="noopener noreferrer" style={{ color: '#c06517' }}>Habanos, S.A.</a>
                     </p>
                   </div>
                 </div>
@@ -686,7 +686,7 @@ export const AboutUsPage: React.FC = () => {
                 100% Genuine Provenance
               </h3>
               <p style={{ fontSize: '0.95rem', color: '#9ca3af', lineHeight: 1.6 }}>
-                Direct factory sourcing guarantees authentic Cohiba, Montecristo, Partagás, and Hoyo de Monterrey vitolas without middleman risk.
+                Direct factory sourcing guarantees authentic <Link to="/shop/cohiba" style={{ color: '#e59d5c' }}>Cohiba</Link>, <Link to="/shop/montecristo" style={{ color: '#e59d5c' }}>Montecristo</Link>, <Link to="/shop/partagas" style={{ color: '#e59d5c' }}>Partagás</Link>, and <Link to="/shop/hoyo-de-monterrey" style={{ color: '#e59d5c' }}>Hoyo de Monterrey</Link> vitolas without middleman risk.
               </p>
             </div>
 
@@ -718,7 +718,7 @@ export const AboutUsPage: React.FC = () => {
                 Boveda® Shielded Shipping
               </h3>
               <p style={{ fontSize: '0.95rem', color: '#9ca3af', lineHeight: 1.6 }}>
-                Never receive dry, brittle cigars. Every single order is packed inside 2-way 69% RH humidity pouches for perfect moisture retention.
+                Never receive dry, brittle cigars. Every single order is packed inside 2-way 69% RH <a href="https://bovedainc.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#e59d5c' }}>Boveda humidity pouches</a> for moisture retention on the way.
               </p>
             </div>
 

@@ -4,6 +4,21 @@ Crawl date: 5 October 2026 (UTC+11). One row per page is in [seo-inventory.csv](
 
 Search Console, as already recorded in [indexed.md](indexed.md): only `/` is indexed. The other priority URLs were still unknown to Google. This inventory is the baseline those URLs will be judged against.
 
+## Update — 5 October 2026 (evening)
+
+The sections below are the morning crawl. They are historical. A linking and content pass the same day superseded these points:
+
+- Titles, robots, and canonicals are set in the browser after JavaScript (`src/lib/seo.ts`). The “canonical: none” column is stale.
+- Indexable page types now have their own meta descriptions. Product descriptions use the rewritten short description.
+- Catalogue sidebar brands are links to `/shop/{slug}`, not buttons. `?brand=` and `?category=` in the catalogue redirect to the path form.
+- Brands with no active products are left out of the nav, footer, home brand list, and sidebar.
+- The homepage has one `h1`. The mobile hero repeats the same line as a paragraph.
+- Short and extended descriptions were rewritten in Firestore for all 83 active products. Tasting notes that were identical across a brand were replaced with format notes taken from the product name. Specification blocks copied across a brand were not used as facts.
+- The five news articles in `scripts/seed-news.js` link to the catalogue, and the storage article cites Habanos, S.A. The live article text uses those labels as plain sentences so the current site does not show raw markdown. After this frontend is deployed, run `node scripts/seed-news.js --patch-body` to publish the links. The storage range is 16–18°C and 65–70% relative humidity, not 18–20°C.
+- `/cigarettes` and `/accessories` stay in the nav, `noindex` while empty, and out of the sitemap.
+
+The row-level crawl was not repeated. Treat the thin-product rows and “one title for the catalogue” as the state before this pass.
+
 ## Fields
 
 | Column | How it was filled |

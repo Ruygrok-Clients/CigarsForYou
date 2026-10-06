@@ -58,6 +58,51 @@ export interface RangeCatalogueCopy {
   emptyBody: string;
 }
 
+/** Visible catalogue sentence and meta description for a cigar brand path. */
+export const BRAND_CATALOGUE: Record<string, { blurb: string; meta: string }> = {
+  cohiba: {
+    blurb: 'Cohiba is the fullest house in the humidor: creamy, slow cigars for a quiet hour, kept ready for Australian delivery.',
+    meta: 'Shop Cohiba Cuban cigars at Cigars For You. Robustos, Espléndidos, and limited editions, stored for delivery across Australia.'
+  },
+  montecristo: {
+    blurb: 'Montecristo is the broad Cuban house: familiar blends across short and figurado formats, stocked for one-off orders and repeat delivery.',
+    meta: 'Shop Montecristo Cuban cigars at Cigars For You, from the No. 4 to figurados, stored for delivery across Australia.'
+  },
+  partagas: {
+    blurb: 'Partagás is the earthier Cuban line: fuller smoke, classic sizes, and the same humidor storage as the rest of the catalogue.',
+    meta: 'Shop Partagás Cuban cigars at Cigars For You. Serie D, Shorts, and other vitolas, stored for Australian delivery.'
+  },
+  'romeo-y-julieta': {
+    blurb: 'Romeo y Julieta covers the milder-to-medium Cuban sizes, from short Churchills to wider formats, ready to ship from the humidor.',
+    meta: 'Shop Romeo y Julieta Cuban cigars at Cigars For You. Churchills, Wide Churchills, and other sizes for Australian delivery.'
+  },
+  'hoyo-de-monterrey': {
+    blurb: 'Hoyo de Monterrey is the lighter Cuban house here: Epicure sizes and milder profiles, stored with the rest of the catalogue.',
+    meta: 'Shop Hoyo de Monterrey Cuban cigars at Cigars For You. Epicure formats stored for delivery across Australia.'
+  },
+  'h-upmann': {
+    blurb: 'H. Upmann is the woody, medium Cuban line: Magnum, Corona, and No. 2 sizes kept in the humidor for delivery.',
+    meta: 'Shop H. Upmann Cuban cigars at Cigars For You. Magnum 54, Coronas, and No. 2, stored for Australian delivery.'
+  },
+  punch: {
+    blurb: 'Punch is the shorter, punchier Cuban range: coronas and double coronas stored alongside the other houses.',
+    meta: 'Shop Punch Cuban cigars at Cigars For You. Coronations, Double Corona, and other formats for Australian delivery.'
+  },
+  trinidad: {
+    blurb: 'Trinidad is a smaller Cuban house. Cigars appear here once they are published in the humidor.',
+    meta: 'Trinidad Cuban cigars at Cigars For You. This brand page lists only cigars currently published for delivery.'
+  },
+  bolivar: {
+    blurb: 'Bolivar is a fuller Cuban house. Cigars appear here once they are published in the humidor.',
+    meta: 'Bolivar Cuban cigars at Cigars For You. This brand page lists only cigars currently published for delivery.'
+  }
+};
+
+export function brandCatalogueCopy(slug: string | undefined): { blurb: string; meta: string } | undefined {
+  if (!slug) return undefined;
+  return BRAND_CATALOGUE[slug.toLowerCase()];
+}
+
 export const RANGE_CATALOGUE: Record<ProductRange, RangeCatalogueCopy> = {
   cigars: {
     eyebrow: 'Genuine Habanos Selection',

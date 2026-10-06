@@ -65,7 +65,7 @@ page load → gtag config (no page_view) → SPA page_view → ecommerce / lead 
 | 7 | Manual actions | Not available via API |
 | 8 | Security issues | Not available via API |
 | 9 | Structured data | None detected |
-| 10 | Canonicalisation | Homepage canonical is the apex URL; no HTML canonical tags |
+| 10 | Canonicalisation | Homepage canonical is the apex URL; no HTML canonical tags in the morning check. Client canonicals and unique meta descriptions shipped later the same day — see [seo-inventory.md](seo-inventory.md) |
 | 11 | Priority URL inspection | See table below |
 | 12 | Performance data | API works; zero rows so far |
 
