@@ -1,6 +1,8 @@
+import { CONTACT_FAQS } from '../constants/contactFaqs';
 import { rangeBasePath, rangeLabel, slugifyLabel } from '../constants/productRanges';
 import type { NewsPost, Product, ProductRange } from '../types';
 import { getBulkTiers, isTobaccoRange, resolveTier, unitPriceForTier } from '../utils/bulkPricing';
+import { BRAND_ABN, BRAND_NAME } from './brand';
 import { absoluteCanonical, clampMetaDescription, productDescription, SITE_ORIGIN } from './seo';
 
 export const ORGANIZATION_ID = `${SITE_ORIGIN}/#organization`;
@@ -30,11 +32,12 @@ export function organizationNode(): JsonLdNode {
   return {
     '@type': ['OnlineStore', 'Organization'],
     '@id': ORGANIZATION_ID,
-    name: 'Cigars For You',
+    name: BRAND_NAME,
     url: `${SITE_ORIGIN}/`,
     logo: `${SITE_ORIGIN}/logo.svg`,
     email: 'hello@cigarsforyou.com.au',
     telephone: '+61-1300-244-277',
+    taxID: BRAND_ABN,
   };
 }
 
@@ -43,8 +46,23 @@ export function websiteNode(): JsonLdNode {
     '@type': 'WebSite',
     '@id': WEBSITE_ID,
     url: `${SITE_ORIGIN}/`,
-    name: 'Cigars For You',
+    name: BRAND_NAME,
     publisher: { '@id': ORGANIZATION_ID },
+  };
+}
+
+export function faqPageNode(items: { q: string; a: string }[] = CONTACT_FAQS): JsonLdNode {
+  return {
+    '@type': 'FAQPage',
+    '@id': `${absoluteCanonical('/contact')}#faq`,
+    mainEntity: items.map((item) => ({
+      '@type': 'Question',
+      name: item.q,
+      acceptedAnswer: {
+        '@type': 'Answer',
+        text: item.a,
+      },
+    })),
   };
 }
 

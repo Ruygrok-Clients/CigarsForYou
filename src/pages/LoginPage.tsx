@@ -49,10 +49,11 @@ export const LoginPage: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Email Address</label>
+              <label className="form-label" htmlFor="login-email" style={{ color: 'var(--text-primary)' }}>Email Address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
+                  id="login-email"
                   type="email"
                   required
                   className="form-control"
@@ -66,7 +67,7 @@ export const LoginPage: React.FC = () => {
 
             <div className="form-group">
               <div className="form-label" style={{ color: 'var(--text-primary)' }}>
-                <span>Password</span>
+                <label htmlFor="login-password">Password</label>
                 <Link to="/forgot-password" style={{ fontSize: '0.8rem', color: 'var(--color-primary)', fontWeight: 600 }}>
                   Forgot Password?
                 </Link>
@@ -74,6 +75,7 @@ export const LoginPage: React.FC = () => {
               <div style={{ position: 'relative' }}>
                 <Lock size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
+                  id="login-password"
                   type={showPassword ? "text" : "password"}
                   required
                   className="form-control"

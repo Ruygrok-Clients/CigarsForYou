@@ -6,7 +6,7 @@ import packagingOpen from '../assets/product-packaging/open.jpeg';
 const PACKAGING_IMAGES = [
   {
     src: packagingClosed,
-    alt: 'Closed Cigars For You cedar wooden dispatch box'
+    alt: 'Closed CigarsForYou cedar wooden dispatch box'
   },
   {
     src: packagingOpen,

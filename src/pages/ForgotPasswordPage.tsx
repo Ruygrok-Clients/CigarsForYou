@@ -52,10 +52,11 @@ export const ForgotPasswordPage: React.FC = () => {
           ) : (
             <form onSubmit={handleSubmit}>
               <div className="form-group">
-                <label className="form-label" style={{ color: 'var(--text-primary)' }}>Account Email</label>
+                <label className="form-label" htmlFor="forgot-email" style={{ color: 'var(--text-primary)' }}>Account Email</label>
                 <div style={{ position: 'relative' }}>
                   <Mail size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                   <input
+                    id="forgot-email"
                     type="email"
                     required
                     className="form-control"

@@ -251,8 +251,9 @@ export const PartnershipsPage: React.FC = () => {
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   <div className="partnerships-form-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div>
-                      <label style={labelStyle}>Contact name <span style={{ color: '#dc2626' }}>*</span></label>
+                      <label htmlFor="partnership-name" style={labelStyle}>Contact name <span style={{ color: '#dc2626' }}>*</span></label>
                       <input
+                        id="partnership-name"
                         type="text"
                         required
                         placeholder="e.g. Oliver Smith"
@@ -262,8 +263,9 @@ export const PartnershipsPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label style={labelStyle}>Business or venue <span style={{ color: '#dc2626' }}>*</span></label>
+                      <label htmlFor="partnership-business" style={labelStyle}>Business or venue <span style={{ color: '#dc2626' }}>*</span></label>
                       <input
+                        id="partnership-business"
                         type="text"
                         required
                         placeholder="e.g. Harbour Lounge"
@@ -276,8 +278,9 @@ export const PartnershipsPage: React.FC = () => {
 
                   <div className="partnerships-form-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div>
-                      <label style={labelStyle}>Email address <span style={{ color: '#dc2626' }}>*</span></label>
+                      <label htmlFor="partnership-email" style={labelStyle}>Email address <span style={{ color: '#dc2626' }}>*</span></label>
                       <input
+                        id="partnership-email"
                         type="email"
                         required
                         placeholder="you@venue.com.au"
@@ -287,8 +290,9 @@ export const PartnershipsPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label style={labelStyle}>Phone number <span style={{ color: '#dc2626' }}>*</span></label>
+                      <label htmlFor="partnership-phone" style={labelStyle}>Phone number <span style={{ color: '#dc2626' }}>*</span></label>
                       <input
+                        id="partnership-phone"
                         type="tel"
                         required
                         placeholder="0400 000 000"
@@ -301,8 +305,9 @@ export const PartnershipsPage: React.FC = () => {
 
                   <div className="partnerships-form-two-col" style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }}>
                     <div>
-                      <label style={labelStyle}>ABN</label>
+                      <label htmlFor="partnership-abn" style={labelStyle}>ABN</label>
                       <input
+                        id="partnership-abn"
                         type="text"
                         placeholder="00 000 000 000"
                         value={formData.abn}
@@ -311,8 +316,9 @@ export const PartnershipsPage: React.FC = () => {
                       />
                     </div>
                     <div>
-                      <label style={labelStyle}>Interest</label>
+                      <label htmlFor="partnership-interest" style={labelStyle}>Interest</label>
                       <select
+                        id="partnership-interest"
                         value={formData.interest}
                         onChange={(e) => setFormData({ ...formData, interest: e.target.value as (typeof INTEREST_OPTIONS)[number] })}
                         style={{ ...fieldStyle, cursor: 'pointer' }}
@@ -325,8 +331,9 @@ export const PartnershipsPage: React.FC = () => {
                   </div>
 
                   <div>
-                    <label style={labelStyle}>Message <span style={{ color: '#dc2626' }}>*</span></label>
+                    <label htmlFor="partnership-message" style={labelStyle}>Message <span style={{ color: '#dc2626' }}>*</span></label>
                     <textarea
+                      id="partnership-message"
                       required
                       rows={5}
                       placeholder="Tell us about your licence, location, and the range you would like to stock."

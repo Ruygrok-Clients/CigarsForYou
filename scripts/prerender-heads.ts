@@ -6,15 +6,17 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { rangeBasePath } from '../src/constants/productRanges';
-import { articleNodes, productNodes, serializeJsonLd, siteGraph } from '../src/lib/jsonld';
+import { articleNodes, faqPageNode, productNodes, serializeJsonLd, siteGraph } from '../src/lib/jsonld';
 import {
   absoluteCanonical,
+  absoluteShareImage,
   catalogueHead,
   newsArticleHead,
   productDescription,
   productTitle,
   PUBLIC_PAGE_HEAD,
   clampMetaDescription,
+  type OgType,
 } from '../src/lib/seo';
 import type { NewsPost, Product, ProductRange } from '../src/types';
 import { accessToken, listCollection, readBool, readNumber, readString } from './lib/firestore-rest.mjs';
@@ -94,6 +96,15 @@ interface HeadState {
   robots: string;
   canonical: string;
   jsonld: string;
+  image: string;
+  ogType: OgType;
+}
+
+function replaceMeta(html: string, attr: 'name' | 'property', key: string, content: string): string {
+  const pattern = new RegExp(`<meta ${attr}="${key}" content="[^"]*"\\s*\\/?>`);
+  const tag = `<meta ${attr}="${key}" content="${escapeHtml(content)}" />`;
+  if (pattern.test(html)) return html.replace(pattern, tag);
+  return html.replace('</head>', `    ${tag}\n  </head>`);
 }
 
 function applyHead(html: string, head: HeadState): string {
@@ -116,6 +127,14 @@ function applyHead(html: string, head: HeadState): string {
       `<meta name="robots" content="${escapeHtml(head.robots)}" />`,
     );
   }
+  next = replaceMeta(next, 'property', 'og:title', head.title);
+  next = replaceMeta(next, 'property', 'og:description', head.description);
+  next = replaceMeta(next, 'property', 'og:url', head.canonical);
+  next = replaceMeta(next, 'property', 'og:type', head.ogType);
+  next = replaceMeta(next, 'property', 'og:image', head.image);
+  next = replaceMeta(next, 'name', 'twitter:title', head.title);
+  next = replaceMeta(next, 'name', 'twitter:description', head.description);
+  next = replaceMeta(next, 'name', 'twitter:image', head.image);
   if (next.includes('id="cfy-jsonld"')) {
     next = next.replace(
       /<script type="application\/ld\+json" id="cfy-jsonld">[\s\S]*?<\/script>/,
@@ -140,7 +159,9 @@ async function run() {
       description: clampMetaDescription(page.description),
       robots: 'index,follow',
       canonical: absoluteCanonical(pathname),
-      jsonld: serializeJsonLd(siteGraph()),
+      jsonld: serializeJsonLd(siteGraph(pathname === '/contact' ? [faqPageNode()] : [])),
+      image: absoluteShareImage(),
+      ogType: 'website',
     });
   }
 
@@ -162,6 +183,8 @@ async function run() {
         robots: 'index,follow',
         canonical: absoluteCanonical(`/product/${product.slug}`),
         jsonld: serializeJsonLd(siteGraph(productNodes(product))),
+        image: absoluteShareImage(product.imageUrl),
+        ogType: 'website',
       });
     }
 
@@ -175,6 +198,8 @@ async function run() {
         robots: 'index,follow',
         canonical: absoluteCanonical(indexPath),
         jsonld: serializeJsonLd(siteGraph()),
+        image: absoluteShareImage(),
+        ogType: 'website',
       });
     }
 
@@ -186,6 +211,8 @@ async function run() {
         robots: 'index,follow',
         canonical: absoluteCanonical(`/news/${post.slug}`),
         jsonld: serializeJsonLd(siteGraph(articleNodes(post))),
+        image: absoluteShareImage(post.imageUrl),
+        ogType: 'article',
       });
     }
 
@@ -209,6 +236,8 @@ async function run() {
         robots: 'index,follow',
         canonical: absoluteCanonical(path),
         jsonld: serializeJsonLd(siteGraph()),
+        image: absoluteShareImage(),
+        ogType: 'website',
       });
     }
   } catch (err) {

@@ -1,6 +1,7 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { useCigarCategories } from '../hooks/useCigarCategories';
+import { BRAND_ABN, BRAND_NAME } from '../lib/brand';
 
 const MARQUEE_ITEMS = [
   'IMMEDIATE DISPATCH',
@@ -274,8 +275,8 @@ export const Footer: React.FC = () => {
           fontSize: '0.8rem',
           color: 'var(--text-muted)'
         }}>
-          <p style={{ margin: 0 }}>&copy; {new Date().getFullYear()} CigarsForYou Australia. All rights reserved.</p>
-          <p style={{ margin: 0 }}>ABN 23 679 156 131 </p>
+          <p style={{ margin: 0 }}>&copy; {new Date().getFullYear()} {BRAND_NAME} Australia. All rights reserved.</p>
+          <p style={{ margin: 0 }}>ABN {BRAND_ABN} </p>
         </div>
       </div>
     </footer>

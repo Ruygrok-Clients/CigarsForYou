@@ -14,6 +14,7 @@ import {
   Tag
 } from 'lucide-react';
 import { trackSearch, trackViewItemList } from '../lib/analytics';
+import { brandTitle } from '../lib/brand';
 import { absoluteCanonical, applySeo, categoryDescription } from '../lib/seo';
 
 export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) => {
@@ -183,8 +184,8 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
         ? `${base}/${brandMatch.slug}`
         : base;
     const title = matched
-      ? `${matched.name} ${copy.titledSuffix} | Cigars For You`
-      : `${copy.title} | Cigars For You`;
+      ? brandTitle(`${matched.name} ${copy.titledSuffix}`)
+      : brandTitle(copy.title);
     const description = categoryDescription(range, matched?.slug || brandMatch?.slug);
     const paramTrap = ['search', 'brand', 'category'].some((key) => (searchParams.get(key) || '').trim());
 
@@ -206,7 +207,7 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
 
     if (products.length === 0) {
       applySeo({
-        title: `${copy.title} | Cigars For You`,
+        title: brandTitle(copy.title),
         description: categoryDescription(range),
         robots: 'noindex,follow',
         canonical: categorySlug ? null : absoluteCanonical(base),
@@ -356,7 +357,7 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
             </div>
           </aside>
 
-          <main>
+          <div>
             <div style={{
               display: 'flex',
               flexWrap: 'wrap',
@@ -463,7 +464,7 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                 ))}
               </div>
             )}
-          </main>
+          </div>
         </div>
       </div>
 

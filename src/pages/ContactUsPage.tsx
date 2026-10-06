@@ -5,6 +5,7 @@ import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useToast } from '../components/Toast';
 import { trackEvent } from '../lib/analytics';
+import { CONTACT_FAQS } from '../constants/contactFaqs';
 
 export const ContactUsPage: React.FC = () => {
   const { showToast } = useToast();
@@ -60,20 +61,14 @@ export const ContactUsPage: React.FC = () => {
   };
 
   const faqs = [
+    { q: CONTACT_FAQS[0].q, a: CONTACT_FAQS[0].a },
+    { q: CONTACT_FAQS[1].q, a: CONTACT_FAQS[1].a },
     {
-      q: 'How does delivery work?',
-      a: 'There are two options. Immediate Dispatch (1-3hrs Delivery): we are an official partner with Didi, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Express Delivery: priority express with logistics and courier partners such as StarTrack or AusPost.'
-    },
-    {
-      q: 'How is age verification handled upon delivery?',
-      a: 'In accordance with Australian federal and state tobacco legislation, all deliveries require an adult aged 18+ to present valid government-issued photo ID (Driver License, Passport, or Proof of Age card) upon hand-off.'
-    },
-    {
-      q: 'How are cigars packaged to maintain humidity during transit?',
+      q: CONTACT_FAQS[2].q,
       a: <>Every cigar order is packed inside airtight <a href="https://bovedainc.com/" target="_blank" rel="noopener noreferrer" style={{ color: '#c06517' }}>Boveda humidity-sealed pouches</a> maintaining 69% relative humidity, so cigars arrive soft and ready to smoke.</>
     },
     {
-      q: 'Do you offer bulk, corporate, or wedding event orders?',
+      q: CONTACT_FAQS[3].q,
       a: <>Yes. We supply curated cigar selections for weddings, corporate events, and private lounges. Use the form on this page, or enquire through <Link to="/partnerships" style={{ color: '#c06517' }}>wholesale partnerships</Link> for licensed venues.</>
     }
   ];
@@ -268,10 +263,11 @@ export const ContactUsPage: React.FC = () => {
                 <form onSubmit={handleSubmit} style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
                   {/* Name Input */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                    <label htmlFor="contact-name" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
                       Full Name <span style={{ color: '#dc2626' }}>*</span>
                     </label>
                     <input
+                      id="contact-name"
                       type="text"
                       required
                       placeholder="e.g. Oliver Smith"
@@ -294,10 +290,11 @@ export const ContactUsPage: React.FC = () => {
                   {/* Email & Phone Row */}
                   <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '1rem' }} className="form-two-col">
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                      <label htmlFor="contact-email" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
                         Email Address <span style={{ color: '#dc2626' }}>*</span>
                       </label>
                       <input
+                        id="contact-email"
                         type="email"
                         required
                         placeholder="you@example.com"
@@ -317,10 +314,11 @@ export const ContactUsPage: React.FC = () => {
                     </div>
 
                     <div>
-                      <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                      <label htmlFor="contact-phone" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
                         Phone Number
                       </label>
                       <input
+                        id="contact-phone"
                         type="tel"
                         placeholder="0400 000 000"
                         value={formData.phone}
@@ -341,10 +339,11 @@ export const ContactUsPage: React.FC = () => {
 
                   {/* Subject Dropdown */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                    <label htmlFor="contact-subject" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
                       Inquiry Topic
                     </label>
                     <select
+                      id="contact-subject"
                       value={formData.subject}
                       onChange={(e) => setFormData({ ...formData, subject: e.target.value })}
                       style={{
@@ -369,10 +368,11 @@ export const ContactUsPage: React.FC = () => {
 
                   {/* Message Textarea */}
                   <div>
-                    <label style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
+                    <label htmlFor="contact-message" style={{ display: 'block', fontSize: '0.875rem', fontWeight: 600, color: '#374151', marginBottom: '0.4rem' }}>
                       Message <span style={{ color: '#dc2626' }}>*</span>
                     </label>
                     <textarea
+                      id="contact-message"
                       required
                       rows={5}
                       placeholder="How can our cigar team assist you?"

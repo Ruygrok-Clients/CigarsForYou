@@ -766,9 +766,10 @@ export const Navbar: React.FC = () => {
                 <ArrowLeft size={15} />
               </button>
 
-              <div
+              <nav
                 id="cigar-pills-container"
                 className="no-scrollbar"
+                aria-label="Primary"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -817,7 +818,7 @@ export const Navbar: React.FC = () => {
                     {b.name}
                   </Link>
                 ))}
-              </div>
+              </nav>
 
               <button
                 onClick={handlePillScrollRight}
@@ -1270,9 +1271,10 @@ export const Navbar: React.FC = () => {
                 <ArrowLeft size={13} />
               </button>
 
-              <div
+              <nav
                 id="cigar-pills-container-mobile"
                 className="no-scrollbar"
+                aria-label="Primary"
                 style={{
                   display: 'flex',
                   alignItems: 'center',
@@ -1322,7 +1324,7 @@ export const Navbar: React.FC = () => {
                     {b.name}
                   </Link>
                 ))}
-              </div>
+              </nav>
 
               <button
                 onClick={handlePillScrollRight}

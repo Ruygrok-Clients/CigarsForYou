@@ -17,6 +17,7 @@ import {
   unitPriceForTier
 } from '../utils/bulkPricing';
 import { rangeBasePath, rangeLabel, slugifyLabel } from '../constants/productRanges';
+import { brandTitle } from '../lib/brand';
 import { trackViewItem } from '../lib/analytics';
 import { applyJsonLd, productNodes, siteGraph } from '../lib/jsonld';
 import { absoluteCanonical, applySeo, productDescription, productTitle } from '../lib/seo';
@@ -147,7 +148,7 @@ export const ProductDetailPage: React.FC = () => {
       applyJsonLd(siteGraph());
     } else if (!product) {
       applySeo({
-        title: 'Product Not Found | Cigars For You',
+        title: brandTitle('Product Not Found'),
         description: null,
         robots: 'noindex,follow',
         canonical: null,
@@ -165,6 +166,7 @@ export const ProductDetailPage: React.FC = () => {
           description,
           robots: 'index,follow',
           canonical: absoluteCanonical(`/product/${product.slug}`),
+          image: product.imageUrl,
         });
         applyJsonLd(siteGraph(productNodes(product)));
       }

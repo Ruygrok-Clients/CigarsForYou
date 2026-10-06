@@ -135,8 +135,9 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         ) : (
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Name</label>
+              <label className="form-label" htmlFor="notify-name" style={{ color: 'var(--text-primary)' }}>Name</label>
               <input
+                id="notify-name"
                 type="text"
                 required
                 className="form-control"
@@ -147,8 +148,9 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
               />
             </div>
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Email Address</label>
+              <label className="form-label" htmlFor="notify-email" style={{ color: 'var(--text-primary)' }}>Email Address</label>
               <input
+                id="notify-email"
                 type="email"
                 required
                 className="form-control"

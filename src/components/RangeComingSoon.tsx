@@ -127,8 +127,10 @@ export const RangeComingSoon: React.FC<{ range: ProductRange }> = ({ range }) =>
 
               <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', justifyContent: 'center' }}>
                 <input
+                  id="range-notify-email"
                   type="email"
                   required
+                  aria-label="Email address"
                   className="form-control"
                   style={{ flex: '1 1 240px', maxWidth: '360px', padding: '0.75rem 1rem', border: '1px solid #d1d5db', borderRadius: '6px' }}
                   placeholder="your.name@example.com.au"

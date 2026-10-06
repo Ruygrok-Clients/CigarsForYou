@@ -2,6 +2,7 @@ import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { NewsPost } from '../types';
 import { fetchNewsBySlug, newsMetaLine, parseNewsBody } from '../services/news';
+import { brandTitle } from '../lib/brand';
 import { absoluteCanonical, applySeo, newsArticleHead } from '../lib/seo';
 import { applyJsonLd, articleNodes, siteGraph } from '../lib/jsonld';
 import { responsiveImage } from '../lib/responsiveImage';
@@ -54,7 +55,7 @@ export const NewsArticlePage: React.FC = () => {
       applyJsonLd(siteGraph());
     } else if (!post || missing) {
       applySeo({
-        title: 'News | Cigars For You',
+        title: brandTitle('News'),
         description: null,
         robots: 'noindex,follow',
         canonical: null,
@@ -67,6 +68,8 @@ export const NewsArticlePage: React.FC = () => {
         description: head.description,
         robots: 'index,follow',
         canonical: absoluteCanonical(`/news/${post.slug}`),
+        image: post.imageUrl,
+        ogType: 'article',
       });
       applyJsonLd(siteGraph(articleNodes(post)));
     }

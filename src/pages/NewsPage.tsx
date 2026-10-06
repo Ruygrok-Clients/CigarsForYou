@@ -2,7 +2,7 @@ import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import type { NewsPost } from '../types';
 import { fetchPublishedNews, newsMetaLine } from '../services/news';
-import { absoluteCanonical, applySeo } from '../lib/seo';
+import { absoluteCanonical, applySeo, PUBLIC_PAGE_HEAD } from '../lib/seo';
 import { responsiveImage } from '../lib/responsiveImage';
 
 export const NewsPage: React.FC = () => {
@@ -12,8 +12,8 @@ export const NewsPage: React.FC = () => {
 
   useEffect(() => {
     applySeo({
-      title: 'News | Cigars For You',
-      description: 'Notes on storing, choosing, and smoking Cuban cigars from Cigars For You, written for Australian conditions.',
+      title: PUBLIC_PAGE_HEAD['/news'].title,
+      description: PUBLIC_PAGE_HEAD['/news'].description,
       robots: 'index,follow',
       canonical: absoluteCanonical('/news'),
     });

@@ -96,10 +96,11 @@ export const SignupPage: React.FC = () => {
 
           <form onSubmit={handleSubmit}>
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Full Name</label>
+              <label className="form-label" htmlFor="signup-name" style={{ color: 'var(--text-primary)' }}>Full Name</label>
               <div style={{ position: 'relative' }}>
                 <User size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
+                  id="signup-name"
                   type="text"
                   required
                   className="form-control"
@@ -112,10 +113,11 @@ export const SignupPage: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Email Address</label>
+              <label className="form-label" htmlFor="signup-email" style={{ color: 'var(--text-primary)' }}>Email Address</label>
               <div style={{ position: 'relative' }}>
                 <Mail size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
+                  id="signup-email"
                   type="email"
                   required
                   className="form-control"
@@ -128,10 +130,11 @@ export const SignupPage: React.FC = () => {
             </div>
 
             <div className="form-group">
-              <label className="form-label" style={{ color: 'var(--text-primary)' }}>Password</label>
+              <label className="form-label" htmlFor="signup-password" style={{ color: 'var(--text-primary)' }}>Password</label>
               <div style={{ position: 'relative' }}>
                 <Lock size={18} style={{ position: 'absolute', left: '0.85rem', top: '50%', transform: 'translateY(-50%)', color: 'var(--text-muted)' }} />
                 <input
+                  id="signup-password"
                   type={showPassword ? "text" : "password"}
                   required
                   minLength={6}

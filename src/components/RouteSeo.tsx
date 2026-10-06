@@ -1,18 +1,19 @@
 import { useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { applyJsonLd, siteGraph } from '../lib/jsonld';
+import { applyJsonLd, faqPageNode, siteGraph } from '../lib/jsonld';
+import { brandTitle } from '../lib/brand';
 import { absoluteCanonical, applySeo, canonicalPath, DEFAULT_TITLE, PUBLIC_PAGE_HEAD } from '../lib/seo';
 
 const UTILITY_TITLES: Record<string, string> = {
-  '/cart': 'Cart | Cigars For You',
-  '/checkout': 'Checkout | Cigars For You',
-  '/checkout-details': 'Checkout | Cigars For You',
-  '/account': 'Account | Cigars For You',
-  '/login': 'Log In | Cigars For You',
-  '/signup': 'Sign Up | Cigars For You',
-  '/forgot-password': 'Forgot Password | Cigars For You',
-  '/order-confirmation': 'Order Confirmation | Cigars For You',
-  '/age-restricted': 'Age Restricted | Cigars For You',
+  '/cart': brandTitle('Cart'),
+  '/checkout': brandTitle('Checkout'),
+  '/checkout-details': brandTitle('Checkout'),
+  '/account': brandTitle('Account'),
+  '/login': brandTitle('Log In'),
+  '/signup': brandTitle('Sign Up'),
+  '/forgot-password': brandTitle('Forgot Password'),
+  '/order-confirmation': brandTitle('Order Confirmation'),
+  '/age-restricted': brandTitle('Age Restricted'),
 };
 
 function isCataloguePath(path: string): boolean {
@@ -36,7 +37,7 @@ export function RouteSeo() {
     const path = canonicalPath(location.pathname);
 
     if (path === '/admin' || path.startsWith('/admin/')) {
-      applySeo({ title: 'Admin | Cigars For You', robots: 'noindex,nofollow', canonical: null, description: null });
+      applySeo({ title: brandTitle('Admin'), robots: 'noindex,nofollow', canonical: null, description: null });
       applyJsonLd(null);
       return;
     }
@@ -71,7 +72,7 @@ export function RouteSeo() {
         canonical: absoluteCanonical(path),
         description: page.description,
       });
-      applyJsonLd(siteGraph());
+      applyJsonLd(siteGraph(path === '/contact' ? [faqPageNode()] : []));
       return;
     }
 
