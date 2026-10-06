@@ -451,12 +451,13 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                 gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))',
                 gap: '1.5rem'
               }}>
-                {filteredProducts.map((product) => (
+                {filteredProducts.map((product, index) => (
                   <ProductCard
                     key={product.id || product.slug}
                     product={product}
                     listId={range}
                     listName={listName}
+                    imageLoading={index < 4 ? 'eager' : 'lazy'}
                     onOpenNotifyModal={(item) => setSelectedNotifyProduct(item)}
                   />
                 ))}

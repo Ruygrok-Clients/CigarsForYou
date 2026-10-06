@@ -197,11 +197,6 @@ export const LegalPage: React.FC = () => {
               <p style={{ marginTop: '1rem' }}>
                 If Didi cannot take the delivery, we email you two options. You can take a full refund, including the Immediate Dispatch fee, or move the order to complimentary Express Delivery. On that upgrade we refund the Immediate Dispatch fee and send the order by Express Delivery at no delivery charge to you. Reply to the email or call us and we will record your choice. We do not change the order until we hear from you.
               </p>
-
-              <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>5. Transit Insurance</h2>
-              <p>
-                Didi does not insure the goods it carries. Immediate Dispatch orders are covered by our external insurance provider for loss or damage in transit.
-              </p>
             </div>
           ) : path.includes('refund') ? (
             <div>

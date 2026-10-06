@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import type { NewsPost } from '../types';
 import { fetchPublishedNews, newsMetaLine } from '../services/news';
 import { absoluteCanonical, applySeo } from '../lib/seo';
+import { responsiveImage } from '../lib/responsiveImage';
 
 export const NewsPage: React.FC = () => {
   const [posts, setPosts] = useState<NewsPost[]>([]);
@@ -177,7 +178,11 @@ export const NewsPage: React.FC = () => {
               >
                 <div className="news-frame">
                   {post.imageUrl ? (
-                    <img src={post.imageUrl} alt="" />
+                    <img
+                      {...responsiveImage(post.imageUrl, '(min-width: 768px) 280px, 40vw')}
+                      alt={post.title}
+                      loading={index === 0 ? 'eager' : 'lazy'}
+                    />
                   ) : null}
                 </div>
                 <div>

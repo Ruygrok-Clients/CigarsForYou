@@ -30,3 +30,6 @@ tracking/secrets.local.env
 *.njsproj
 *.sln
 *.sw?
+
+# Generated image variants. The build recreates these from the live catalogue.
+public/media/opt/

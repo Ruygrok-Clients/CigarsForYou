@@ -2,7 +2,9 @@ import React, { useEffect, useLayoutEffect, useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
 import type { NewsPost } from '../types';
 import { fetchNewsBySlug, newsMetaLine, parseNewsBody } from '../services/news';
-import { absoluteCanonical, applySeo } from '../lib/seo';
+import { absoluteCanonical, applySeo, newsArticleHead } from '../lib/seo';
+import { applyJsonLd, articleNodes, siteGraph } from '../lib/jsonld';
+import { responsiveImage } from '../lib/responsiveImage';
 import { InlineMarkdown } from '../components/InlineMarkdown';
 
 export const NewsArticlePage: React.FC = () => {
@@ -49,23 +51,28 @@ export const NewsArticlePage: React.FC = () => {
   useLayoutEffect(() => {
     if (loading) {
       applySeo({ robots: 'noindex,follow', canonical: null });
-      return;
-    }
-    if (!post || missing) {
+      applyJsonLd(siteGraph());
+    } else if (!post || missing) {
       applySeo({
         title: 'News | Cigars For You',
         description: null,
         robots: 'noindex,follow',
         canonical: null,
       });
-      return;
+      applyJsonLd(siteGraph());
+    } else {
+      const head = newsArticleHead(post);
+      applySeo({
+        title: head.title,
+        description: head.description,
+        robots: 'index,follow',
+        canonical: absoluteCanonical(`/news/${post.slug}`),
+      });
+      applyJsonLd(siteGraph(articleNodes(post)));
     }
-    applySeo({
-      title: `${post.title} | Cigars For You`,
-      description: post.excerpt,
-      robots: 'index,follow',
-      canonical: absoluteCanonical(`/news/${post.slug}`),
-    });
+    return () => {
+      applyJsonLd(siteGraph());
+    };
   }, [loading, missing, post]);
 
   const blocks = post ? parseNewsBody(post.body) : [];
@@ -156,7 +163,13 @@ export const NewsArticlePage: React.FC = () => {
           <>
             <h1>{post.title}</h1>
             <p className="news-article-meta">{newsMetaLine(post)}</p>
-            {post.imageUrl && <img className="news-article-hero" src={post.imageUrl} alt="" />}
+            {post.imageUrl && (
+              <img
+                className="news-article-hero"
+                {...responsiveImage(post.imageUrl, '(min-width: 768px) 720px, 100vw')}
+                alt={post.title}
+              />
+            )}
             <div className="news-article-body">
               {blocks.map((block, index) =>
                 block.type === 'heading' ? (

@@ -1,0 +1,70 @@
+{
+  "https://firebasestorage.googleapis.com/v0/b/cigarsforyou-ea835.firebasestorage.app/o/brands%2Fcohiba.png?alt=media": {
+    "src": "/media/opt/976db0fbf290974c-800.webp",
+    "srcSet": "/media/opt/976db0fbf290974c-480.webp 480w, /media/opt/976db0fbf290974c-800.webp 800w"
+  },
+  "https://firebasestorage.googleapis.com/v0/b/cigarsforyou-ea835.firebasestorage.app/o/brands%2Fh-upmann.png?alt=media": {
+    "src": "/media/opt/4c5562084863dc64-800.webp",
+    "srcSet": "/media/opt/4c5562084863dc64-480.webp 480w, /media/opt/4c5562084863dc64-800.webp 800w"
+  },
+  "https://firebasestorage.googleapis.com/v0/b/cigarsforyou-ea835.firebasestorage.app/o/brands%2Fhoyo-de-monterrey.png?alt=media": {
+    "src": "/media/opt/e279bde70113251b-800.webp",
+    "srcSet": "/media/opt/e279bde70113251b-480.webp 480w, /media/opt/e279bde70113251b-800.webp 800w"
+  },
+  "https://firebasestorage.googleapis.com/v0/b/cigarsforyou-ea835.firebasestorage.app/o/brands%2Fmontecristo.png?alt=media": {
+    "src": "/media/opt/602bd7a3d0547d3d-800.webp",
+    "srcSet": "/media/opt/602bd7a3d0547d3d-480.webp 480w, /media/opt/602bd7a3d0547d3d-800.webp 800w"
+  },
+  "https://firebasestorage.googleapis.com/v0/b/cigarsforyou-ea835.firebasestorage.app/o/brands%2Fpartagas.png?alt=media": {
+    "src": "/media/opt/bd0c1e927ea79b0b-800.webp",
+    "srcSet": "/media/opt/bd0c1e927ea79b0b-480.webp 480w, /media/opt/bd0c1e927ea79b0b-800.webp 800w"
+  },
+  "https://firebasestorage.googleapis.com/v0/b/cigarsforyou-ea835.firebasestorage.app/o/brands%2Fpunch.png?alt=media": {
+    "src": "/media/opt/527fb3a1ba98939d-800.webp",
+    "srcSet": "/media/opt/527fb3a1ba98939d-480.webp 480w, /media/opt/527fb3a1ba98939d-800.webp 800w"
+  },
+  "https://firebasestorage.googleapis.com/v0/b/cigarsforyou-ea835.firebasestorage.app/o/brands%2Fromeo-y-julieta.png?alt=media": {
+    "src": "/media/opt/54ab52824ce88d93-800.webp",
+    "srcSet": "/media/opt/54ab52824ce88d93-480.webp 480w, /media/opt/54ab52824ce88d93-800.webp 800w"
+  },
+  "/news/cohiba-montecristo.jpeg": {
+    "src": "/media/opt/2ad148bb5440c625-1200.webp",
+    "srcSet": "/media/opt/2ad148bb5440c625-480.webp 480w, /media/opt/2ad148bb5440c625-800.webp 800w, /media/opt/2ad148bb5440c625-1200.webp 1200w"
+  },
+  "https://cigarsforyou.com.au/news/cohiba-montecristo.jpeg": {
+    "src": "/media/opt/2ad148bb5440c625-1200.webp",
+    "srcSet": "/media/opt/2ad148bb5440c625-480.webp 480w, /media/opt/2ad148bb5440c625-800.webp 800w, /media/opt/2ad148bb5440c625-1200.webp 1200w"
+  },
+  "/news/pairing.jpeg": {
+    "src": "/media/opt/a0768e64c8ed6d47-1200.webp",
+    "srcSet": "/media/opt/a0768e64c8ed6d47-480.webp 480w, /media/opt/a0768e64c8ed6d47-800.webp 800w, /media/opt/a0768e64c8ed6d47-1200.webp 1200w"
+  },
+  "https://cigarsforyou.com.au/news/pairing.jpeg": {
+    "src": "/media/opt/a0768e64c8ed6d47-1200.webp",
+    "srcSet": "/media/opt/a0768e64c8ed6d47-480.webp 480w, /media/opt/a0768e64c8ed6d47-800.webp 800w, /media/opt/a0768e64c8ed6d47-1200.webp 1200w"
+  },
+  "/news/cigar-band.jpeg": {
+    "src": "/media/opt/7dba1dd5fa60cc1e-1200.webp",
+    "srcSet": "/media/opt/7dba1dd5fa60cc1e-480.webp 480w, /media/opt/7dba1dd5fa60cc1e-800.webp 800w, /media/opt/7dba1dd5fa60cc1e-1200.webp 1200w"
+  },
+  "https://cigarsforyou.com.au/news/cigar-band.jpeg": {
+    "src": "/media/opt/7dba1dd5fa60cc1e-1200.webp",
+    "srcSet": "/media/opt/7dba1dd5fa60cc1e-480.webp 480w, /media/opt/7dba1dd5fa60cc1e-800.webp 800w, /media/opt/7dba1dd5fa60cc1e-1200.webp 1200w"
+  },
+  "/news/australian-humidor.jpeg": {
+    "src": "/media/opt/7b8653c22bb45b75-1200.webp",
+    "srcSet": "/media/opt/7b8653c22bb45b75-480.webp 480w, /media/opt/7b8653c22bb45b75-800.webp 800w, /media/opt/7b8653c22bb45b75-1200.webp 1200w"
+  },
+  "https://cigarsforyou.com.au/news/australian-humidor.jpeg": {
+    "src": "/media/opt/7b8653c22bb45b75-1200.webp",
+    "srcSet": "/media/opt/7b8653c22bb45b75-480.webp 480w, /media/opt/7b8653c22bb45b75-800.webp 800w, /media/opt/7b8653c22bb45b75-1200.webp 1200w"
+  },
+  "/news/box-pressed.jpeg": {
+    "src": "/media/opt/9934aee870c90568-1200.webp",
+    "srcSet": "/media/opt/9934aee870c90568-480.webp 480w, /media/opt/9934aee870c90568-800.webp 800w, /media/opt/9934aee870c90568-1200.webp 1200w"
+  },
+  "https://cigarsforyou.com.au/news/box-pressed.jpeg": {
+    "src": "/media/opt/9934aee870c90568-1200.webp",
+    "srcSet": "/media/opt/9934aee870c90568-480.webp 480w, /media/opt/9934aee870c90568-800.webp 800w, /media/opt/9934aee870c90568-1200.webp 1200w"
+  }
+}

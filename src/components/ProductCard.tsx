@@ -5,15 +5,17 @@ import type { Product } from '../types';
 import { useCart } from '../context/CartContext';
 import { useToast } from './Toast';
 import { trackSelectItem } from '../lib/analytics';
+import { responsiveImage } from '../lib/responsiveImage';
 
 interface ProductCardProps {
   product: Product;
   onOpenNotifyModal?: (product: Product) => void;
   listId?: string;
   listName?: string;
+  imageLoading?: 'eager' | 'lazy';
 }
 
-export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyModal, listId, listName }) => {
+export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyModal, listId, listName, imageLoading = 'eager' }) => {
   const { addToCart } = useCart();
   const { showToast } = useToast();
   const isOutOfStock = product.stock <= 0;
@@ -80,15 +82,16 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
           transition: 'background-color 0.2s ease'
         }}>
           {product.imageUrl ? (
-            <img 
-              src={product.imageUrl} 
-              alt={product.name} 
+            <img
+              {...responsiveImage(product.imageUrl, '(min-width: 900px) 280px, 80vw')}
+              alt={product.name}
+              loading={imageLoading}
               style={{
                 maxWidth: '90%',
                 maxHeight: '90%',
                 objectFit: 'contain',
                 transition: 'transform 0.3s ease'
-              }} 
+              }}
             />
           ) : (
             <div style={{ textAlign: 'center', padding: '1rem', color: '#c06517' }}>

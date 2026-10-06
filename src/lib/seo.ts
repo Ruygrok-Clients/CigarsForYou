@@ -1,4 +1,4 @@
-import { brandCatalogueCopy } from '../constants/productRanges';
+import { brandCatalogueCopy, RANGE_CATALOGUE } from '../constants/productRanges';
 import type { ProductRange, ProductSpecification } from '../types';
 
 export const SITE_ORIGIN = 'https://cigarsforyou.com.au';
@@ -111,6 +111,64 @@ export function productDescription(input: {
     return `${label}: ${detail}. A Cuban cigar from Cigars For You, stored for delivery across Australia.`;
   }
   return `${label} from Cigars For You. A Cuban cigar stored for delivery across Australia.`;
+}
+
+export const PUBLIC_PAGE_HEAD: Record<string, { title: string; description: string }> = {
+  '/': {
+    title: DEFAULT_TITLE,
+    description: "Australia's premier online humidor. Genuine Cuban cigars delivered to your door, with one-off orders and recurring delivery.",
+  },
+  '/about': {
+    title: 'About Us | Cigars For You',
+    description: 'How Cigars For You stores Cuban cigars in Sydney and delivers them across Australia, from humidor conditions to sealed dispatch.',
+  },
+  '/contact': {
+    title: 'Contact | Cigars For You',
+    description: 'Contact Cigars For You about orders, delivery, and the Cuban cigar catalogue. Email, phone, and the contact form.',
+  },
+  '/partnerships': {
+    title: 'Partnerships | Cigars For You',
+    description: 'Wholesale and venue stocking for licensed Australian businesses. Enquire to carry the Cigars For You Cuban cigar range.',
+  },
+  '/news': {
+    title: 'News | Cigars For You',
+    description: 'Notes on storing, choosing, and smoking Cuban cigars from Cigars For You, written for Australian conditions.',
+  },
+  '/terms': {
+    title: 'Terms & Conditions | Cigars For You',
+    description: 'Terms and conditions for shopping with Cigars For You, including orders, delivery, and use of the site.',
+  },
+  '/privacy': {
+    title: 'Privacy Policy | Cigars For You',
+    description: 'How Cigars For You collects, uses, and stores personal information when you browse, enquire, or create an account.',
+  },
+  '/cookies': {
+    title: 'Cookies Policy | Cigars For You',
+    description: 'How Cigars For You uses cookies, including analytics, and the choices available to you.',
+  },
+  '/refund-policy': {
+    title: 'Refund & Return Policy | Cigars For You',
+    description: 'Refund and return rules for Cigars For You orders, including tobacco products and delivery issues.',
+  },
+  '/compliance': {
+    title: 'Compliance | Cigars For You',
+    description: 'Age, licensing, and tobacco compliance information for shopping with Cigars For You in Australia.',
+  },
+};
+
+export function catalogueHead(range: ProductRange, brand?: { name: string; slug: string }): { title: string; description: string } {
+  const copy = RANGE_CATALOGUE[range];
+  const title = brand
+    ? `${brand.name} ${copy.titledSuffix} | Cigars For You`
+    : `${copy.title} | Cigars For You`;
+  return { title, description: categoryDescription(range, brand?.slug) };
+}
+
+export function newsArticleHead(post: { title: string; excerpt?: string }): { title: string; description: string } {
+  return {
+    title: `${post.title} | Cigars For You`,
+    description: post.excerpt || '',
+  };
 }
 
 export function categoryDescription(range: ProductRange, brandSlug?: string): string {

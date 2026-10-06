@@ -12,8 +12,48 @@ import { TrustBannerSection } from '../components/TrustBannerSection';
 import { SocialProofSlider } from '../components/SocialProofSlider';
 import { useCigarCategories } from '../hooks/useCigarCategories';
 import { Award, ChevronRight, Truck } from 'lucide-react';
-import bgVideo from '../assets/BG-Vid.mov';
 import { trackCta, trackEvent } from '../lib/analytics';
+
+const HERO_VIDEO_SRC = '/BG-Vid.mp4';
+const HERO_POSTER_SRC = '/BG-Vid-poster.jpg';
+const DESKTOP_HERO_QUERY = '(min-width: 1110px)';
+
+function HeroVideo({
+  active,
+  onPlay,
+  onTimeUpdate,
+  onEnded,
+}: {
+  active: boolean;
+  onPlay: () => void;
+  onTimeUpdate: (event: React.SyntheticEvent<HTMLVideoElement>) => void;
+  onEnded: () => void;
+}) {
+  if (!active) return null;
+  return (
+    <video
+      autoPlay
+      loop
+      muted
+      playsInline
+      preload="auto"
+      poster={HERO_POSTER_SRC}
+      src={HERO_VIDEO_SRC}
+      onPlay={onPlay}
+      onTimeUpdate={onTimeUpdate}
+      onEnded={onEnded}
+      style={{
+        position: 'absolute',
+        top: 0,
+        left: 0,
+        width: '100%',
+        height: '100%',
+        objectFit: 'cover',
+        zIndex: 0
+      }}
+    />
+  );
+}
 
 export const HomePage: React.FC = () => {
   const cigarCategories = useCigarCategories();
@@ -25,8 +65,17 @@ export const HomePage: React.FC = () => {
   const [heroCategory, setHeroCategory] = useState('All Categories');
   const [heroBrand, setHeroBrand] = useState('Brands');
   const [skuInput, setSkuInput] = useState('');
+  const [showDesktopHero, setShowDesktopHero] = useState(() => window.matchMedia(DESKTOP_HERO_QUERY).matches);
 
   const navigate = useNavigate();
+
+  useEffect(() => {
+    const media = window.matchMedia(DESKTOP_HERO_QUERY);
+    const onChange = () => setShowDesktopHero(media.matches);
+    onChange();
+    media.addEventListener('change', onChange);
+    return () => media.removeEventListener('change', onChange);
+  }, []);
 
   useEffect(() => {
     const fetchFeatured = async () => {
@@ -139,29 +188,12 @@ export const HomePage: React.FC = () => {
             }}>
 
               {/* Background Video */}
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-                src="/BG-Vid.mov"
+              <HeroVideo
+                active={showDesktopHero}
                 onPlay={handleVideoPlay}
                 onTimeUpdate={handleVideoProgress}
                 onEnded={handleVideoEnded}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  zIndex: 0
-                }}
-              >
-                <source src="/BG-Vid.mov" type="video/quicktime" />
-                <source src={bgVideo} type="video/mp4" />
-              </video>
+              />
 
               {/* Transparent Dark Overlay */}
               <div style={{
@@ -378,29 +410,12 @@ export const HomePage: React.FC = () => {
               padding: '2.5rem 1.25rem 1.75rem 1.25rem'
             }}>
               {/* Background Video */}
-              <video
-                autoPlay
-                loop
-                muted
-                playsInline
-                preload="auto"
-                src="/BG-Vid.mov"
+              <HeroVideo
+                active={!showDesktopHero}
                 onPlay={handleVideoPlay}
                 onTimeUpdate={handleVideoProgress}
                 onEnded={handleVideoEnded}
-                style={{
-                  position: 'absolute',
-                  top: 0,
-                  left: 0,
-                  width: '100%',
-                  height: '100%',
-                  objectFit: 'cover',
-                  zIndex: 0
-                }}
-              >
-                <source src="/BG-Vid.mov" type="video/quicktime" />
-                <source src={bgVideo} type="video/mp4" />
-              </video>
+              />
 
               {/* Transparent Dark Overlay */}
               <div style={{

@@ -5,6 +5,7 @@ import type { Product } from '../types';
 import { OptionWheel } from './OptionWheel';
 import { useCart } from '../context/CartContext';
 import { useToast } from './Toast';
+import { responsiveImage } from '../lib/responsiveImage';
 
 interface FeaturedProductsShowcaseProps {
   products: Product[];
@@ -286,7 +287,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                         }}>
                           {activeProduct.imageUrl ? (
                             <img
-                              src={activeProduct.imageUrl}
+                              {...responsiveImage(activeProduct.imageUrl, '(min-width: 900px) 480px, 100vw')}
                               alt={activeProduct.name}
                               style={{
                                 width: '100%',
@@ -592,7 +593,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                         }}>
                           {activeProduct.imageUrl ? (
                             <img
-                              src={activeProduct.imageUrl}
+                              {...responsiveImage(activeProduct.imageUrl, '(min-width: 900px) 480px, 100vw')}
                               alt={activeProduct.name}
                               style={{
                                 width: '100%',

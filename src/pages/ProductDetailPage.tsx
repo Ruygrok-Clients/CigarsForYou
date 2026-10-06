@@ -18,7 +18,9 @@ import {
 } from '../utils/bulkPricing';
 import { rangeBasePath, rangeLabel, slugifyLabel } from '../constants/productRanges';
 import { trackViewItem } from '../lib/analytics';
+import { applyJsonLd, productNodes, siteGraph } from '../lib/jsonld';
 import { absoluteCanonical, applySeo, productDescription, productTitle } from '../lib/seo';
+import { responsiveImage } from '../lib/responsiveImage';
 import { fetchBrandStory, fetchProducts } from '../services/catalog';
 import { ProductCard } from '../components/ProductCard';
 import { InlineMarkdown } from '../components/InlineMarkdown';
@@ -142,29 +144,34 @@ export const ProductDetailPage: React.FC = () => {
   useLayoutEffect(() => {
     if (loading) {
       applySeo({ robots: 'noindex,follow', canonical: null, description: null });
-      return;
-    }
-    if (!product) {
+      applyJsonLd(siteGraph());
+    } else if (!product) {
       applySeo({
         title: 'Product Not Found | Cigars For You',
         description: null,
         robots: 'noindex,follow',
         canonical: null,
       });
-      return;
+      applyJsonLd(siteGraph());
+    } else {
+      const title = productTitle(product.brand, product.name);
+      const description = productDescription(product);
+      if (product.active !== true || !product.slug) {
+        applySeo({ title, description, robots: 'noindex,follow', canonical: null });
+        applyJsonLd(siteGraph());
+      } else {
+        applySeo({
+          title,
+          description,
+          robots: 'index,follow',
+          canonical: absoluteCanonical(`/product/${product.slug}`),
+        });
+        applyJsonLd(siteGraph(productNodes(product)));
+      }
     }
-    const title = productTitle(product.brand, product.name);
-    const description = productDescription(product);
-    if (product.active !== true || !product.slug) {
-      applySeo({ title, description, robots: 'noindex,follow', canonical: null });
-      return;
-    }
-    applySeo({
-      title,
-      description,
-      robots: 'index,follow',
-      canonical: absoluteCanonical(`/product/${product.slug}`),
-    });
+    return () => {
+      applyJsonLd(siteGraph());
+    };
   }, [loading, product]);
 
   const sameBrandProducts = useMemo(() => {
@@ -394,10 +401,12 @@ export const ProductDetailPage: React.FC = () => {
                 boxShadow: '0 4px 20px rgba(0, 0, 0, 0.03)'
               }}>
                 {product.imageUrl ? (
-                  <img 
-                    src={product.imageUrl} 
-                    alt={product.name} 
-                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }} 
+                  <img
+                    {...responsiveImage(product.imageUrl, '(min-width: 900px) 50vw, 100vw')}
+                    alt={product.name}
+                    loading="eager"
+                    fetchPriority="high"
+                    style={{ width: '100%', height: '100%', objectFit: 'cover', borderRadius: '8px' }}
                   />
                 ) : (
                   <div style={{ textAlign: 'center', padding: '1.5rem' }}>
@@ -995,7 +1004,7 @@ export const ProductDetailPage: React.FC = () => {
                         overflow: 'hidden'
                       }}>
                         {cigar.imageUrl ? (
-                          <img src={cigar.imageUrl} alt={cigar.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img {...responsiveImage(cigar.imageUrl, '120px')} alt={cigar.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <Flame size={44} style={{ color: '#c06517' }} />
                         )}
@@ -1102,7 +1111,7 @@ export const ProductDetailPage: React.FC = () => {
                         overflow: 'hidden'
                       }}>
                         {product.imageUrl ? (
-                          <img src={product.imageUrl} alt={product.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                          <img {...responsiveImage(product.imageUrl, '120px')} alt={product.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                         ) : (
                           <Flame size={36} style={{ color: '#c06517' }} />
                         )}
@@ -1163,7 +1172,7 @@ export const ProductDetailPage: React.FC = () => {
                                 overflow: 'hidden'
                               }}>
                                 {cigar.imageUrl ? (
-                                  <img src={cigar.imageUrl} alt={cigar.name} style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
+                                  <img {...responsiveImage(cigar.imageUrl, '120px')} alt={cigar.name} loading="lazy" style={{ width: '100%', height: '100%', objectFit: 'cover' }} />
                                 ) : (
                                   <Flame size={36} style={{ color: '#c06517' }} />
                                 )}
@@ -1311,6 +1320,7 @@ export const ProductDetailPage: React.FC = () => {
                   product={item}
                   listId={slugifyLabel(product.brand)}
                   listName={`More from ${product.brand}`}
+                  imageLoading="lazy"
                   onOpenNotifyModal={setRelatedNotifyProduct}
                 />
               ))}
