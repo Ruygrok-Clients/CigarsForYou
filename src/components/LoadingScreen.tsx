@@ -1,6 +1,7 @@
 import React, { useEffect, useState } from 'react';
 import StrokeText from './StrokeText';
 import { Flame } from 'lucide-react';
+import { BRAND_NAME } from '../lib/brand';
 import './LoadingScreen.css';
 
 export interface LoadingScreenProps {
@@ -19,7 +20,7 @@ export interface LoadingScreenProps {
 }
 
 export const LoadingScreen: React.FC<LoadingScreenProps> = ({
-  text = 'CIGARS FOR YOU',
+  text = BRAND_NAME,
   subtitle = 'FINEST HAND-ROLLED CUBAN SELECTION',
   minimumDuration = 2400,
   strokeColor = '#c06517',

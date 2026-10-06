@@ -22,6 +22,7 @@ import { RouteSeo } from './components/RouteSeo';
 import { SocialProofToast } from './components/SocialProofToast';
 import { useAgeGate } from './context/AgeGateContext';
 import { useSitePresence } from './hooks/useSitePresence';
+import { BRAND_NAME } from './lib/brand';
 
 import { HomePage } from './pages/HomePage';
 import { ShopPage } from './pages/ShopPage';
@@ -92,7 +93,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
     <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
       {!isAdminPath && showLoading && (
         <LoadingScreen
-          text="CIGARS FOR YOU"
+          text={BRAND_NAME}
           subtitle="FINEST HAND-ROLLED CUBAN SELECTION"
           minimumDuration={2200}
           isLoading={false}

@@ -4,6 +4,12 @@ Crawl date: 5 October 2026 (UTC+11). One row per page is in [seo-inventory.csv](
 
 Search Console, as already recorded in [indexed.md](indexed.md): only `/` is indexed. The other priority URLs were still unknown to Google. This inventory is the baseline those URLs will be judged against.
 
+## Update — 6 October 2026
+
+Head SEO is no longer browser-only. The production build writes a per-URL `index.html` head (title, description, canonical, robots, Open Graph, JSON-LD) via `scripts/prerender-heads.ts`. Visible body copy is still hydrated by the SPA. Brand name in those tags is `CigarsForYou` from `src/lib/brand.ts`. Organization schema has no `sameAs`: the site and these notes have no social or third-party business profile URLs. `public/llms.txt` points at the core public pages that are already in `public/sitemap.xml`. `public/robots.txt` documents an intentional allow-all for search and AI crawlers on public pages.
+
+The 5 October inventory rows were not re-crawled. Treat “canonical: none” and the shared sitewide title as the state before the head-prerender pass.
+
 ## Update — 5 October 2026 (evening)
 
 The sections below are the morning crawl. They are historical. A linking and content pass the same day superseded these points:

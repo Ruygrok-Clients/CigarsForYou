@@ -1,0 +1,28 @@
+# CigarsForYou
+
+> CigarsForYou sells genuine Cuban cigars in Australia, with one-off orders and recurring delivery. Canonical site: https://cigarsforyou.com.au
+
+Brand: CigarsForYou
+Domain: https://cigarsforyou.com.au
+Email: hello@cigarsforyou.com.au
+Phone: +61 1300 244 277
+ABN: 23 679 156 131
+
+This file is a curated reading list. It does not replace robots.txt, the XML sitemap, structured data, or the site architecture. Full URL set: https://cigarsforyou.com.au/sitemap.xml
+
+## Pages
+
+- [Home](https://cigarsforyou.com.au/): Australia's premier online humidor. Genuine Cuban cigars delivered to your door, with one-off orders and recurring delivery.
+- [About](https://cigarsforyou.com.au/about): How CigarsForYou stores Cuban cigars in Sydney and delivers them across Australia, from humidor conditions to sealed dispatch.
+- [Contact](https://cigarsforyou.com.au/contact): Orders, delivery, and the Cuban cigar catalogue. Email, phone, and the contact form.
+- [Partnerships](https://cigarsforyou.com.au/partnerships): Wholesale and venue stocking for licensed Australian businesses.
+- [News](https://cigarsforyou.com.au/news): Notes on storing, choosing, and smoking Cuban cigars, written for Australian conditions.
+- [Shop](https://cigarsforyou.com.au/shop): Cuban cigar catalogue. Cohiba, Montecristo, Partagás, and more, stored for delivery across Australia.
+
+## Policies
+
+- [Terms](https://cigarsforyou.com.au/terms): Terms and conditions for shopping with CigarsForYou, including orders, delivery, and use of the site.
+- [Privacy](https://cigarsforyou.com.au/privacy): How CigarsForYou collects, uses, and stores personal information.
+- [Cookies](https://cigarsforyou.com.au/cookies): How CigarsForYou uses cookies, including analytics, and the choices available.
+- [Refunds](https://cigarsforyou.com.au/refund-policy): Refund and return rules, including tobacco products and delivery issues.
+- [Compliance](https://cigarsforyou.com.au/compliance): Age, licensing, and tobacco compliance information for shopping in Australia.

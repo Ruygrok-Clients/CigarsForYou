@@ -1,3 +1,10 @@
+# Public pages are open to search and AI crawlers on purpose.
+# User-agent: * covers OpenAI (OAI-SearchBot, GPTBot), Anthropic (ClaudeBot,
+# Claude-SearchBot), Perplexity (PerplexityBot), Google (Googlebot,
+# Google-Extended), Microsoft (Bingbot), and other training crawlers.
+# Do not add a blanket AI block without an explicit policy change.
+# Utility, admin, and filter-query paths below stay disallowed.
+
 User-agent: *
 Allow: /
 

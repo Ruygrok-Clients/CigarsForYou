@@ -202,14 +202,14 @@ URL submission quota (Bing URL Submission API, separate from IndexNow): daily 10
 
 ## IndexNow checklist
 
-Hosting for the key file was deployed 5 Oct 2026 (afternoon). `https://cigarsforyou.com.au/778303fccee6212d5b66503c3f71025f.txt` returns the key. IndexNow Cloud Functions are still not deployed.
+Hosting for the key file was deployed 5 Oct 2026 (afternoon). `https://cigarsforyou.com.au/778303fccee6212d5b66503c3f71025f.txt` returns the key. IndexNow Cloud Functions were deployed 6 Oct 2026. A manual ping of `https://cigarsforyou.com.au/` to `https://api.indexnow.org/IndexNow` returned HTTP 200.
 
 | # | Check | Result |
 |---|--------|--------|
 | 1 | Key file in build | Live — `https://cigarsforyou.com.au/778303fccee6212d5b66503c3f71025f.txt` returns the key |
-| 2 | Product add / update / remove | Cloud Function `onProductIndexNow` (deploy pending) |
-| 3 | Category changes | Cloud Function `onCatalogCategoryIndexNow` (deploy pending) |
-| 4 | News publish / update / remove | Cloud Function `onNewsPostIndexNow` (deploy pending) |
+| 2 | Product add / update / remove | Cloud Function `onProductIndexNow` deployed 6 Oct 2026 (`us-central1`) |
+| 3 | Category changes | Cloud Function `onCatalogCategoryIndexNow` deployed 6 Oct 2026 |
+| 4 | News publish / update / remove | Cloud Function `onNewsPostIndexNow` deployed 6 Oct 2026 |
 | 5 | Stock / FBT-only product writes | Ignored (no IndexNow spam) |
 
 ## Crawlability pass — 5 Oct 2026 (afternoon)
@@ -220,14 +220,28 @@ Checked with `curl` after the hosting deploy. No WAF or bot-block rules in the r
 
 `/shop/` and `/product/cohiba-black-supremo/` return **301** to the slashless apex URL.
 
-`https://www.cigarsforyou.com.au/` still fails TLS (certificate has no `www` name). `http://www` 301s to `https://www`, which then fails. Connect `www.cigarsforyou.com.au` on Firebase Hosting so Google can issue a certificate, then redirect that host to `https://cigarsforyou.com.au`. Do not add the redirect before TLS works.
+`https://www.cigarsforyou.com.au/` no longer fails TLS. As of 6 Oct 2026 the certificate is GoDaddy (`CN=www.cigarsforyou.com.au`, issued 5 Oct 2026). `GET /` on `http://www` and `https://www` returns 301 to `https://cigarsforyou.com.au`. `GET /shop` on `https://www` returns 404. DNS for `www` is still the GoDaddy forwarder (`A` `15.197.225.128` and `3.33.251.168`), not Firebase.
+
+Firebase Hosting custom domain `www.cigarsforyou.com.au` was created 6 Oct 2026 on site `cigarsforyou-ea835` with `redirectTarget` `cigarsforyou.com.au`. Host state is `HOST_MISMATCH` and ownership is `OWNERSHIP_MISSING` until DNS at GoDaddy (`ns63.domaincontrol.com` / `ns64.domaincontrol.com`) is:
+
+- Remove `A` `15.197.225.128` and `A` `3.33.251.168` on `www`
+- Add `CNAME` `www` → `cigarsforyou-ea835.web.app`
+
+After that record is live, Hosting can finish the certificate and every `www` path 301s to the apex. This repo has no GoDaddy credentials, so that DNS edit was not applied.
 
 Canonicals and `noindex` are applied in the browser after render (`src/components/RouteSeo.tsx`). The first HTML byte is still the shared shell, so Google only sees those tags after it renders JavaScript.
 
+## Current SEO — 6 October 2026
+
+The 5 October notes above are the Search Console and Bing snapshots. Code since then:
+
+- Indexable HTML heads are prerendered at build time (`scripts/prerender-heads.ts`): title, description, canonical, robots, Open Graph, and JSON-LD. The body is still the SPA shell. The “JSON-LD is still absent” follow-up below is obsolete.
+- Brand in titles, descriptions, and Organization / WebSite schema is `CigarsForYou` (`src/lib/brand.ts`). No `sameAs` until real profile URLs exist.
+- `robots.txt` allows public pages for every crawler, including AI search and training bots. Comments in the file record that as intentional.
+- `public/llms.txt` is a curated list of sitemap URLs. It is not a crawl policy.
+- Live recheck 6 Oct 2026: Googlebot and Bingbot each received HTTP 200 on `/`, `/shop`, `/robots.txt` (`text/plain`), and `/sitemap.xml` (`application/xml`). No WAF or bot challenge. The robots comments and `llms.txt` in this repo are not on the host until the next Hosting deploy.
+
 ## Follow-ups
 
-- **Deploy IndexNow functions:** `firebase deploy --only functions:onProductIndexNow,functions:onCatalogCategoryIndexNow,functions:onNewsPostIndexNow` (or batch one-at-a-time if Cloud Run CPU quota bites). Hosting and the key file are already live.
-- After the functions deploy, run the manual IndexNow test ping in [config.md](config.md)
 - Wait for Google to finish processing the 106-URL sitemap, then re-inspect priority URLs
-- Fix `www` TLS, then redirect `www` to the apex
-- JSON-LD is still absent (not part of this pass)
+- At GoDaddy, point `www` at Firebase (`CNAME www → cigarsforyou-ea835.web.app`, remove the two forwarder `A` records) so the Hosting redirect covers every path, not only `/`

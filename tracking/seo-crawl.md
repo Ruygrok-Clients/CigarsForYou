@@ -1,12 +1,25 @@
 # Site crawl — cigarsforyou.com.au
 
+## Current state — 6 October 2026
+
+The 5 October crawl below is a snapshot. It does not describe the site as built now.
+
+- Brand string is `CigarsForYou` in [`src/lib/brand.ts`](../src/lib/brand.ts). Titles, meta descriptions, `og:site_name`, and Organization / WebSite JSON-LD use that name. Footer and legal copy add “Australia” as a legal qualifier. There are no public social or business-profile URLs in the repo, so Organization schema has no `sameAs`.
+- `npm run build` runs [`scripts/prerender-heads.ts`](../scripts/prerender-heads.ts). Each indexable URL gets its own `dist/.../index.html` with title, description, canonical, robots, Open Graph, Twitter, and JSON-LD. The body is still the SPA shell.
+- [`public/robots.txt`](../public/robots.txt) allows all public pages for every crawler, including OpenAI, Anthropic, Perplexity, Google (including `Google-Extended`), and Bing. Disallow stays on admin, cart, checkout, account, auth, order confirmation, `/age-restricted`, and `search` / `brand` / `category` query URLs.
+- [`public/llms.txt`](../public/llms.txt) lists the core public URLs. It does not replace robots.txt, the sitemap, or structured data.
+- Trailing-slash paths on the apex 301 to the slashless URL (`firebase.json`). `www` has a valid GoDaddy certificate (issued 5 Oct 2026). `GET /` on `www` returns 301 to `https://cigarsforyou.com.au`. Other `www` paths, such as `/shop`, still 404 because DNS points at the GoDaddy forwarder (`15.197.225.128`, `3.33.251.168`), not Firebase. A Hosting custom domain `www.cigarsforyou.com.au` was added 6 Oct 2026 with `redirectTarget` `cigarsforyou.com.au`. It stays `HOST_MISMATCH` until GoDaddy DNS removes those A records and adds `CNAME www → cigarsforyou-ea835.web.app`.
+- The age gate is a client `localStorage` modal. It is not an HTTP block.
+
 Crawled 5 October 2026 (UTC+11) against production. HTTP status and redirects are from direct requests. Titles, H1s, and links are from a rendered crawl (Playwright, age gate satisfied in `localStorage` as `cfy_age_verified_v1`) because every route returns the same SPA shell. Catalog dates come from Firestore. The row-level inventory is [seo-inventory.csv](seo-inventory.csv). Findings are in [seo-inventory.md](seo-inventory.md).
 
 Live sitemap: `https://cigarsforyou.com.au/sitemap.xml` — **109 URLs**. The copy in `public/sitemap.xml` has **110** and adds `/cookies`, which is not on the live host yet.
 
 ## Architecture
 
-Firebase Hosting rewrites every path to `/index.html`. React Router in `src/App.tsx` picks the page. Products, categories, and news come from Firestore. There is no SSR. The HTML Google fetches before JavaScript is one title and one description for the whole site. There is no `rel=canonical`, no meta robots, and no JSON-LD.
+Historical as of the 5 October morning crawl. See the current-state note at the top: indexable URLs are now prerendered in the document head, with canonical, robots, and JSON-LD. Unknown paths still fall through the SPA rewrite.
+
+Firebase Hosting rewrites unmatched paths to `/index.html`. React Router in `src/App.tsx` picks the page. Products, categories, and news come from Firestore. The body is still client-rendered.
 
 ```mermaid
 flowchart TD
