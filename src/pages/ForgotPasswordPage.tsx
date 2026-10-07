@@ -59,8 +59,8 @@ export const ForgotPasswordPage: React.FC = () => {
                     id="forgot-email"
                     type="email"
                     required
-                    className="form-control"
-                    style={{ paddingLeft: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
+                    className="form-control form-control--light"
+                    style={{ paddingLeft: '2.5rem' }}
                     placeholder="name@example.com.au"
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}

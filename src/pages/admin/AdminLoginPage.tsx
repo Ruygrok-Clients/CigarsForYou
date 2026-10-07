@@ -121,7 +121,7 @@ export const AdminLoginPage: React.FC = () => {
               <input
                 type="text"
                 required
-                className="form-control"
+                className="form-control form-control--light"
                 placeholder="e.g. Lead Manager"
                 value={setupName}
                 onChange={(e) => setSetupName(e.target.value)}
@@ -136,7 +136,7 @@ export const AdminLoginPage: React.FC = () => {
               <input
                 type="email"
                 required
-                className="form-control"
+                className="form-control form-control--light"
                 style={{ paddingLeft: '2.5rem' }}
                 placeholder="admin@cigarsforyou.com.au"
                 value={email}
@@ -152,8 +152,8 @@ export const AdminLoginPage: React.FC = () => {
               <input
                 type={showPassword ? "text" : "password"}
                 required
-                className="form-control"
-                style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
+                className="form-control form-control--light"
+                style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                 placeholder="••••••••"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}

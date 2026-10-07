@@ -194,7 +194,7 @@ const OrderTotals: React.FC<{ order: Order; couponTypes?: CouponTypeMap }> = ({ 
 };
 
 export const AccountPage: React.FC = () => {
-  const { currentUser, userProfile, logOut, updateUserProfile, isAdmin } = useAuth();
+  const { currentUser, userProfile, loading: authLoading, logOut, updateUserProfile, isAdmin } = useAuth();
   const { addToCart } = useCart();
   const { showToast } = useToast();
   const navigate = useNavigate();
@@ -304,8 +304,10 @@ export const AccountPage: React.FC = () => {
   }, [userProfile]);
 
   useEffect(() => {
+    // Wait for Firebase auth to restore the session before sending anyone to /login.
+    if (authLoading) return;
     if (!currentUser) {
-      navigate('/login');
+      navigate('/login', { replace: true });
       return;
     }
 
@@ -408,7 +410,7 @@ export const AccountPage: React.FC = () => {
     };
 
     fetchData();
-  }, [currentUser, currentUser?.email, userProfile?.email, navigate]);
+  }, [authLoading, currentUser, currentUser?.email, userProfile?.email, navigate]);
 
   const handleSaveIdentity = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -589,6 +591,7 @@ export const AccountPage: React.FC = () => {
     navigate('/cart');
   };
 
+  if (authLoading) return null;
   if (!currentUser || !userProfile) return null;
 
   const tier = normalizeLoyaltyTier(userProfile.loyaltyTier);
@@ -1214,13 +1217,8 @@ export const AccountPage: React.FC = () => {
                           type="text"
                           readOnly
                           value={country}
-                          className="form-control"
-                          style={{
-                            backgroundColor: '#ffffff',
-                            color: '#2f0d0e',
-                            cursor: 'not-allowed',
-                            borderColor: 'var(--border-color)'
-                          }}
+                          className="form-control form-control--light"
+                          style={{ cursor: 'not-allowed' }}
                           tabIndex={-1}
                         />
                       </div>

@@ -472,6 +472,40 @@ body.is-scrolling::-webkit-scrollbar-thumb:hover {
   color: #666666;
 }
 
+/*
+  Light-surface inputs (sign-in / sign-up cards, forced white fields).
+  Wins over dark-theme .form-control light text so white fields stay readable.
+*/
+.form-control--light,
+.form-control--light:focus,
+[data-theme="dark"] .form-control--light,
+[data-theme="dark"] .form-control--light:focus {
+  background-color: #ffffff !important;
+  color: #18181b !important;
+  -webkit-text-fill-color: #18181b !important;
+  border-color: rgba(0, 0, 0, 0.16);
+}
+
+.form-control--light::placeholder,
+[data-theme="dark"] .form-control--light::placeholder {
+  color: #71717a !important;
+  -webkit-text-fill-color: #71717a !important;
+  opacity: 1;
+}
+
+.form-control--light:-webkit-autofill,
+.form-control--light:-webkit-autofill:hover,
+.form-control--light:-webkit-autofill:focus,
+.form-control--light:-webkit-autofill:active,
+[data-theme="dark"] .form-control--light:-webkit-autofill,
+[data-theme="dark"] .form-control--light:-webkit-autofill:hover,
+[data-theme="dark"] .form-control--light:-webkit-autofill:focus,
+[data-theme="dark"] .form-control--light:-webkit-autofill:active {
+  -webkit-text-fill-color: #18181b !important;
+  box-shadow: 0 0 0px 1000px #ffffff inset !important;
+  caret-color: #18181b;
+}
+
 select.form-control {
   appearance: none;
   -webkit-appearance: none;

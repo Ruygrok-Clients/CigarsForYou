@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
@@ -14,7 +14,7 @@ import { ShieldCheck, UserPlus, Lock, Mail, User, Eye, EyeOff } from 'lucide-rea
 import { trackEvent } from '../lib/analytics';
 
 export const SignupPage: React.FC = () => {
-  const { signUp } = useAuth();
+  const { signUp, currentUser, loading: authLoading } = useAuth();
   const { showToast } = useToast();
   const navigate = useNavigate();
 
@@ -24,6 +24,12 @@ export const SignupPage: React.FC = () => {
   const [showPassword, setShowPassword] = useState(false);
   const [loading, setLoading] = useState(false);
   const [hasCachedApproval] = useState(() => Boolean(readCachedDiditApproval()));
+
+  useEffect(() => {
+    if (!authLoading && currentUser) {
+      navigate('/account', { replace: true });
+    }
+  }, [authLoading, currentUser, navigate]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -103,8 +109,8 @@ export const SignupPage: React.FC = () => {
                   id="signup-name"
                   type="text"
                   required
-                  className="form-control"
-                  style={{ paddingLeft: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
+                  className="form-control form-control--light"
+                  style={{ paddingLeft: '2.5rem' }}
                   placeholder="e.g. Oliver Smith"
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -120,8 +126,8 @@ export const SignupPage: React.FC = () => {
                   id="signup-email"
                   type="email"
                   required
-                  className="form-control"
-                  style={{ paddingLeft: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
+                  className="form-control form-control--light"
+                  style={{ paddingLeft: '2.5rem' }}
                   placeholder="name@example.com.au"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
@@ -138,8 +144,8 @@ export const SignupPage: React.FC = () => {
                   type={showPassword ? "text" : "password"}
                   required
                   minLength={6}
-                  className="form-control"
-                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem', color: '#000000', backgroundColor: '#ffffff' }}
+                  className="form-control form-control--light"
+                  style={{ paddingLeft: '2.5rem', paddingRight: '2.5rem' }}
                   placeholder="At least 6 characters"
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
