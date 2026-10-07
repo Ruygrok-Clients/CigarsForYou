@@ -452,7 +452,7 @@ export const PartnershipsPage: React.FC = () => {
                 border: '1px solid rgba(192, 101, 23, 0.3)'
               }}>
                 <h3 style={{ fontSize: '1.4rem', fontFamily: 'var(--font-serif)', color: '#ffffff', fontWeight: 700, marginBottom: '1.5rem' }}>
-                  Talk to partnerships
+                  Talk about partnerships
                 </h3>
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem' }}>
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>

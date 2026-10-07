@@ -7,10 +7,16 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { AdminAccountGate } from '../components/AdminAccountGate';
 import { RewardsProgramPanel } from '../components/RewardsProgramPanel';
-import type { Order, OrderItem, StockNotification, Product, Address } from '../types';
+import type { Coupon, Order, OrderItem, StockNotification, Product, Address } from '../types';
 import { deliveryMethodLabel } from '../constants/deliveryCopy';
 import { formatHubAddressLine, getDistributionHub } from '../constants/distributionHubs';
 import { CopyIconButton } from '../components/CopyIconButton';
+import {
+  formatCouponCodesLabel,
+  partitionOrderCoupons,
+  shippingOfferCodesForOrder,
+  type CouponTypeMap
+} from '../utils/orderCoupons';
 import { normalizeLoyaltyTier, spendablePoints, tierLabel, TIER_COLORS } from '../utils/rewards';
 import { 
   User as UserIcon, 
@@ -117,7 +123,7 @@ const OrderFulfilment: React.FC<{ order: Order }> = ({ order }) => {
   );
 };
 
-const OrderTotals: React.FC<{ order: Order }> = ({ order }) => {
+const OrderTotals: React.FC<{ order: Order; couponTypes?: CouponTypeMap }> = ({ order, couponTypes }) => {
   if (order.source === 'Reward') {
     return (
       <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
@@ -133,6 +139,14 @@ const OrderTotals: React.FC<{ order: Order }> = ({ order }) => {
     );
   }
 
+  const { itemCodes } = partitionOrderCoupons(order, couponTypes);
+  const shippingOfferCodes = shippingOfferCodesForOrder(order, couponTypes);
+  const shippingFee = order.shippingFee ?? 0;
+  const methodLabel = deliveryMethodLabel(order.deliveryMethod);
+  const shippingLabel = shippingOfferCodes.length > 0
+    ? `${methodLabel} (${formatCouponCodesLabel(shippingOfferCodes)})`
+    : methodLabel;
+
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.9rem' }}>
       <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
@@ -141,13 +155,15 @@ const OrderTotals: React.FC<{ order: Order }> = ({ order }) => {
       </div>
       {(order.discountAmount ?? 0) > 0 && (
         <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
-          <span>Discount{order.couponCode ? ` (${order.couponCode})` : ''}</span>
+          <span>Discount{itemCodes.length > 0 ? ` (${formatCouponCodesLabel(itemCodes)})` : ''}</span>
           <span>-{money(order.discountAmount)}</span>
         </div>
       )}
       <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-        <span>Shipping</span>
-        <span>{(order.shippingFee ?? 0) === 0 ? 'Free' : money(order.shippingFee ?? 0)}</span>
+        <span>{shippingLabel}</span>
+        <span style={{ color: shippingOfferCodes.length > 0 || shippingFee === 0 ? '#4caf50' : undefined }}>
+          {shippingFee === 0 ? 'Free' : money(shippingFee)}
+        </span>
       </div>
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
         <span style={{ color: 'var(--text-secondary)' }}>Total paid</span>
@@ -215,6 +231,7 @@ export const AccountPage: React.FC = () => {
   
   // Orders State
   const [orders, setOrders] = useState<Order[]>([]);
+  const [couponTypes, setCouponTypes] = useState<CouponTypeMap>({});
   const [ordersLoading, setOrdersLoading] = useState(true);
 
   // Identity Form & Edit State
@@ -293,6 +310,18 @@ export const AccountPage: React.FC = () => {
         console.error('Error loading order data:', err);
       } finally {
         setOrdersLoading(false);
+      }
+
+      try {
+        const couponsSnap = await getDocs(collection(db, 'coupons'));
+        const types: CouponTypeMap = {};
+        couponsSnap.forEach((d) => {
+          const data = d.data() as Coupon;
+          if (data.discountType) types[d.id.toUpperCase()] = data.discountType;
+        });
+        setCouponTypes(types);
+      } catch (err) {
+        console.warn('Error loading coupon types for order breakdown:', err);
       }
 
       try {
@@ -699,7 +728,7 @@ export const AccountPage: React.FC = () => {
                       ))}
                     </div>
 
-                    <OrderTotals order={order} />
+                    <OrderTotals order={order} couponTypes={couponTypes} />
                     {order.statusHistory?.length > 0 && (
                       <ol style={{ listStyle: 'none', margin: '1rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
                         {[...order.statusHistory].reverse().map((entry, idx) => (

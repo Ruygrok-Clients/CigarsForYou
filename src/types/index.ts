@@ -248,6 +248,11 @@ export interface Order {
   trackingCarrier?: string;
   trackingUrl?: string;
   couponCode?: string;
+  /** Structured coupons at checkout. Used to attach free-shipping offers to the shipping line. */
+  appliedCoupons?: Array<{
+    code: string;
+    discountType: 'percentage' | 'fixed' | 'free_shipping';
+  }>;
   totalAmount: number;
   currency: 'AUD';
   status: OrderStatus;

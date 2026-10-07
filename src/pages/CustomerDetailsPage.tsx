@@ -35,6 +35,7 @@ import {
   ShoppingBag,
   Tag,
   ChevronLeft,
+  ChevronDown,
   User,
   MapPin,
   Sparkles,
@@ -100,6 +101,8 @@ export const CustomerDetailsPage: React.FC = () => {
   const [couponCode, setCouponCode] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
   const [openInfo, setOpenInfo] = useState<DeliveryMethod | null>('pickup');
+  const [hubMenuOpen, setHubMenuOpen] = useState(false);
+  const hubSelectRef = useRef<HTMLDivElement>(null);
   const [verifyingAge, setVerifyingAge] = useState(false);
   const [ageBlockMessage, setAgeBlockMessage] = useState('');
   const [now, setNow] = useState(() => new Date());
@@ -225,6 +228,28 @@ export const CustomerDetailsPage: React.FC = () => {
     if (quoteLoading) return;
     setImmediateDispatchFee(quotedFee);
   }, [deliveryMethod, quotedFee, quoteLoading, setImmediateDispatchFee]);
+
+  useEffect(() => {
+    if (deliveryMethod !== 'pickup') setHubMenuOpen(false);
+  }, [deliveryMethod]);
+
+  useEffect(() => {
+    if (!hubMenuOpen) return;
+    const onPointerDown = (event: MouseEvent) => {
+      if (hubSelectRef.current && !hubSelectRef.current.contains(event.target as Node)) {
+        setHubMenuOpen(false);
+      }
+    };
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') setHubMenuOpen(false);
+    };
+    document.addEventListener('mousedown', onPointerDown);
+    document.addEventListener('keydown', onKeyDown);
+    return () => {
+      document.removeEventListener('mousedown', onPointerDown);
+      document.removeEventListener('keydown', onKeyDown);
+    };
+  }, [hubMenuOpen]);
 
   const checkoutItems = rewardsMode
     ? rewardsCart.items.map((item) => toRewardGaItem(item.product, item.quantity))
@@ -494,11 +519,15 @@ export const CustomerDetailsPage: React.FC = () => {
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-                  <div style={{
-                    border: `1px solid ${deliveryMethod === 'pickup' ? 'var(--accent-gold)' : 'var(--border-color)'}`,
-                    borderRadius: '8px',
-                    padding: '0.95rem 1rem'
-                  }}>
+                  <div
+                    onClick={() => selectMethod('pickup')}
+                    style={{
+                      border: `1px solid ${deliveryMethod === 'pickup' ? 'var(--accent-gold)' : 'var(--border-color)'}`,
+                      borderRadius: '8px',
+                      padding: '0.95rem 1rem',
+                      cursor: 'pointer'
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                       <input
                         type="radio"
@@ -506,9 +535,9 @@ export const CustomerDetailsPage: React.FC = () => {
                         id="delivery-pickup"
                         checked={deliveryMethod === 'pickup'}
                         onChange={() => selectMethod('pickup')}
-                        style={{ marginTop: '0.25rem', accentColor: 'var(--accent-gold)' }}
+                        style={{ marginTop: '0.25rem', accentColor: 'var(--accent-gold)', pointerEvents: 'none' }}
                       />
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'flex-start' }}>
                           <label htmlFor="delivery-pickup" style={{ fontWeight: 700, color: 'var(--text-primary)', cursor: 'pointer' }}>
                             {INSTORE_PICKUP_NAME}
@@ -518,7 +547,10 @@ export const CustomerDetailsPage: React.FC = () => {
                             <button
                               type="button"
                               aria-label="About In-Store Pickup"
-                              onClick={() => setOpenInfo(openInfo === 'pickup' ? null : 'pickup')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenInfo(openInfo === 'pickup' ? null : 'pickup');
+                              }}
                               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}
                             >
                               <Info size={16} />
@@ -529,20 +561,69 @@ export const CustomerDetailsPage: React.FC = () => {
                           {instorePickupHoursMessage(deliveryWindow)}
                         </p>
                         {deliveryMethod === 'pickup' && (
-                          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                          <div
+                            style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}
+                            onClick={(e) => e.stopPropagation()}
+                          >
                             <label htmlFor="pickup-hub" style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
                               Distribution hub
                             </label>
-                            <select
-                              id="pickup-hub"
-                              className="form-control"
-                              value={selectedHub.id}
-                              onChange={(e) => setPickupHubId(e.target.value)}
-                            >
-                              {DISTRIBUTION_HUBS.map((hub) => (
-                                <option key={hub.id} value={hub.id}>{hub.label}</option>
-                              ))}
-                            </select>
+                            <div ref={hubSelectRef} style={{ position: 'relative' }}>
+                              <button
+                                type="button"
+                                id="pickup-hub"
+                                className="form-control"
+                                aria-haspopup="listbox"
+                                aria-expanded={hubMenuOpen}
+                                onClick={() => setHubMenuOpen((open) => !open)}
+                                style={{
+                                  display: 'flex',
+                                  alignItems: 'center',
+                                  justifyContent: 'space-between',
+                                  gap: '0.75rem',
+                                  paddingRight: '1.1rem'
+                                }}
+                              >
+                                <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                                  {selectedHub.label}
+                                </span>
+                                <ChevronDown
+                                  size={16}
+                                  aria-hidden
+                                  style={{
+                                    flexShrink: 0,
+                                    color: 'var(--text-muted)',
+                                    transform: hubMenuOpen ? 'rotate(180deg)' : 'none',
+                                    transition: 'transform 0.15s ease'
+                                  }}
+                                />
+                              </button>
+                              {hubMenuOpen && (
+                                <ul
+                                  className="form-select-menu"
+                                  role="listbox"
+                                  aria-labelledby="pickup-hub"
+                                >
+                                  {DISTRIBUTION_HUBS.map((hub) => {
+                                    const selected = hub.id === selectedHub.id;
+                                    return (
+                                      <li key={hub.id} role="option" aria-selected={selected}>
+                                        <button
+                                          type="button"
+                                          className={`form-select-menu__option${selected ? ' is-selected' : ''}`}
+                                          onClick={() => {
+                                            setPickupHubId(hub.id);
+                                            setHubMenuOpen(false);
+                                          }}
+                                        >
+                                          {hub.label}
+                                        </button>
+                                      </li>
+                                    );
+                                  })}
+                                </ul>
+                              )}
+                            </div>
                             <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
                               <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.45 }}>
                                 {formatHubAddressLine(selectedHub)}
@@ -560,13 +641,17 @@ export const CustomerDetailsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div style={{
-                    border: `1px solid ${deliveryMethod === 'immediate' ? 'var(--accent-gold)' : 'var(--border-color)'}`,
-                    borderRadius: '8px',
-                    padding: '0.95rem 1rem',
-                    backgroundColor: immediateAvailable ? 'transparent' : 'rgba(0,0,0,0.02)',
-                    opacity: immediateAvailable ? 1 : 0.72
-                  }}>
+                  <div
+                    onClick={() => selectMethod('immediate')}
+                    style={{
+                      border: `1px solid ${deliveryMethod === 'immediate' ? 'var(--accent-gold)' : 'var(--border-color)'}`,
+                      borderRadius: '8px',
+                      padding: '0.95rem 1rem',
+                      backgroundColor: immediateAvailable ? 'transparent' : 'rgba(0,0,0,0.02)',
+                      opacity: immediateAvailable ? 1 : 0.72,
+                      cursor: immediateAvailable ? 'pointer' : 'not-allowed'
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                       <input
                         type="radio"
@@ -575,9 +660,9 @@ export const CustomerDetailsPage: React.FC = () => {
                         checked={deliveryMethod === 'immediate'}
                         disabled={!immediateAvailable}
                         onChange={() => selectMethod('immediate')}
-                        style={{ marginTop: '0.25rem', accentColor: 'var(--accent-gold)' }}
+                        style={{ marginTop: '0.25rem', accentColor: 'var(--accent-gold)', pointerEvents: 'none' }}
                       />
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'flex-start' }}>
                           <label htmlFor="delivery-immediate" style={{ fontWeight: 700, color: 'var(--text-primary)', cursor: immediateAvailable ? 'pointer' : 'not-allowed' }}>
                             {IMMEDIATE_DISPATCH_NAME}
@@ -589,7 +674,10 @@ export const CustomerDetailsPage: React.FC = () => {
                             <button
                               type="button"
                               aria-label="About Immediate Dispatch"
-                              onClick={() => setOpenInfo(openInfo === 'immediate' ? null : 'immediate')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenInfo(openInfo === 'immediate' ? null : 'immediate');
+                              }}
                               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}
                             >
                               <Info size={16} />
@@ -613,11 +701,15 @@ export const CustomerDetailsPage: React.FC = () => {
                     </div>
                   </div>
 
-                  <div style={{
-                    border: `1px solid ${deliveryMethod === 'express' ? 'var(--accent-gold)' : 'var(--border-color)'}`,
-                    borderRadius: '8px',
-                    padding: '0.95rem 1rem'
-                  }}>
+                  <div
+                    onClick={() => selectMethod('express')}
+                    style={{
+                      border: `1px solid ${deliveryMethod === 'express' ? 'var(--accent-gold)' : 'var(--border-color)'}`,
+                      borderRadius: '8px',
+                      padding: '0.95rem 1rem',
+                      cursor: 'pointer'
+                    }}
+                  >
                     <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
                       <input
                         type="radio"
@@ -625,9 +717,9 @@ export const CustomerDetailsPage: React.FC = () => {
                         id="delivery-express"
                         checked={deliveryMethod === 'express'}
                         onChange={() => selectMethod('express')}
-                        style={{ marginTop: '0.25rem', accentColor: 'var(--accent-gold)' }}
+                        style={{ marginTop: '0.25rem', accentColor: 'var(--accent-gold)', pointerEvents: 'none' }}
                       />
-                      <div style={{ flex: 1 }}>
+                      <div style={{ flex: 1, minWidth: 0 }}>
                         <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'flex-start' }}>
                           <label htmlFor="delivery-express" style={{ fontWeight: 700, color: 'var(--text-primary)', cursor: 'pointer' }}>
                             {EXPRESS_DELIVERY_NAME}
@@ -637,7 +729,10 @@ export const CustomerDetailsPage: React.FC = () => {
                             <button
                               type="button"
                               aria-label="About Express Shipping"
-                              onClick={() => setOpenInfo(openInfo === 'express' ? null : 'express')}
+                              onClick={(e) => {
+                                e.stopPropagation();
+                                setOpenInfo(openInfo === 'express' ? null : 'express');
+                              }}
                               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}
                             >
                               <Info size={16} />

@@ -1,9 +1,15 @@
 import React, { useState, useEffect } from 'react';
 import { collection, getDocs, doc, updateDoc, deleteDoc, increment } from 'firebase/firestore';
 import { db } from '../../firebase';
-import type { Order, OrderStatus } from '../../types';
+import type { Coupon, Order, OrderStatus } from '../../types';
 import { orderSourceLabel } from '../../utils/rewards';
 import { advanceActionLabel, nextOrderStatus } from '../../utils/orderPipeline';
+import {
+  formatCouponCodesLabel,
+  partitionOrderCoupons,
+  shippingOfferCodesForOrder,
+  type CouponTypeMap
+} from '../../utils/orderCoupons';
 import { deliveryMethodLabel } from '../../constants/deliveryCopy';
 import { formatHubAddressLine, getDistributionHub } from '../../constants/distributionHubs';
 import { resolveImmediateDispatch } from '../../services/immediateDispatchRemediation';
@@ -45,6 +51,7 @@ export const AdminOrders: React.FC = () => {
   const { showToast } = useToast();
 
   const [orders, setOrders] = useState<Order[]>([]);
+  const [couponTypes, setCouponTypes] = useState<CouponTypeMap>({});
   const [loading, setLoading] = useState(true);
   const [viewTab, setViewTab] = useState<'active' | 'archived'>('active');
   const [sourceFilter, setSourceFilter] = useState<string>('all');
@@ -73,6 +80,18 @@ export const AdminOrders: React.FC = () => {
       console.error('Error loading orders:', err);
     } finally {
       setLoading(false);
+    }
+
+    try {
+      const couponsSnap = await getDocs(collection(db, 'coupons'));
+      const types: CouponTypeMap = {};
+      couponsSnap.forEach((d) => {
+        const data = d.data() as Coupon;
+        if (data.discountType) types[d.id.toUpperCase()] = data.discountType;
+      });
+      setCouponTypes(types);
+    } catch (err) {
+      console.warn('Error loading coupon types for order breakdown:', err);
     }
   };
 
@@ -794,16 +813,37 @@ export const AdminOrders: React.FC = () => {
                         <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${selectedOrder.subtotal?.toFixed(2)} AUD</span>
                       </div>
                     )}
-                    {(selectedOrder.discountAmount ?? 0) > 0 && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', padding: '0.2rem 0', fontWeight: 600 }}>
-                        <span>Discount ({selectedOrder.couponCode || 'Coupon'})</span>
-                        <span>-${selectedOrder.discountAmount?.toFixed(2)} AUD</span>
-                      </div>
-                    )}
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
-                      <span>{deliveryMethodLabel(selectedOrder.deliveryMethod)}</span>
-                      <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${(selectedOrder.shippingFee ?? 0).toFixed(2)} AUD</span>
-                    </div>
+                    {(() => {
+                      const { itemCodes } = partitionOrderCoupons(selectedOrder, couponTypes);
+                      const shippingOfferCodes = shippingOfferCodesForOrder(selectedOrder, couponTypes);
+                      const shippingFee = selectedOrder.shippingFee ?? 0;
+                      const methodLabel = deliveryMethodLabel(selectedOrder.deliveryMethod);
+                      const shippingLabel = shippingOfferCodes.length > 0
+                        ? `${methodLabel} (${formatCouponCodesLabel(shippingOfferCodes)})`
+                        : methodLabel;
+                      return (
+                        <>
+                          {(selectedOrder.discountAmount ?? 0) > 0 && (
+                            <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', padding: '0.2rem 0', fontWeight: 600 }}>
+                              <span>
+                                Discount
+                                {itemCodes.length > 0 ? ` (${formatCouponCodesLabel(itemCodes)})` : ''}
+                              </span>
+                              <span>-${selectedOrder.discountAmount?.toFixed(2)} AUD</span>
+                            </div>
+                          )}
+                          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
+                            <span>{shippingLabel}</span>
+                            <span style={{
+                              color: shippingOfferCodes.length > 0 || shippingFee === 0 ? '#10b981' : 'var(--text-primary)',
+                              fontWeight: 600
+                            }}>
+                              {shippingFee === 0 ? 'FREE' : `$${shippingFee.toFixed(2)} AUD`}
+                            </span>
+                          </div>
+                        </>
+                      );
+                    })()}
                     {(selectedOrder.immediateDispatchFeeRefunded ?? 0) > 0 && (
                       <div style={{ display: 'flex', justifyContent: 'space-between', color: '#10b981', padding: '0.2rem 0', fontWeight: 600 }}>
                         <span>Immediate Dispatch fee refunded</span>
