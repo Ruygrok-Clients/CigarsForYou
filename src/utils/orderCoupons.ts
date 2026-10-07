@@ -1,3 +1,4 @@
+import { EXPRESS_DELIVERY_FEE } from '../constants/deliveryCopy';
 import { DEMO_COUPONS } from './coupon';
 import type { Coupon, Order } from '../types';
 
@@ -59,6 +60,19 @@ export function shippingOfferCodesForOrder(
   if (order.deliveryMethod !== 'immediate') return [];
   if ((order.shippingFee ?? 0) > 0) return [];
   return shippingCodes;
+}
+
+/**
+ * Catalog / pre-waiver shipping amount for order summary display.
+ * Immediate Dispatch quotes are not stored once waived, so returns null in that case.
+ */
+export function orderShippingListFee(
+  order: Pick<Order, 'deliveryMethod' | 'shippingFee'>
+): number | null {
+  if (order.deliveryMethod === 'pickup') return 0;
+  if (order.deliveryMethod === 'express') return EXPRESS_DELIVERY_FEE;
+  const charged = order.shippingFee ?? 0;
+  return charged > 0 ? charged : null;
 }
 
 export function formatCouponCodesLabel(codes: string[]): string {

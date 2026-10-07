@@ -13,6 +13,7 @@ import { formatHubAddressLine, getDistributionHub } from '../constants/distribut
 import { CopyIconButton } from '../components/CopyIconButton';
 import {
   formatCouponCodesLabel,
+  orderShippingListFee,
   partitionOrderCoupons,
   shippingOfferCodesForOrder,
   type CouponTypeMap
@@ -94,9 +95,8 @@ const OrderFulfilment: React.FC<{ order: Order }> = ({ order }) => {
   const address = pickup ? pickupAddressLine(order) : '';
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
-      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', color: 'var(--text-secondary)' }}>
-        <span>{deliveryMethodLabel(order.deliveryMethod)}</span>
-        <span>{(order.shippingFee ?? 0) === 0 ? 'Free' : money(order.shippingFee ?? 0)}</span>
+      <div style={{ color: 'var(--text-secondary)' }}>
+        {deliveryMethodLabel(order.deliveryMethod)}
       </div>
       {pickup && address && (
         <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
@@ -139,13 +139,20 @@ const OrderTotals: React.FC<{ order: Order; couponTypes?: CouponTypeMap }> = ({ 
     );
   }
 
-  const { itemCodes } = partitionOrderCoupons(order, couponTypes);
+  const { itemCodes, shippingCodes } = partitionOrderCoupons(order, couponTypes);
   const shippingOfferCodes = shippingOfferCodesForOrder(order, couponTypes);
   const shippingFee = order.shippingFee ?? 0;
   const methodLabel = deliveryMethodLabel(order.deliveryMethod);
-  const shippingLabel = shippingOfferCodes.length > 0
-    ? `${methodLabel} (${formatCouponCodesLabel(shippingOfferCodes)})`
-    : methodLabel;
+  // Prefer codes that actually waived Immediate Dispatch; fall back to any free-shipping codes on a $0 delivery.
+  const waiverCodes = shippingOfferCodes.length > 0 ? shippingOfferCodes : (shippingFee === 0 ? shippingCodes : []);
+  // Split like Subtotal + Discount: list price on the method line, green Free on the offer line.
+  const showShippingWaiver = shippingFee === 0 && order.deliveryMethod !== 'pickup';
+  const listFee = showShippingWaiver ? orderShippingListFee(order) : null;
+  const waiverLabel = waiverCodes.length > 0
+    ? `Discount (${formatCouponCodesLabel(waiverCodes)})`
+    : order.immediateDispatchResolution === 'express_upgrade'
+      ? 'Complimentary Express'
+      : 'Free shipping';
 
   return (
     <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.9rem' }}>
@@ -159,12 +166,25 @@ const OrderTotals: React.FC<{ order: Order; couponTypes?: CouponTypeMap }> = ({ 
           <span>-{money(order.discountAmount)}</span>
         </div>
       )}
-      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
-        <span>{shippingLabel}</span>
-        <span style={{ color: shippingOfferCodes.length > 0 || shippingFee === 0 ? '#4caf50' : undefined }}>
-          {shippingFee === 0 ? 'Free' : money(shippingFee)}
-        </span>
-      </div>
+      {showShippingWaiver ? (
+        <>
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+            <span>{methodLabel}</span>
+            <span>{listFee != null ? money(listFee) : '—'}</span>
+          </div>
+          <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
+            <span>{waiverLabel}</span>
+            <span>Free</span>
+          </div>
+        </>
+      ) : (
+        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+          <span>{methodLabel}</span>
+          <span style={{ color: shippingFee === 0 ? '#4caf50' : undefined }}>
+            {shippingFee === 0 ? 'Free' : money(shippingFee)}
+          </span>
+        </div>
+      )}
       <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
         <span style={{ color: 'var(--text-secondary)' }}>Total paid</span>
         <span style={{ color: 'var(--accent-gold)', fontSize: '1.15rem' }}>{money(order.totalAmount)}</span>
