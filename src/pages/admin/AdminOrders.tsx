@@ -3,10 +3,15 @@ import { collection, getDocs, doc, updateDoc, deleteDoc, increment } from 'fireb
 import { db } from '../../firebase';
 import type { Order, OrderStatus } from '../../types';
 import { orderSourceLabel } from '../../utils/rewards';
+import { advanceActionLabel, nextOrderStatus } from '../../utils/orderPipeline';
+import { deliveryMethodLabel } from '../../constants/deliveryCopy';
+import { formatHubAddressLine, getDistributionHub } from '../../constants/distributionHubs';
 import { resolveImmediateDispatch } from '../../services/immediateDispatchRemediation';
+import { advanceOrderStatus } from '../../services/advanceOrderStatus';
 import { useAdminContext } from './AdminContext';
 import { useToast } from '../../components/Toast';
 import { Modal } from '../../components/Modal';
+import { CopyIconButton } from '../../components/CopyIconButton';
 import { 
   ShoppingBag, 
   Trash2, 
@@ -16,60 +21,12 @@ import {
   X, 
   ShieldCheck, 
   Search,
-  Copy,
-  Check,
   Ban
 } from 'lucide-react';
-
-const ORDER_STATUS_STEPS: OrderStatus[] = ['Order Placed', 'Processing', 'Shipped', 'Fulfilled'];
 
 function isTerminalOrderStatus(status: OrderStatus): boolean {
   return status === 'Fulfilled' || status === 'Cancelled';
 }
-
-const CopyIconButton: React.FC<{ label: string; value: string }> = ({ label, value }) => {
-  const { showToast } = useToast();
-  const [copied, setCopied] = useState(false);
-
-  const onCopy = async () => {
-    const text = value.trim();
-    if (!text) {
-      showToast(`No ${label.toLowerCase()} to copy`, 'error');
-      return;
-    }
-    try {
-      await navigator.clipboard.writeText(text);
-      setCopied(true);
-      showToast(`${label} copied`);
-      window.setTimeout(() => setCopied(false), 1200);
-    } catch {
-      showToast('Could not copy to clipboard', 'error');
-    }
-  };
-
-  return (
-    <button
-      type="button"
-      onClick={onCopy}
-      aria-label={`Copy ${label}`}
-      title={`Copy ${label}`}
-      style={{
-        background: 'none',
-        border: '1px solid var(--border-subtle)',
-        color: copied ? '#10b981' : 'var(--text-muted)',
-        cursor: 'pointer',
-        padding: '0.25rem',
-        display: 'inline-flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        borderRadius: 'var(--radius-sm)',
-        flexShrink: 0
-      }}
-    >
-      {copied ? <Check size={14} /> : <Copy size={14} />}
-    </button>
-  );
-};
 
 const CopyFieldRow: React.FC<{ label: string; value?: string }> = ({ label, value }) => (
   <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '0.75rem', padding: '0.4rem 0' }}>
@@ -123,36 +80,77 @@ export const AdminOrders: React.FC = () => {
     fetchOrders();
   }, []);
 
-  const handleAdvanceStatus = async (order: Order) => {
+  const [advanceTarget, setAdvanceTarget] = useState<Order | null>(null);
+  const [trackingNumber, setTrackingNumber] = useState('');
+  const [trackingCarrier, setTrackingCarrier] = useState('Didi');
+  const [trackingUrl, setTrackingUrl] = useState('');
+  const [advancing, setAdvancing] = useState(false);
+
+  const requestAdvance = (order: Order) => {
     if (screenLocked) {
       showToast('Screen Lock active (View-Only Mode)', 'info');
       return;
     }
+    const nextStatus = nextOrderStatus(order.status, order.deliveryMethod);
+    if (!nextStatus || !order.id) return;
+    if (nextStatus === 'Shipped') {
+      setTrackingNumber('');
+      setTrackingUrl('');
+      setTrackingCarrier(order.deliveryMethod === 'immediate' ? 'Didi' : 'StarTrack');
+      setAdvanceTarget(order);
+      return;
+    }
+    if (nextStatus === 'Collectable') {
+      setAdvanceTarget(order);
+      return;
+    }
+    void submitAdvance(order);
+  };
 
-    const currentIndex = ORDER_STATUS_STEPS.indexOf(order.status);
-    if (currentIndex < 0 || currentIndex >= ORDER_STATUS_STEPS.length - 1) return;
-
-    const nextStatus = ORDER_STATUS_STEPS[currentIndex + 1];
+  const submitAdvance = async (order: Order) => {
+    if (!order.id || advancing) return;
+    const nextStatus = nextOrderStatus(order.status, order.deliveryMethod);
+    if (!nextStatus) return;
+    if (nextStatus === 'Shipped' && (!trackingNumber.trim() || !trackingCarrier.trim())) {
+      showToast('Enter the tracking carrier and number.', 'error');
+      return;
+    }
+    setAdvancing(true);
     try {
-      const orderRef = doc(db, 'orders', order.id!);
-      const updatedHistory = [
-        ...(order.statusHistory || []),
-        { status: nextStatus, timestamp: new Date().toISOString(), updatedBy: 'Admin Portal' }
-      ];
-
-      await updateDoc(orderRef, {
-        status: nextStatus,
-        statusHistory: updatedHistory
+      const result = await advanceOrderStatus({
+        orderId: order.id,
+        ...(nextStatus === 'Shipped'
+          ? {
+            trackingNumber: trackingNumber.trim(),
+            trackingCarrier: trackingCarrier.trim(),
+            trackingUrl: trackingUrl.trim() || undefined
+          }
+          : {})
       });
-
-      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, status: nextStatus, statusHistory: updatedHistory } : o));
+      const next = result.order;
+      const patch: Partial<Order> = {
+        status: next.status,
+        statusHistory: next.statusHistory || order.statusHistory,
+        trackingNumber: next.trackingNumber || order.trackingNumber,
+        trackingCarrier: next.trackingCarrier || order.trackingCarrier,
+        trackingUrl: next.trackingUrl || order.trackingUrl
+      };
+      setOrders(prev => prev.map(o => o.id === order.id ? { ...o, ...patch } : o));
       if (selectedOrder?.id === order.id) {
-        setSelectedOrder(prev => prev ? { ...prev, status: nextStatus, statusHistory: updatedHistory } : null);
+        setSelectedOrder(prev => prev ? { ...prev, ...patch } : null);
       }
-      showToast(`Advanced order ${order.orderNumber} to ${nextStatus}`);
+      setAdvanceTarget(null);
+      const emailed = nextStatus === 'Shipped' || nextStatus === 'Collectable';
+      showToast(
+        emailed
+          ? `Order ${order.orderNumber} is now ${next.status}. The customer has been emailed.`
+          : `Advanced order ${order.orderNumber} to ${next.status}`
+      );
     } catch (err) {
       console.error('Error advancing status:', err);
-      showToast('Failed to update order status', 'error');
+      showToast(callableErrorMessage(err, 'Failed to update order status'), 'error');
+    } finally {
+      setAdvancing(false);
     }
   };
 
@@ -575,9 +573,9 @@ export const AdminOrders: React.FC = () => {
                             {!isTerminalOrderStatus(order.status) && (
                               <button
                                 className="btn btn-primary btn-sm"
-                                title="Advance Status"
                                 disabled={screenLocked}
-                                onClick={() => handleAdvanceStatus(order)}
+                                onClick={() => requestAdvance(order)}
+                                title={advanceActionLabel(nextOrderStatus(order.status, order.deliveryMethod) || 'Fulfilled')}
                               >
                                 &rarr;
                               </button>
@@ -713,12 +711,20 @@ export const AdminOrders: React.FC = () => {
                 <CopyFieldRow label="State" value={selectedOrder.deliveryAddress?.state} />
                 <CopyFieldRow label="Postcode" value={selectedOrder.deliveryAddress?.postcode} />
                 <CopyFieldRow
-                  label="Delivery address"
-                  value={[
-                    selectedOrder.deliveryAddress?.street,
-                    [selectedOrder.deliveryAddress?.suburb, selectedOrder.deliveryAddress?.state, selectedOrder.deliveryAddress?.postcode].filter(Boolean).join(' ')
-                  ].filter(Boolean).join(', ')}
+                  label={selectedOrder.deliveryMethod === 'pickup' ? 'Collection address' : 'Delivery address'}
+                  value={selectedOrder.deliveryMethod === 'pickup'
+                    ? (getDistributionHub(selectedOrder.pickupHubId) ? formatHubAddressLine(getDistributionHub(selectedOrder.pickupHubId)!) : [
+                      selectedOrder.deliveryAddress?.street,
+                      [selectedOrder.deliveryAddress?.suburb, selectedOrder.deliveryAddress?.state, selectedOrder.deliveryAddress?.postcode].filter(Boolean).join(' ')
+                    ].filter(Boolean).join(', '))
+                    : [
+                      selectedOrder.deliveryAddress?.street,
+                      [selectedOrder.deliveryAddress?.suburb, selectedOrder.deliveryAddress?.state, selectedOrder.deliveryAddress?.postcode].filter(Boolean).join(' ')
+                    ].filter(Boolean).join(', ')}
                 />
+                {selectedOrder.trackingNumber && (
+                  <CopyFieldRow label={selectedOrder.trackingCarrier || 'Tracking'} value={selectedOrder.trackingNumber} />
+                )}
               </div>
 
               {/* Compliance & Payment */}
@@ -795,7 +801,7 @@ export const AdminOrders: React.FC = () => {
                       </div>
                     )}
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', padding: '0.2rem 0' }}>
-                      <span>{selectedOrder.deliveryMethod === 'immediate' ? 'Immediate Dispatch' : 'Express Delivery'}</span>
+                      <span>{deliveryMethodLabel(selectedOrder.deliveryMethod)}</span>
                       <span style={{ color: 'var(--text-primary)', fontWeight: 600 }}>${(selectedOrder.shippingFee ?? 0).toFixed(2)} AUD</span>
                     </div>
                     {(selectedOrder.immediateDispatchFeeRefunded ?? 0) > 0 && (
@@ -886,9 +892,9 @@ export const AdminOrders: React.FC = () => {
                     className="btn btn-primary"
                     style={{ flex: '1 1 180px' }}
                     disabled={screenLocked}
-                    onClick={() => handleAdvanceStatus(selectedOrder)}
+                    onClick={() => requestAdvance(selectedOrder)}
                   >
-                    Advance Status to Next Phase
+                    {advanceActionLabel(nextOrderStatus(selectedOrder.status, selectedOrder.deliveryMethod) || 'Fulfilled')}
                   </button>
                 )}
                 {selectedOrder.status !== 'Cancelled' && (
@@ -903,6 +909,73 @@ export const AdminOrders: React.FC = () => {
                 )}
               </div>
             </div>
+          </div>
+        </Modal>
+      )}
+
+      {advanceTarget && (
+        <Modal onClick={() => { if (!advancing) setAdvanceTarget(null); }}>
+          <div
+            className="modal-content"
+            style={{ maxWidth: '520px', position: 'relative' }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            <button
+              type="button"
+              onClick={() => { if (!advancing) setAdvanceTarget(null); }}
+              aria-label="Close"
+              disabled={advancing}
+              style={{ position: 'absolute', top: '1rem', right: '1rem', background: 'none', border: 'none', color: 'var(--text-muted)', cursor: 'pointer' }}
+            >
+              <X size={18} />
+            </button>
+            {nextOrderStatus(advanceTarget.status, advanceTarget.deliveryMethod) === 'Collectable' ? (
+              <>
+                <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>Mark order collectable?</h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                  This emails {advanceTarget.customerName} that order {advanceTarget.orderNumber} is ready to collect
+                  {getDistributionHub(advanceTarget.pickupHubId) ? ` from ${formatHubAddressLine(getDistributionHub(advanceTarget.pickupHubId)!)}` : ''}.
+                  Collection is 7:00am to 7:00pm.
+                </p>
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn btn-secondary" disabled={advancing} onClick={() => setAdvanceTarget(null)}>Back</button>
+                  <button type="button" className="btn btn-primary" disabled={advancing} onClick={() => submitAdvance(advanceTarget)}>
+                    {advancing ? 'Sending…' : 'Confirm and email customer'}
+                  </button>
+                </div>
+              </>
+            ) : (
+              <>
+                <h3 style={{ marginTop: 0, color: 'var(--text-primary)' }}>
+                  {advanceTarget.deliveryMethod === 'immediate' ? 'Didi tracking' : 'Shipping tracking'}
+                </h3>
+                <p style={{ color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                  {advanceTarget.deliveryMethod === 'immediate'
+                    ? 'Enter the Didi tracking details. Confirming marks the order shipped and emails the customer that it is on its way.'
+                    : 'Enter the Express Shipping label or tracking details. Confirming marks the order shipped and emails the customer that it is on its way.'}
+                </p>
+                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.35rem' }}>Carrier</label>
+                {advanceTarget.deliveryMethod === 'immediate' ? (
+                  <input className="form-control" value="Didi" readOnly style={{ marginBottom: '0.85rem' }} />
+                ) : (
+                  <select className="form-control" value={trackingCarrier} onChange={(e) => setTrackingCarrier(e.target.value)} style={{ marginBottom: '0.85rem' }}>
+                    <option value="StarTrack">StarTrack</option>
+                    <option value="AusPost">AusPost</option>
+                    <option value="Other">Other</option>
+                  </select>
+                )}
+                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.35rem' }}>Tracking number</label>
+                <input className="form-control" value={trackingNumber} onChange={(e) => setTrackingNumber(e.target.value)} style={{ marginBottom: '0.85rem' }} />
+                <label style={{ display: 'block', fontSize: '0.85rem', marginBottom: '0.35rem' }}>Tracking link (optional)</label>
+                <input className="form-control" value={trackingUrl} onChange={(e) => setTrackingUrl(e.target.value)} style={{ marginBottom: '1rem' }} />
+                <div style={{ display: 'flex', gap: '0.75rem', justifyContent: 'flex-end' }}>
+                  <button type="button" className="btn btn-secondary" disabled={advancing} onClick={() => setAdvanceTarget(null)}>Back</button>
+                  <button type="button" className="btn btn-primary" disabled={advancing} onClick={() => submitAdvance(advanceTarget)}>
+                    {advancing ? 'Sending…' : 'Confirm and email customer'}
+                  </button>
+                </div>
+              </>
+            )}
           </div>
         </Modal>
       )}

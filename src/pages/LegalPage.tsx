@@ -187,15 +187,15 @@ export const LegalPage: React.FC = () => {
 
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>3. Delivery Age Verification</h2>
               <p>
-                Immediate Dispatch is handled by our official partner, Didi. Express Delivery is handled by courier partners such as StarTrack or AusPost, under arrangements that include tobacco delivery and an ID check. In both cases the person receiving the order must be 18 or older, must present appropriate photo ID, and must match the customer details on the order. The order cannot be left unattended. If the ID check fails, the order is returned to CigarsForYou. For Express Delivery, it may instead be held at a local post office with instructions that the same age check is completed before collection.
+                Immediate Dispatch is handled by our official partner, Didi. Express Shipping is handled by courier partners such as StarTrack or AusPost, under arrangements that include tobacco delivery and an ID check. In both cases the person receiving the order must be 18 or older, must present appropriate photo ID, and must match the customer details on the order. The order cannot be left unattended. If the ID check fails, the order is returned to CigarsForYou. For Express Shipping, it may instead be held at a local post office with instructions that the same age check is completed before collection.
               </p>
 
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>4. Immediate Dispatch</h2>
               <p>
-                At checkout we quote Immediate Dispatch from the delivery address, using a conservative distance-based price, alongside flat-fee Express Delivery. If you choose Immediate Dispatch and pay, our team arranges the delivery with Didi.
+                At checkout we quote Immediate Dispatch from the delivery address, using a conservative distance-based price, alongside flat-fee Express Shipping. If you choose Immediate Dispatch and pay, our team arranges the delivery with Didi.
               </p>
               <p style={{ marginTop: '1rem' }}>
-                If Didi cannot take the delivery, we email you two options. You can take a full refund, including the Immediate Dispatch fee, or move the order to complimentary Express Delivery. On that upgrade we refund the Immediate Dispatch fee and send the order by Express Delivery at no delivery charge to you. Reply to the email or call us and we will record your choice. We do not change the order until we hear from you.
+                If Didi cannot take the delivery, we email you two options. You can take a full refund, including the Immediate Dispatch fee, or move the order to complimentary Express Shipping. On that upgrade we refund the Immediate Dispatch fee and send the order by Express Shipping at no delivery charge to you. Reply to the email or call us and we will record your choice. We do not change the order until we hear from you.
               </p>
             </div>
           ) : path.includes('refund') ? (

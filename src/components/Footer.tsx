@@ -5,7 +5,7 @@ import { BRAND_ABN, BRAND_NAME } from '../lib/brand';
 
 const MARQUEE_ITEMS = [
   'IMMEDIATE DISPATCH',
-  'EXPRESS DELIVERY',
+  'EXPRESS SHIPPING',
   '100% GENUINE CUBAN',
   'AGE VERIFIED 18+'
 ];
@@ -158,6 +158,7 @@ export const Footer: React.FC = () => {
             <ul style={{ listStyle: 'none', display: 'flex', flexDirection: 'column', gap: '0.6rem', padding: 0, margin: 0 }}>
               <li><Link to="/about" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>About Us</Link></li>
               <li><Link to="/news" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>News</Link></li>
+              <li><Link to="/distribution-hubs" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Distribution Hubs</Link></li>
               <li><Link to="/partnerships" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Partnerships</Link></li>
               <li><Link to="/contact" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Contact Us</Link></li>
               <li><Link to="/shop" style={{ color: 'var(--text-secondary)', fontSize: '0.875rem', textDecoration: 'none' }}>Shop All Cigars</Link></li>

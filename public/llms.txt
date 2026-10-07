@@ -19,6 +19,7 @@ This file is a curated reading list. It does not replace robots.txt, the XML sit
 - [Contact](https://cigarsforyou.com.au/contact): Orders, delivery, and the Cuban cigar catalogue. Email, phone, and the contact form.
 - [Partnerships](https://cigarsforyou.com.au/partnerships): Wholesale and venue stocking for licensed Australian businesses.
 - [News](https://cigarsforyou.com.au/news): Notes on storing, choosing, and smoking Cuban cigars, written for Australian conditions.
+- [Distribution Hubs](https://cigarsforyou.com.au/distribution-hubs): Collect CigarsForYou online orders from the Pymble hub in Sydney. Pickup only — no in-store browsing.
 - [Shop](https://cigarsforyou.com.au/shop): Cuban cigar catalogue. Cohiba, Montecristo, Partagás, and more, stored for delivery across Australia.
 
 ## Policies

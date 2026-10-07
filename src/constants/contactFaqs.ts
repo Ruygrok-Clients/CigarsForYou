@@ -2,7 +2,7 @@
 export const CONTACT_FAQS: { q: string; a: string }[] = [
   {
     q: 'How does delivery work?',
-    a: 'There are two options. Immediate Dispatch (1-3hrs Delivery): we are an official partner with Didi, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Express Delivery: priority express with logistics and courier partners such as StarTrack or AusPost.',
+    a: 'There are three options. Immediate Dispatch (1-3hrs Delivery): we are an official partner with Didi, they handle all our Immediate Dispatch Deliveries to ensure we bring you the fastest delivery time possible. Express Shipping: priority express with logistics and courier partners such as StarTrack or AusPost. In-Store Pickup: free collection from a CigarsForYou distribution hub during open hours, 7:00am to 7:00pm. Hubs are pickup points only — you cannot browse stock there. We email you when the order is ready to collect.',
   },
   {
     q: 'How is age verification handled upon delivery?',

@@ -135,9 +135,9 @@ export interface CartItem {
   quantity: number;
 }
 
-export type DeliveryMethod = 'immediate' | 'express';
+export type DeliveryMethod = 'immediate' | 'express' | 'pickup';
 
-export type OrderStatus = 'Order Placed' | 'Processing' | 'Shipped' | 'Fulfilled' | 'Cancelled';
+export type OrderStatus = 'Order Placed' | 'Processing' | 'Shipped' | 'Collectable' | 'Fulfilled' | 'Cancelled';
 export type OrderSource = 'Website' | 'Manual' | 'Reward';
 
 export interface NewsPost {
@@ -186,6 +186,7 @@ export interface RewardCheckoutDraft {
   postcode: string;
   country: string;
   ageConfirmed: boolean;
+  pickupHubId?: string;
 }
 
 export type RewardsLedgerReason = 'earn' | 'redeem' | 'clawback' | 'redeem_refund';
@@ -203,9 +204,16 @@ export interface OrderItem {
   productId: string;
   name: string;
   brand: string;
+  /** Unit price charged (after any quantity discount). */
   price: number;
   quantity: number;
   pointsCost?: number;
+  /** Catalogue unit price before quantity discount, when known. */
+  listUnitPrice?: number;
+  /** Bulk tier multiplier applied at purchase (1 = none). */
+  unitPriceMultiplier?: number;
+  /** Percent off the list unit price from a quantity tier, when known. */
+  discountPercent?: number;
   /** True when a cancel restored this line's stock. */
   stockRestored?: boolean;
 }
@@ -233,6 +241,12 @@ export interface Order {
   discountAmount: number;
   shippingFee?: number;
   deliveryMethod?: DeliveryMethod;
+  /** Distribution hub id when deliveryMethod is pickup. */
+  pickupHubId?: string;
+  /** Courier or Didi tracking reference captured when an order is marked Shipped. */
+  trackingNumber?: string;
+  trackingCarrier?: string;
+  trackingUrl?: string;
   couponCode?: string;
   totalAmount: number;
   currency: 'AUD';

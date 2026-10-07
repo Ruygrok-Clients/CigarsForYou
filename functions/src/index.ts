@@ -37,6 +37,7 @@ import {
 export { createDiditSession, getDiditStatus, claimDiditForUser, completeSignup, diditWebhook } from "./didit";
 export { quoteImmediateDispatch } from "./immediateDispatchFee";
 export { resolveImmediateDispatch } from "./immediateDispatchRemediation";
+export { advanceOrderStatus } from "./advanceOrderStatus";
 
 admin.initializeApp();
 const db = admin.firestore();

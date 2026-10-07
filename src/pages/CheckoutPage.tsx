@@ -5,7 +5,7 @@ import { useAuth } from '../context/AuthContext';
 import { useRewardsCart } from '../context/RewardsCartContext';
 import { useToast } from '../components/Toast';
 import { placeRewardOrder } from '../services/rewards';
-import { EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
+import { deliveryMethodLabel } from '../constants/deliveryCopy';
 import {
   clearLoyaltyTierSnapshot,
   normalizeLoyaltyTier,
@@ -58,7 +58,8 @@ const RewardsCheckout: React.FC = () => {
   const rewardsCart = useRewardsCart();
   const [placing, setPlacing] = useState(false);
   const draft = rewardsCart.checkoutDraft;
-  const deliveryName = rewardsCart.deliveryMethod === 'immediate' ? IMMEDIATE_DISPATCH_NAME : EXPRESS_DELIVERY_NAME;
+  const deliveryName = deliveryMethodLabel(rewardsCart.deliveryMethod);
+  const collecting = rewardsCart.deliveryMethod === 'pickup';
   const rewardItems = rewardsCart.items.map((item) => toRewardGaItem(item.product, item.quantity));
   const reportedPayment = useRef(false);
 
@@ -86,6 +87,7 @@ const RewardsCheckout: React.FC = () => {
           quantity: item.quantity
         })),
         deliveryMethod: rewardsCart.deliveryMethod,
+        pickupHubId: collecting ? draft.pickupHubId : undefined,
         deliveryAddress: {
           street: draft.street,
           suburb: draft.suburb,
@@ -162,7 +164,8 @@ const RewardsCheckout: React.FC = () => {
           </div>
           {draft && (
             <p style={{ margin: '1rem 0 0', color: 'var(--text-secondary)', fontSize: '0.85rem', lineHeight: 1.5 }}>
-              Deliver to {draft.name}, {draft.street}, {draft.suburb} {draft.state} {draft.postcode}
+              {collecting ? 'Collect from' : 'Deliver to'} {draft.name}, {draft.street}, {draft.suburb} {draft.state} {draft.postcode}
+              {collecting ? '. We will email you when this order is ready to collect. You cannot browse stock at the hub.' : ''}
             </p>
           )}
         </div>
@@ -179,7 +182,7 @@ const RewardsCheckout: React.FC = () => {
         </button>
         <p style={{ textAlign: 'center', fontSize: '0.8rem', color: 'var(--text-muted)', marginTop: '0.75rem', lineHeight: 1.5 }}>
           {paymentsEnabled
-            ? 'Points are spent when this reward order is placed. Immediate Dispatch is charged at the quoted rate.'
+            ? 'Points are spent when this reward order is placed. Immediate Dispatch is charged at the quoted rate. In-Store Pickup is free.'
             : 'Online payment is temporarily unavailable. This reward order, including any Immediate Dispatch fee, will not be placed until checkout is live again.'}
         </p>
       </div>

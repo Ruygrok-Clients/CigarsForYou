@@ -461,7 +461,7 @@ export const HomePage: React.FC = () => {
                   maxWidth: '580px',
                   marginInline: 'auto'
                 }}>
-                  Hand-rolled Cuban classics from <Link to="/shop/cohiba" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Cohiba</Link>, <Link to="/shop/montecristo" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Montecristo</Link>, and <Link to="/shop/partagas" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Partagás</Link>. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. Choose Immediate Dispatch (1-3hr Delivery) or Express Delivery.
+                  Hand-rolled Cuban classics from <Link to="/shop/cohiba" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Cohiba</Link>, <Link to="/shop/montecristo" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Montecristo</Link>, and <Link to="/shop/partagas" style={{ color: 'inherit', textDecoration: 'underline', textUnderlineOffset: '0.15em' }}>Partagás</Link>. Buy one-off or set recurring deliveries on your schedule so your humidor is never empty. Choose Immediate Dispatch (1-3hr Delivery), Express Shipping, or In-Store Pickup.
                 </p>
 
                 {/* Action Buttons (Dynamically shrink on small screens via 100% width, max-width & horizontal margin) */}

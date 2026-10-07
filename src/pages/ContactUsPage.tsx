@@ -6,6 +6,7 @@ import { db } from '../firebase';
 import { useToast } from '../components/Toast';
 import { trackEvent } from '../lib/analytics';
 import { CONTACT_FAQS } from '../constants/contactFaqs';
+import { DISTRIBUTION_HUBS, DEFAULT_DISTRIBUTION_HUB_ID, formatHubAddressLine, getDistributionHub } from '../constants/distributionHubs';
 
 export const ContactUsPage: React.FC = () => {
   const { showToast } = useToast();
@@ -23,6 +24,8 @@ export const ContactUsPage: React.FC = () => {
 
   // FAQ Accordion State
   const [openFaq, setOpenFaq] = useState<number | null>(0);
+  const [hubId, setHubId] = useState(DEFAULT_DISTRIBUTION_HUB_ID);
+  const selectedHub = getDistributionHub(hubId) || DISTRIBUTION_HUBS[0];
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -490,6 +493,37 @@ export const ContactUsPage: React.FC = () => {
                     </div>
                   </div>
 
+                  <div>
+                    <label htmlFor="contact-hub" style={{ fontSize: '0.75rem', color: '#9ca3af', textTransform: 'uppercase', letterSpacing: '0.05em', fontWeight: 600, display: 'block', marginBottom: '0.4rem' }}>
+                      Distribution hub
+                    </label>
+                    <select
+                      id="contact-hub"
+                      value={selectedHub.id}
+                      onChange={(e) => setHubId(e.target.value)}
+                      style={{
+                        width: '100%',
+                        padding: '0.7rem 0.85rem',
+                        borderRadius: '10px',
+                        border: '1px solid rgba(255,255,255,0.16)',
+                        backgroundColor: 'rgba(255,255,255,0.06)',
+                        color: '#ffffff',
+                        fontSize: '0.95rem'
+                      }}
+                    >
+                      {DISTRIBUTION_HUBS.map((hub) => (
+                        <option key={hub.id} value={hub.id} style={{ color: '#111827' }}>{hub.label}</option>
+                      ))}
+                    </select>
+                    <p style={{ margin: '0.55rem 0 0', fontSize: '0.95rem', fontWeight: 600, color: '#ffffff', lineHeight: 1.45 }}>
+                      {formatHubAddressLine(selectedHub)}
+                    </p>
+                    <p style={{ margin: '0.35rem 0 0', fontSize: '0.8rem', color: '#d1d5db', lineHeight: 1.45 }}>
+                      Pickup point only. Email and phone above are CigarsForYou, not the hub.{' '}
+                      <Link to="/distribution-hubs" style={{ color: '#e59d5c' }}>Distribution Hubs</Link>
+                    </p>
+                  </div>
+
                   {/* Delivery methods */}
                   <div style={{ display: 'flex', alignItems: 'flex-start', gap: '1rem' }}>
                     <div style={{
@@ -512,7 +546,7 @@ export const ContactUsPage: React.FC = () => {
                         Immediate Dispatch (1-3hrs Delivery)
                       </div>
                       <div style={{ fontSize: '0.85rem', color: '#d1d5db', lineHeight: 1.45, marginTop: '0.2rem' }}>
-                        Or Express Delivery with partners such as StarTrack or AusPost.
+                        Or Express Shipping with partners such as StarTrack or AusPost. In-Store Pickup is free from a distribution hub.
                       </div>
                     </div>
                   </div>
@@ -536,7 +570,7 @@ export const ContactUsPage: React.FC = () => {
                     Delivery Options
                   </h4>
                   <p style={{ fontSize: '0.85rem', color: '#6b7280', lineHeight: 1.5, margin: 0 }}>
-                    Immediate Dispatch (1-3hrs Delivery) is handled by our official Didi partners. Express Delivery is priority express with courier partners such as StarTrack or AusPost.
+                    Immediate Dispatch (1-3hrs Delivery) is handled by our official Didi partners. Express Shipping is priority express with courier partners such as StarTrack or AusPost. In-Store Pickup is free collection from a distribution hub — you cannot browse stock there.
                   </p>
                 </div>
               </div>

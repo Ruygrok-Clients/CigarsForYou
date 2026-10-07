@@ -10,12 +10,15 @@ import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBa
 import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import { AUSTRALIAN_STATES } from '../constants/locations';
-import { DIDI_PARTNER_BLURB, EXPRESS_DELIVERY_FEE, EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
+import { DIDI_PARTNER_BLURB, EXPRESS_DELIVERY_FEE, EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME, INSTORE_PICKUP_BLURB, INSTORE_PICKUP_NAME, deliveryMethodLabel } from '../constants/deliveryCopy';
+import { DISTRIBUTION_HUBS, formatHubAddressLine, getDistributionHub } from '../constants/distributionHubs';
 import { quoteImmediateDispatch } from '../services/immediateDispatch';
+import { CopyIconButton } from '../components/CopyIconButton';
 import {
   freeExpressHoursMessage,
   getDeliveryWindow,
-  immediateDispatchHoursMessage
+  immediateDispatchHoursMessage,
+  instorePickupHoursMessage
 } from '../utils/deliveryHours';
 import type { DeliveryMethod } from '../types';
 import { normalizeLoyaltyTier, resolveProductPointsCost } from '../utils/rewards';
@@ -65,6 +68,8 @@ export const CustomerDetailsPage: React.FC = () => {
     isFreeShipping: productIsFreeShipping,
     deliveryMethod: productDeliveryMethod,
     setDeliveryMethod: setProductDeliveryMethod,
+    pickupHubId: productPickupHubId,
+    setPickupHubId: setProductPickupHubId,
     setImmediateDispatchFee: setProductImmediateDispatchFee,
     shippingFee: productShippingFee
   } = useCart();
@@ -73,6 +78,9 @@ export const CustomerDetailsPage: React.FC = () => {
   const rewardsCart = useRewardsCart();
   const deliveryMethod = rewardsMode ? rewardsCart.deliveryMethod : productDeliveryMethod;
   const setDeliveryMethod = rewardsMode ? rewardsCart.setDeliveryMethod : setProductDeliveryMethod;
+  const pickupHubId = rewardsMode ? rewardsCart.pickupHubId : productPickupHubId;
+  const setPickupHubId = rewardsMode ? rewardsCart.setPickupHubId : setProductPickupHubId;
+  const selectedHub = getDistributionHub(pickupHubId) || DISTRIBUTION_HUBS[0];
   const setImmediateDispatchFee = rewardsMode ? rewardsCart.setImmediateDispatchFee : setProductImmediateDispatchFee;
   const isFreeShipping = rewardsMode ? false : productIsFreeShipping;
   const shippingFee = rewardsMode ? rewardsCart.shippingFee : productShippingFee;
@@ -91,7 +99,7 @@ export const CustomerDetailsPage: React.FC = () => {
   const [country] = useState('Australia');
   const [couponCode, setCouponCode] = useState('');
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
-  const [openInfo, setOpenInfo] = useState<DeliveryMethod | null>('immediate');
+  const [openInfo, setOpenInfo] = useState<DeliveryMethod | null>('pickup');
   const [verifyingAge, setVerifyingAge] = useState(false);
   const [ageBlockMessage, setAgeBlockMessage] = useState('');
   const [now, setNow] = useState(() => new Date());
@@ -267,7 +275,13 @@ export const CustomerDetailsPage: React.FC = () => {
 
   const handleContinue = async (destination: 'rewards' | 'checkout') => {
     if (verifyingAge || authLoading) return;
-    if (!name.trim() || !email.trim() || !phone.trim() || !street.trim() || !suburb.trim() || !postcodeReady) {
+    const hub = getDistributionHub(pickupHubId);
+    if (deliveryMethod === 'pickup') {
+      if (!name.trim() || !email.trim() || !phone.trim() || !hub) {
+        showToast('Please complete your contact details and choose a distribution hub.', 'error');
+        return;
+      }
+    } else if (!name.trim() || !email.trim() || !phone.trim() || !street.trim() || !suburb.trim() || !postcodeReady) {
       showToast('Please complete your contact and delivery details.', 'error');
       return;
     }
@@ -291,16 +305,18 @@ export const CustomerDetailsPage: React.FC = () => {
       if (currentUser) await refreshProfile();
       trackAddShippingInfo(checkoutValue, deliveryMethod, checkoutItems, checkoutCoupon, checkoutType);
       if (destination === 'rewards') {
+        const pickup = deliveryMethod === 'pickup' && hub;
         rewardsCart.setCheckoutDraft({
           name: name.trim(),
           email: email.trim(),
           phone: phone.trim(),
-          street: street.trim(),
-          suburb: suburb.trim(),
-          state: stateVal,
-          postcode: postcode.trim(),
-          country,
-          ageConfirmed: true
+          street: pickup ? hub.street : street.trim(),
+          suburb: pickup ? hub.suburb : suburb.trim(),
+          state: pickup ? hub.state : stateVal,
+          postcode: pickup ? hub.postcode : postcode.trim(),
+          country: pickup ? hub.country : country,
+          ageConfirmed: true,
+          pickupHubId: pickup ? hub.id : undefined
         });
         navigate('/checkout?mode=rewards');
         return;
@@ -333,7 +349,7 @@ export const CustomerDetailsPage: React.FC = () => {
           ? 'Pricing Immediate Dispatch for this address…'
           : !quote
             ? quoteFailed
-              ? 'We could not price Immediate Dispatch for this address. Check the details or choose Express Delivery.'
+              ? 'We could not price Immediate Dispatch for this address. Check the details or choose Express Shipping.'
               : 'Immediate Dispatch is not available for this address.'
             : isFinalCall
           ? 'The clerk is keeping Immediate Dispatch open for this last stretch. Order before the extra time ends and we will dispatch this straight away.'
@@ -418,7 +434,7 @@ export const CustomerDetailsPage: React.FC = () => {
                 </div>
               </div>
 
-              <div className="card" style={{ padding: '1.75rem', backgroundColor: 'var(--bg-surface)' }}>
+              {deliveryMethod !== 'pickup' && <div className="card" style={{ padding: '1.75rem', backgroundColor: 'var(--bg-surface)' }}>
                 <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                   <MapPin size={20} style={{ color: 'var(--accent-gold)' }} />
                   Delivery Address
@@ -466,7 +482,7 @@ export const CustomerDetailsPage: React.FC = () => {
                     </p>
                   )}
                 </div>
-              </div>
+              </div>}
 
               <div className="card" style={{ padding: '1.75rem', backgroundColor: 'var(--bg-surface)' }}>
                 <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '0.4rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
@@ -478,6 +494,72 @@ export const CustomerDetailsPage: React.FC = () => {
                 </p>
 
                 <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
+                  <div style={{
+                    border: `1px solid ${deliveryMethod === 'pickup' ? 'var(--accent-gold)' : 'var(--border-color)'}`,
+                    borderRadius: '8px',
+                    padding: '0.95rem 1rem'
+                  }}>
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.75rem' }}>
+                      <input
+                        type="radio"
+                        name="deliveryMethod"
+                        id="delivery-pickup"
+                        checked={deliveryMethod === 'pickup'}
+                        onChange={() => selectMethod('pickup')}
+                        style={{ marginTop: '0.25rem', accentColor: 'var(--accent-gold)' }}
+                      />
+                      <div style={{ flex: 1 }}>
+                        <div style={{ display: 'flex', justifyContent: 'space-between', gap: '0.75rem', alignItems: 'flex-start' }}>
+                          <label htmlFor="delivery-pickup" style={{ fontWeight: 700, color: 'var(--text-primary)', cursor: 'pointer' }}>
+                            {INSTORE_PICKUP_NAME}
+                          </label>
+                          <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
+                            <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem' }}>FREE</strong>
+                            <button
+                              type="button"
+                              aria-label="About In-Store Pickup"
+                              onClick={() => setOpenInfo(openInfo === 'pickup' ? null : 'pickup')}
+                              style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}
+                            >
+                              <Info size={16} />
+                            </button>
+                          </div>
+                        </div>
+                        <p style={{ margin: '0.45rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
+                          {instorePickupHoursMessage(deliveryWindow)}
+                        </p>
+                        {deliveryMethod === 'pickup' && (
+                          <div style={{ marginTop: '0.75rem', display: 'flex', flexDirection: 'column', gap: '0.45rem' }}>
+                            <label htmlFor="pickup-hub" style={{ fontSize: '0.78rem', color: 'var(--text-muted)', fontWeight: 600 }}>
+                              Distribution hub
+                            </label>
+                            <select
+                              id="pickup-hub"
+                              className="form-control"
+                              value={selectedHub.id}
+                              onChange={(e) => setPickupHubId(e.target.value)}
+                            >
+                              {DISTRIBUTION_HUBS.map((hub) => (
+                                <option key={hub.id} value={hub.id}>{hub.label}</option>
+                              ))}
+                            </select>
+                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+                              <span style={{ fontSize: '0.85rem', color: 'var(--text-primary)', lineHeight: 1.45 }}>
+                                {formatHubAddressLine(selectedHub)}
+                              </span>
+                              <CopyIconButton label="address" value={formatHubAddressLine(selectedHub)} />
+                            </div>
+                          </div>
+                        )}
+                        {openInfo === 'pickup' && (
+                          <p style={{ margin: '0.65rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
+                            {INSTORE_PICKUP_BLURB}
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+
                   <div style={{
                     border: `1px solid ${deliveryMethod === 'immediate' ? 'var(--accent-gold)' : 'var(--border-color)'}`,
                     borderRadius: '8px',
@@ -554,7 +636,7 @@ export const CustomerDetailsPage: React.FC = () => {
                             <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem' }}>${EXPRESS_DELIVERY_FEE.toFixed(2)}</strong>
                             <button
                               type="button"
-                              aria-label="About Express Delivery"
+                              aria-label="About Express Shipping"
                               onClick={() => setOpenInfo(openInfo === 'express' ? null : 'express')}
                               style={{ background: 'none', border: 'none', padding: 0, cursor: 'pointer', color: 'var(--text-muted)', display: 'inline-flex' }}
                             >
@@ -699,7 +781,7 @@ export const CustomerDetailsPage: React.FC = () => {
                     </div>
                   )}
                   <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', gap: '1rem' }}>
-                    <span>{deliveryMethod === 'immediate' ? IMMEDIATE_DISPATCH_NAME : EXPRESS_DELIVERY_NAME}</span>
+                    <span>{deliveryMethodLabel(deliveryMethod)}</span>
                     {deliveryMethod === 'immediate' && quoteLoading ? (
                       <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>Pricing…</span>
                     ) : shippingFee === 0 ? (

@@ -127,7 +127,7 @@ export const TrustBannerSection: React.FC = () => {
                 marginBottom: '0.4rem',
                 letterSpacing: '-0.01em'
               }}>
-                two ways to your door
+                to your door, or collect
               </h3>
               <p style={{
                 fontSize: '0.875rem',
@@ -137,7 +137,7 @@ export const TrustBannerSection: React.FC = () => {
                 maxWidth: '280px',
                 fontWeight: 400
               }}>
-                Immediate Dispatch (1-3hr Delivery) with our official Didi partners, or Express Delivery with partners such as StarTrack or AusPost.
+                Immediate Dispatch (1-3hr Delivery) with our official Didi partners, Express Shipping with partners such as StarTrack or AusPost, or free In-Store Pickup from a distribution hub.
               </p>
             </div>
 

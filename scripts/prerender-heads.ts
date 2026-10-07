@@ -6,7 +6,7 @@ import { mkdir, readFile, writeFile } from 'fs/promises';
 import { dirname, join } from 'path';
 import { fileURLToPath } from 'url';
 import { rangeBasePath } from '../src/constants/productRanges';
-import { articleNodes, faqPageNode, productNodes, serializeJsonLd, siteGraph } from '../src/lib/jsonld';
+import { articleNodes, faqPageNode, pickupPlacesNode, productNodes, serializeJsonLd, siteGraph } from '../src/lib/jsonld';
 import {
   absoluteCanonical,
   absoluteShareImage,
@@ -159,7 +159,13 @@ async function run() {
       description: clampMetaDescription(page.description),
       robots: 'index,follow',
       canonical: absoluteCanonical(pathname),
-      jsonld: serializeJsonLd(siteGraph(pathname === '/contact' ? [faqPageNode()] : [])),
+      jsonld: serializeJsonLd(siteGraph(
+        pathname === '/contact'
+          ? [faqPageNode()]
+          : pathname === '/distribution-hubs'
+            ? pickupPlacesNode()
+            : []
+      )),
       image: absoluteShareImage(),
       ogType: 'website',
     });

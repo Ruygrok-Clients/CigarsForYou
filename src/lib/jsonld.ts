@@ -1,4 +1,5 @@
 import { CONTACT_FAQS } from '../constants/contactFaqs';
+import { DISTRIBUTION_HUBS } from '../constants/distributionHubs';
 import { rangeBasePath, rangeLabel, slugifyLabel } from '../constants/productRanges';
 import type { NewsPost, Product, ProductRange } from '../types';
 import { getBulkTiers, isTobaccoRange, resolveTier, unitPriceForTier } from '../utils/bulkPricing';
@@ -65,6 +66,31 @@ export function faqPageNode(items: { q: string; a: string }[] = CONTACT_FAQS): J
       },
     })),
   };
+}
+
+export function pickupPlacesNode(): JsonLdNode[] {
+  return DISTRIBUTION_HUBS.map((hub) => ({
+    '@type': 'Place',
+    '@id': `${absoluteCanonical('/distribution-hubs')}#${hub.id}`,
+    name: `${BRAND_NAME} pickup — ${hub.label}`,
+    description: 'Collection point for CigarsForYou online orders. Not a retail showroom. Customers cannot browse stock here.',
+    url: absoluteCanonical('/distribution-hubs'),
+    address: {
+      '@type': 'PostalAddress',
+      streetAddress: hub.street,
+      addressLocality: hub.suburb,
+      addressRegion: hub.state,
+      postalCode: hub.postcode,
+      addressCountry: 'AU',
+    },
+    openingHoursSpecification: {
+      '@type': 'OpeningHoursSpecification',
+      dayOfWeek: ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+      opens: '07:00',
+      closes: '19:00',
+    },
+    parentOrganization: { '@id': ORGANIZATION_ID },
+  }));
 }
 
 export function siteGraph(extra: JsonLdNode[] = []): JsonLdDocument {

@@ -192,7 +192,7 @@ export const DispatchPackagingSection: React.FC = () => {
               marginBottom: '1.75rem',
               fontWeight: 400
             }}>
-              Inside each box, we include Two-Way Humidity Packs to keep your cigars at maximum freshness — whether they&apos;re with you in a couple of hours via Immediate Dispatch, or arriving by standard Express Delivery.
+              Inside each box, we include Two-Way Humidity Packs to keep your cigars at maximum freshness — whether they&apos;re with you in a couple of hours via Immediate Dispatch, or arriving by standard Express Shipping.
             </p>
 
             <div className="dispatch-packaging-features" style={{
@@ -252,7 +252,7 @@ export const DispatchPackagingSection: React.FC = () => {
                     Two-Way Humidity Packs
                   </div>
                   <div style={{ color: '#8c6062', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    Locked-in freshness for Immediate Dispatch and Express Delivery alike.
+                    Locked-in freshness for Immediate Dispatch and Express Shipping alike.
                   </div>
                 </div>
               </div>

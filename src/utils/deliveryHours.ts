@@ -135,10 +135,20 @@ export function immediateDispatchHoursMessage(window: DeliveryWindow): string {
 
 export function freeExpressHoursMessage(window: DeliveryWindow): string {
   if (window === 'closed') {
-    return "We're closed right now. Express Delivery is dispatched first thing tomorrow morning with courier partners such as StarTrack or AusPost.";
+    return "We're closed right now. Express Shipping is dispatched first thing tomorrow morning with courier partners such as StarTrack or AusPost.";
   }
   if (window === 'early') {
-    return "You're lucky — we opened early today. Express Delivery goes out with courier partners such as StarTrack or AusPost.";
+    return "You're lucky — we opened early today. Express Shipping goes out with courier partners such as StarTrack or AusPost.";
   }
-  return 'Priority express delivery with logistics and courier partners such as StarTrack or AusPost.';
+  return 'Priority express shipping with logistics and courier partners such as StarTrack or AusPost.';
+}
+
+export function instorePickupHoursMessage(window: DeliveryWindow): string {
+  if (window === 'closed') {
+    return "We're closed right now. Collection is 7:00am to 7:00pm Sydney time. We'll email you when your order is ready to collect.";
+  }
+  if (window === 'early') {
+    return "Collection opens at 7:00am. We'll email you when your order is ready. You cannot browse stock at the hub.";
+  }
+  return 'Free collection from 7:00am to 7:00pm. We email you when it is ready. You cannot browse stock at the hub.';
 }

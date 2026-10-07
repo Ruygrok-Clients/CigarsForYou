@@ -1,12 +1,12 @@
 import React, { useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useSearchParams } from 'react-router-dom';
 import { Handshake, Store, Mail, Phone, Send, CheckCircle2, Building2 } from 'lucide-react';
 import { addDoc, collection } from 'firebase/firestore';
 import { db } from '../firebase';
 import { useToast } from '../components/Toast';
 import { trackEvent } from '../lib/analytics';
 
-const INTEREST_OPTIONS = ['Wholesale', 'Venue stocking', 'Licensed retail', 'Other'] as const;
+const INTEREST_OPTIONS = ['Wholesale', 'Venue stocking', 'Licensed retail', 'Distribution hub', 'Other'] as const;
 
 const fieldStyle: React.CSSProperties = {
   width: '100%',
@@ -39,7 +39,14 @@ const emptyForm = {
 
 export const PartnershipsPage: React.FC = () => {
   const { showToast } = useToast();
-  const [formData, setFormData] = useState(emptyForm);
+  const [searchParams] = useSearchParams();
+  const requestedInterest = searchParams.get('interest');
+  const [formData, setFormData] = useState(() => ({
+    ...emptyForm,
+    interest: (INTEREST_OPTIONS as readonly string[]).includes(requestedInterest || '')
+      ? requestedInterest as (typeof INTEREST_OPTIONS)[number]
+      : emptyForm.interest
+  }));
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
 

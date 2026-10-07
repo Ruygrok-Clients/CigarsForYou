@@ -42,6 +42,7 @@ import { AgeRestrictedPage } from './pages/AgeRestrictedPage';
 import { AboutUsPage } from './pages/AboutUsPage';
 import { ContactUsPage } from './pages/ContactUsPage';
 import { PartnershipsPage } from './pages/PartnershipsPage';
+import { DistributionHubsPage } from './pages/DistributionHubsPage';
 import { NewsPage } from './pages/NewsPage';
 import { NewsArticlePage } from './pages/NewsArticlePage';
 
@@ -154,6 +155,7 @@ export default function App() {
                       <Route path="/about" element={<AboutUsPage />} />
                       <Route path="/news" element={<NewsPage />} />
                       <Route path="/news/:slug" element={<NewsArticlePage />} />
+                      <Route path="/distribution-hubs" element={<DistributionHubsPage />} />
                       <Route path="/partnerships" element={<PartnershipsPage />} />
                       <Route path="/contact" element={<ContactUsPage />} />
                       <Route path="/age-restricted" element={<AgeRestrictedPage />} />

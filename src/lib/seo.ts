@@ -199,6 +199,10 @@ export const PUBLIC_PAGE_HEAD: Record<string, { title: string; description: stri
     title: brandTitle('Partnerships'),
     description: `Wholesale and venue stocking for licensed Australian businesses. Enquire to carry the ${BRAND_NAME} Cuban cigar range.`,
   },
+  '/distribution-hubs': {
+    title: brandTitle('Distribution Hubs'),
+    description: `Collect ${BRAND_NAME} online orders from the Pymble distribution hub in Sydney. Pickup only — no in-store browsing. Enquire to become a verified hub.`,
+  },
   '/news': {
     title: brandTitle('News'),
     description: `Notes on storing, choosing, and smoking Cuban cigars from ${BRAND_NAME}, written for Australian conditions.`,

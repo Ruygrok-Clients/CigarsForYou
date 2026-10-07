@@ -2,6 +2,7 @@ import React, { createContext, useContext, useEffect, useRef, useState } from 'r
 import { doc, getDoc } from 'firebase/firestore';
 import type { DeliveryMethod, RewardCartItem, RewardCheckoutDraft, RewardProduct } from '../types';
 import { EXPRESS_DELIVERY_FEE } from '../constants/deliveryCopy';
+import { DEFAULT_DISTRIBUTION_HUB_ID, getDistributionHub } from '../constants/distributionHubs';
 import { db } from '../firebase';
 import { useAuth } from './AuthContext';
 import { normalizeLoyaltyTier, productVisibleForTier, resolveProductPointsCost } from '../utils/rewards';
@@ -11,6 +12,8 @@ interface RewardsCartContextType {
   pointsTotal: number;
   deliveryMethod: DeliveryMethod;
   setDeliveryMethod: (method: DeliveryMethod) => void;
+  pickupHubId: string;
+  setPickupHubId: (hubId: string) => void;
   immediateDispatchFee: number;
   setImmediateDispatchFee: (fee: number) => void;
   shippingFee: number;
@@ -30,15 +33,26 @@ function pointsFor(items: RewardCartItem[], tier: ReturnType<typeof normalizeLoy
   return items.reduce((sum, item) => sum + resolveProductPointsCost(item.product, tier) * item.quantity, 0);
 }
 
+function parseDeliveryMethod(value: unknown): DeliveryMethod {
+  if (value === 'immediate' || value === 'express' || value === 'pickup') return value;
+  return 'pickup';
+}
+
+function parseHubId(value: unknown): string {
+  return typeof value === 'string' && getDistributionHub(value) ? value : DEFAULT_DISTRIBUTION_HUB_ID;
+}
+
 function readStoredCart(): {
   items: RewardCartItem[];
   deliveryMethod: DeliveryMethod;
+  pickupHubId: string;
   immediateDispatchFee: number;
   checkoutDraft: RewardCheckoutDraft | null;
 } {
   const empty = {
     items: [] as RewardCartItem[],
-    deliveryMethod: 'express' as DeliveryMethod,
+    deliveryMethod: 'pickup' as DeliveryMethod,
+    pickupHubId: DEFAULT_DISTRIBUTION_HUB_ID,
     immediateDispatchFee: 0,
     checkoutDraft: null
   };
@@ -48,7 +62,8 @@ function readStoredCart(): {
     const parsed = JSON.parse(saved);
     return {
       items: Array.isArray(parsed.items) ? parsed.items : [],
-      deliveryMethod: parsed.deliveryMethod === 'immediate' ? 'immediate' : 'express',
+      deliveryMethod: parseDeliveryMethod(parsed.deliveryMethod),
+      pickupHubId: parseHubId(parsed.pickupHubId),
       immediateDispatchFee: Number(parsed.immediateDispatchFee) || 0,
       checkoutDraft: parsed.checkoutDraft ?? null
     };
@@ -63,6 +78,7 @@ export const RewardsCartProvider: React.FC<{ children: React.ReactNode }> = ({ c
   const [stored] = useState(readStoredCart);
   const [items, setItems] = useState<RewardCartItem[]>(stored.items);
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>(stored.deliveryMethod);
+  const [pickupHubId, setPickupHubId] = useState(stored.pickupHubId);
   const [immediateDispatchFee, setImmediateDispatchFee] = useState(stored.immediateDispatchFee);
   const [checkoutDraft, setCheckoutDraft] = useState<RewardCheckoutDraft | null>(stored.checkoutDraft);
   const itemsRef = useRef(items);
@@ -75,13 +91,14 @@ export const RewardsCartProvider: React.FC<{ children: React.ReactNode }> = ({ c
       localStorage.setItem(STORAGE_KEY, JSON.stringify({
         items,
         deliveryMethod,
+        pickupHubId,
         immediateDispatchFee,
         checkoutDraft
       }));
     } catch (err) {
       console.error('Failed to save rewards cart', err);
     }
-  }, [items, deliveryMethod, immediateDispatchFee, checkoutDraft]);
+  }, [items, deliveryMethod, pickupHubId, immediateDispatchFee, checkoutDraft]);
 
   useEffect(() => {
     let cancelled = false;
@@ -151,7 +168,11 @@ export const RewardsCartProvider: React.FC<{ children: React.ReactNode }> = ({ c
     setCheckoutDraft(null);
   };
 
-  const shippingFee = deliveryMethod === 'immediate' ? Math.max(0, immediateDispatchFee) : EXPRESS_DELIVERY_FEE;
+  const shippingFee = deliveryMethod === 'pickup'
+    ? 0
+    : deliveryMethod === 'immediate'
+      ? Math.max(0, immediateDispatchFee)
+      : EXPRESS_DELIVERY_FEE;
 
   return (
     <RewardsCartContext.Provider value={{
@@ -159,6 +180,8 @@ export const RewardsCartProvider: React.FC<{ children: React.ReactNode }> = ({ c
       pointsTotal: pointsFor(items, tier),
       deliveryMethod,
       setDeliveryMethod,
+      pickupHubId,
+      setPickupHubId,
       immediateDispatchFee,
       setImmediateDispatchFee,
       shippingFee,

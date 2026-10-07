@@ -676,10 +676,11 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
     })
     .join("");
 
+  const isPickup = order.deliveryMethod === "pickup";
   const address = order.deliveryAddress;
   const addressFormatted = address
     ? `${address.street || ""}<br>${address.suburb || ""} ${address.state || ""} ${address.postcode || ""}<br>${address.country || "Australia"}`
-    : "Standard Express Delivery";
+    : "Address confirmed at checkout";
 
   const subtotal = Number(order.subtotal || order.totalAmount || 0);
   const discount = Number(order.discountAmount || 0);
@@ -688,13 +689,17 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
   const shippingLabel =
     order.deliveryMethod === "immediate"
       ? "Shipping (Immediate Dispatch):"
-      : "Shipping (Express Delivery):";
+      : isPickup
+        ? "In-Store Pickup:"
+        : "Shipping (Express Shipping):";
 
   const bodyContent = `
     <div class="order-hero">
       <span class="badge-success">✓ Order Confirmed & Paid</span>
       <h2>Thank You for Your Order, ${order.customerName || "Valued Customer"}!</h2>
-      <p>We've received your order and our master tobacconists are carefully preparing your cigars for dispatch.</p>
+      <p>${isPickup
+        ? "We've received your order. We'll email you when it is ready to collect from the distribution hub. You cannot browse stock there."
+        : "We've received your order and our master tobacconists are carefully preparing your cigars for dispatch."}</p>
     </div>
 
     <div class="summary-card">
@@ -756,7 +761,7 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
 
     <div style="margin-top: 24px; display: grid; grid-template-columns: 1fr; gap: 16px;">
       <div class="summary-card" style="margin-bottom: 0;">
-        <h4 style="margin: 0 0 8px 0; color: #d4af37; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">Delivery Address</h4>
+        <h4 style="margin: 0 0 8px 0; color: #d4af37; font-size: 13px; text-transform: uppercase; letter-spacing: 0.5px;">${isPickup ? "Collection address" : "Delivery Address"}</h4>
         <div style="font-size: 14px; line-height: 1.6; color: #e5e7eb;">
           <strong>${order.customerName || "Customer"}</strong><br>
           ${addressFormatted}
@@ -770,7 +775,9 @@ export async function sendCustomerOrderConfirmationEmail(order: any) {
       Every cigar order is individually inspected and shipped in sealed, airtight humidor pouches with <strong>Boveda 2-way humidity control packs</strong> to guarantee maximum freshness upon arrival.
       <br><br>
       <strong style="color: #ef4444;">🔞 18+ Photo ID Verification Required:</strong><br>
-      In accordance with Australian tobacco regulations, a government-issued photo ID proving age 18+ must be presented upon courier delivery.
+      ${isPickup
+        ? "In accordance with Australian tobacco regulations, a government-issued photo ID proving age 18+ must be presented when you collect this order. Collection hours are 7:00am to 7:00pm Sydney time. We will email you when it is ready."
+        : "In accordance with Australian tobacco regulations, a government-issued photo ID proving age 18+ must be presented upon courier delivery."}
     </div>
   `;
 
@@ -826,8 +833,8 @@ export async function sendImmediateDispatchUnavailableEmail(order: any) {
       <strong style="color: #d4af37;">1. Full refund</strong><br>
       We cancel the order and refund the full amount you paid, including the Immediate Dispatch fee of ${feeLabel}.
       <br><br>
-      <strong style="color: #d4af37;">2. Complimentary Express Delivery</strong><br>
-      We refund the Immediate Dispatch fee of ${feeLabel} in full, then send the order by Express Delivery at no delivery charge to you.
+      <strong style="color: #d4af37;">2. Complimentary Express Shipping</strong><br>
+      We refund the Immediate Dispatch fee of ${feeLabel} in full, then send the order by Express Shipping at no delivery charge to you.
     </div>
     <p style="font-size: 14px; line-height: 1.6; color: #d1d5db;">
       We will not change the order until we hear from you. Reply to this email or contact
@@ -844,6 +851,112 @@ export async function sendImmediateDispatchUnavailableEmail(order: any) {
     to: [customerEmail],
     replyTo: "orders@cigarsforyou.com.au",
     subject,
+    html,
+  });
+}
+
+function escapeEmailHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;");
+}
+
+function formatOrderAddress(order: any): string {
+  const address = order.deliveryAddress || {};
+  const line = [address.street, [address.suburb, address.state, address.postcode].filter(Boolean).join(" "), address.country]
+    .filter((part) => typeof part === "string" && part.trim())
+    .join(", ");
+  return line || "the address on your order";
+}
+
+/**
+ * Customer email when a courier order is marked Shipped.
+ */
+export async function sendOrderShippedEmail(order: any) {
+  const customerEmail = order.customerEmail;
+  if (!customerEmail || !customerEmail.includes("@")) {
+    logger.warn("Skipping shipped email: no valid customer email.", { orderNumber: order.orderNumber });
+    return { success: false, reason: "No valid customer email" };
+  }
+
+  const carrier = escapeEmailHtml(order.trackingCarrier || (order.deliveryMethod === "immediate" ? "Didi" : "courier"));
+  const tracking = escapeEmailHtml(order.trackingNumber || "");
+  const rawUrl = typeof order.trackingUrl === "string" ? order.trackingUrl.trim() : "";
+  const trackingUrl = /^https?:\/\//i.test(rawUrl) ? escapeEmailHtml(rawUrl) : "";
+  const method = order.deliveryMethod === "immediate" ? "Immediate Dispatch" : "Express Shipping";
+
+  const bodyContent = `
+    <div class="order-hero">
+      <h2>Your order #${order.orderNumber} is on its way</h2>
+      <p>Your ${method} order has been picked up and is on its way to you.</p>
+    </div>
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="summary-label">Carrier:</span>
+        <span class="summary-val">${carrier}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Tracking:</span>
+        <span class="summary-val" style="font-family: monospace;">${tracking}</span>
+      </div>
+      ${trackingUrl ? `<div class="summary-row"><span class="summary-label">Link:</span><span class="summary-val"><a href="${trackingUrl}" style="color: #d4af37;">${trackingUrl}</a></span></div>` : ""}
+    </div>
+    <div class="notice-box">
+      <strong style="color: #ef4444;">🔞 18+ Photo ID:</strong><br>
+      The person receiving this order must be 18 or older and present government-issued photo ID.
+    </div>
+  `;
+
+  const html = wrapCustomerEmailTemplate("Order on its way - CigarsForYou", bodyContent);
+  return sendResendEmail({
+    from: ORDERS_FROM_EMAIL,
+    to: [customerEmail],
+    replyTo: "orders@cigarsforyou.com.au",
+    subject: `Your order #${order.orderNumber} is on its way`,
+    html,
+  });
+}
+
+/**
+ * Customer email when a pickup order is marked Collectable.
+ */
+export async function sendOrderCollectableEmail(order: any) {
+  const customerEmail = order.customerEmail;
+  if (!customerEmail || !customerEmail.includes("@")) {
+    logger.warn("Skipping collectable email: no valid customer email.", { orderNumber: order.orderNumber });
+    return { success: false, reason: "No valid customer email" };
+  }
+
+  const address = escapeEmailHtml(formatOrderAddress(order));
+  const bodyContent = `
+    <div class="order-hero">
+      <h2>Order #${order.orderNumber} is ready to collect</h2>
+      <p>Your order is ready for In-Store Pickup. This is a collection point only — you cannot browse stock or catalogues there.</p>
+    </div>
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="summary-label">Collect from:</span>
+        <span class="summary-val">${address}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Hours:</span>
+        <span class="summary-val">7:00am to 7:00pm, Sydney time</span>
+      </div>
+    </div>
+    <div class="notice-box">
+      <strong style="color: #ef4444;">🔞 18+ Photo ID:</strong><br>
+      Bring government-issued photo ID. The person collecting must be 18 or older and match the customer on the order.
+    </div>
+  `;
+
+  const html = wrapCustomerEmailTemplate("Ready for pickup - CigarsForYou", bodyContent);
+  return sendResendEmail({
+    from: ORDERS_FROM_EMAIL,
+    to: [customerEmail],
+    replyTo: "orders@cigarsforyou.com.au",
+    subject: `Order #${order.orderNumber} is ready to collect`,
     html,
   });
 }

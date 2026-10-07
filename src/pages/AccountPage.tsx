@@ -7,7 +7,10 @@ import { useCart } from '../context/CartContext';
 import { useToast } from '../components/Toast';
 import { AdminAccountGate } from '../components/AdminAccountGate';
 import { RewardsProgramPanel } from '../components/RewardsProgramPanel';
-import type { Order, StockNotification, Product, Address } from '../types';
+import type { Order, OrderItem, StockNotification, Product, Address } from '../types';
+import { deliveryMethodLabel } from '../constants/deliveryCopy';
+import { formatHubAddressLine, getDistributionHub } from '../constants/distributionHubs';
+import { CopyIconButton } from '../components/CopyIconButton';
 import { normalizeLoyaltyTier, spendablePoints, tierLabel, TIER_COLORS } from '../utils/rewards';
 import { 
   User as UserIcon, 
@@ -39,6 +42,120 @@ function accountTabFromQuery(value: string | null): AccountTab | null {
   if (value === 'account' || value === 'loyalty' || value === 'orders' || value === 'notify' || value === 'special') return value;
   return null;
 }
+
+function money(amount: number): string {
+  return `$${amount.toFixed(2)} AUD`;
+}
+
+function pickupAddressLine(order: Order): string {
+  const hub = getDistributionHub(order.pickupHubId);
+  if (hub) return formatHubAddressLine(hub);
+  const address = order.deliveryAddress;
+  return [address?.street, address?.suburb, address?.state, address?.postcode].filter(Boolean).join(', ');
+}
+
+const OrderLine: React.FC<{ item: OrderItem; reward: boolean; last: boolean }> = ({ item, reward, last }) => {
+  const line = item.price * item.quantity;
+  const list = item.listUnitPrice;
+  const discounted = typeof list === 'number' && list > item.price + 0.001;
+  return (
+    <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', padding: '0.55rem 0', borderBottom: last ? 'none' : '1px solid var(--border-subtle)', fontSize: '0.9rem' }}>
+      <div style={{ minWidth: 0 }}>
+        <div style={{ color: 'var(--text-primary)' }}>{item.brand} {item.name}</div>
+        <div style={{ color: 'var(--text-muted)', fontSize: '0.8rem', marginTop: '0.15rem' }}>
+          Qty {item.quantity}
+          {reward
+            ? ` · ${item.pointsCost ?? 0} pts each`
+            : ` · ${money(item.price)} each`}
+          {discounted && (
+            <>
+              {' · '}
+              <span style={{ textDecoration: 'line-through' }}>{money(list)}</span>
+              {typeof item.discountPercent === 'number' && item.discountPercent > 0 ? ` · ${item.discountPercent}% qty discount` : ' · quantity discount'}
+            </>
+          )}
+        </div>
+      </div>
+      <span style={{ color: 'var(--text-secondary)', flexShrink: 0 }}>
+        {reward ? `${(item.pointsCost ?? 0) * item.quantity} pts` : money(line)}
+      </span>
+    </div>
+  );
+};
+
+const OrderFulfilment: React.FC<{ order: Order }> = ({ order }) => {
+  const pickup = order.deliveryMethod === 'pickup';
+  const address = pickup ? pickupAddressLine(order) : '';
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.45rem', marginBottom: '1rem', fontSize: '0.9rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', color: 'var(--text-secondary)' }}>
+        <span>{deliveryMethodLabel(order.deliveryMethod)}</span>
+        <span>{(order.shippingFee ?? 0) === 0 ? 'Free' : money(order.shippingFee ?? 0)}</span>
+      </div>
+      {pickup && address && (
+        <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '0.75rem' }}>
+          <span style={{ color: 'var(--text-primary)', lineHeight: 1.45 }}>{address}</span>
+          <CopyIconButton label="address" value={address} />
+        </div>
+      )}
+      {pickup && (
+        <p style={{ margin: 0, color: 'var(--text-muted)', fontSize: '0.8rem', lineHeight: 1.45 }}>
+          {order.status === 'Collectable'
+            ? 'Ready to collect, 7:00am to 7:00pm. Bring photo ID. You cannot browse stock at the hub.'
+            : 'We email you when this order is ready to collect. You cannot browse stock at the hub.'}
+        </p>
+      )}
+      {order.trackingNumber && (
+        <div style={{ color: 'var(--text-secondary)' }}>
+          {order.trackingCarrier ? `${order.trackingCarrier}: ` : 'Tracking: '}
+          {order.trackingUrl ? (
+            <a href={order.trackingUrl} target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-gold)' }}>{order.trackingNumber}</a>
+          ) : order.trackingNumber}
+        </div>
+      )}
+    </div>
+  );
+};
+
+const OrderTotals: React.FC<{ order: Order }> = ({ order }) => {
+  if (order.source === 'Reward') {
+    return (
+      <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', fontWeight: 600 }}>
+          <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>Points spent</span>
+          <span style={{ color: 'var(--accent-gold)', fontSize: '1.15rem' }}>{order.pointsSpent ?? 0} pts</span>
+        </div>
+        <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
+          <span>Due for delivery</span>
+          <span>{money(order.shippingFee ?? order.totalAmount)}</span>
+        </div>
+      </div>
+    );
+  }
+
+  return (
+    <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem', fontSize: '0.9rem' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+        <span>Subtotal</span>
+        <span>{money(order.subtotal)}</span>
+      </div>
+      {(order.discountAmount ?? 0) > 0 && (
+        <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
+          <span>Discount{order.couponCode ? ` (${order.couponCode})` : ''}</span>
+          <span>-{money(order.discountAmount)}</span>
+        </div>
+      )}
+      <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)' }}>
+        <span>Shipping</span>
+        <span>{(order.shippingFee ?? 0) === 0 ? 'Free' : money(order.shippingFee ?? 0)}</span>
+      </div>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
+        <span style={{ color: 'var(--text-secondary)' }}>Total paid</span>
+        <span style={{ color: 'var(--accent-gold)', fontSize: '1.15rem' }}>{money(order.totalAmount)}</span>
+      </div>
+    </div>
+  );
+};
 
 export const AccountPage: React.FC = () => {
   const { currentUser, userProfile, logOut, updateUserProfile, isAdmin } = useAuth();
@@ -568,6 +685,8 @@ export const AccountPage: React.FC = () => {
                       </div>
                     </div>
 
+                    <OrderFulfilment order={order} />
+
                     <div style={{
                       backgroundColor: 'var(--bg-primary)',
                       borderRadius: 'var(--radius-md)',
@@ -576,32 +695,20 @@ export const AccountPage: React.FC = () => {
                       border: '1px solid var(--border-subtle)'
                     }}>
                       {order.items.map((item, idx) => (
-                        <div key={idx} style={{ display: 'flex', justifyContent: 'space-between', padding: '0.4rem 0', borderBottom: idx < order.items.length - 1 ? '1px solid var(--border-subtle)' : 'none', fontSize: '0.9rem' }}>
-                          <span style={{ color: 'var(--text-primary)' }}>{item.quantity}x {item.brand} {item.name}</span>
-                          <span style={{ color: 'var(--text-secondary)' }}>
-                            {order.source === 'Reward'
-                              ? `${(item.pointsCost ?? 0) * item.quantity} pts`
-                              : `$${(item.price * item.quantity).toFixed(2)} AUD`}
-                          </span>
-                        </div>
+                        <OrderLine key={`${item.productId}-${idx}`} item={item} reward={order.source === 'Reward'} last={idx === order.items.length - 1} />
                       ))}
                     </div>
 
-                    <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', fontWeight: 600 }}>
-                      <span style={{ color: 'var(--text-secondary)', fontSize: '0.9rem' }}>
-                        {order.source === 'Reward' ? 'Points spent' : 'Total Paid'}
-                      </span>
-                      <span style={{ color: 'var(--accent-gold)', fontSize: '1.15rem' }}>
-                        {order.source === 'Reward'
-                          ? `${order.pointsSpent ?? 0} pts`
-                          : `$${order.totalAmount.toFixed(2)} AUD`}
-                      </span>
-                    </div>
-                    {order.source === 'Reward' && (
-                      <div style={{ display: 'flex', justifyContent: 'space-between', marginTop: '0.35rem', color: 'var(--text-secondary)', fontSize: '0.85rem' }}>
-                        <span>Delivery</span>
-                        <span>${(order.shippingFee ?? order.totalAmount).toFixed(2)} AUD</span>
-                      </div>
+                    <OrderTotals order={order} />
+                    {order.statusHistory?.length > 0 && (
+                      <ol style={{ listStyle: 'none', margin: '1rem 0 0', padding: 0, display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
+                        {[...order.statusHistory].reverse().map((entry, idx) => (
+                          <li key={`${entry.timestamp}-${idx}`} style={{ display: 'flex', justifyContent: 'space-between', gap: '1rem', fontSize: '0.8rem', color: 'var(--text-secondary)' }}>
+                            <span>{entry.status}</span>
+                            <span>{new Date(entry.timestamp).toLocaleString('en-AU', { day: 'numeric', month: 'short', year: 'numeric', hour: 'numeric', minute: '2-digit' })}</span>
+                          </li>
+                        ))}
+                      </ol>
                     )}
                   </div>
                 ))}

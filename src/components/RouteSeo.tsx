@@ -1,6 +1,6 @@
 import { useLayoutEffect } from 'react';
 import { useLocation } from 'react-router-dom';
-import { applyJsonLd, faqPageNode, siteGraph } from '../lib/jsonld';
+import { applyJsonLd, faqPageNode, pickupPlacesNode, siteGraph } from '../lib/jsonld';
 import { brandTitle } from '../lib/brand';
 import { absoluteCanonical, applySeo, canonicalPath, DEFAULT_TITLE, PUBLIC_PAGE_HEAD } from '../lib/seo';
 
@@ -72,7 +72,13 @@ export function RouteSeo() {
         canonical: absoluteCanonical(path),
         description: page.description,
       });
-      applyJsonLd(siteGraph(path === '/contact' ? [faqPageNode()] : []));
+      applyJsonLd(siteGraph(
+        path === '/contact'
+          ? [faqPageNode()]
+          : path === '/distribution-hubs'
+            ? pickupPlacesNode()
+            : []
+      ));
       return;
     }
 

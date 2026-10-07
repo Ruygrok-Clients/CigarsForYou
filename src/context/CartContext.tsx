@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { CartItem, Coupon, DeliveryMethod, Product } from '../types';
 import { EXPRESS_DELIVERY_FEE } from '../constants/deliveryCopy';
+import { DEFAULT_DISTRIBUTION_HUB_ID } from '../constants/distributionHubs';
 import { getSpendPromoState } from '../constants/spendPromo';
 import { couponLabel, trackAddToCart, trackRemoveFromCart, trackSelectPromotion } from '../lib/analytics';
 
@@ -24,6 +25,8 @@ interface CartContextType {
   isFreeShipping: boolean;
   deliveryMethod: DeliveryMethod;
   setDeliveryMethod: (method: DeliveryMethod) => void;
+  pickupHubId: string;
+  setPickupHubId: (hubId: string) => void;
   immediateDispatchFee: number;
   setImmediateDispatchFee: (fee: number) => void;
 }
@@ -182,13 +185,18 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     if (removed) trackSelectPromotion(cleanCode, cleanCode, 'coupon_remove');
   };
 
-  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('express');
+  const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('pickup');
+  const [pickupHubId, setPickupHubId] = useState(DEFAULT_DISTRIBUTION_HUB_ID);
   const [immediateDispatchFee, setImmediateDispatchFee] = useState(0);
 
   const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   const isFreeShipping = appliedCoupons.some(c => c.discountType === 'free_shipping');
   const quotedImmediateFee = Math.max(0, immediateDispatchFee);
-  const baseShipping = deliveryMethod === 'immediate' ? quotedImmediateFee : EXPRESS_DELIVERY_FEE;
+  const baseShipping = deliveryMethod === 'pickup'
+    ? 0
+    : deliveryMethod === 'immediate'
+      ? quotedImmediateFee
+      : EXPRESS_DELIVERY_FEE;
   const waiveImmediate = isFreeShipping && deliveryMethod === 'immediate';
   const shippingFee = cart.length > 0 && !waiveImmediate ? baseShipping : 0;
 
@@ -235,6 +243,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       isFreeShipping,
       deliveryMethod,
       setDeliveryMethod,
+      pickupHubId,
+      setPickupHubId,
       immediateDispatchFee,
       setImmediateDispatchFee
     }}>

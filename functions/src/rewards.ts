@@ -6,6 +6,7 @@ import {
   estimateImmediateDispatchFeeFromAddress,
   normalizeDeliveryAddress,
 } from "./immediateDispatchFee";
+import { getDistributionHub } from "./distributionHubs";
 import {
   normalizeLoyaltyTier,
   productVisibleForTier,
@@ -144,6 +145,7 @@ interface RedeemItemInput {
 interface PlaceRewardOrderInput {
   items?: RedeemItemInput[];
   deliveryMethod?: string;
+  pickupHubId?: string;
   deliveryAddress?: {
     street?: string;
     suburb?: string;
@@ -168,12 +170,16 @@ export async function placeRewardOrderForUser(
   }
 
   const deliveryMethod = input.deliveryMethod;
-  if (deliveryMethod !== "immediate" && deliveryMethod !== "express") {
-    throw new HttpsError("invalid-argument", "Choose Immediate Dispatch or Express Dispatch.");
+  if (deliveryMethod !== "immediate" && deliveryMethod !== "express" && deliveryMethod !== "pickup") {
+    throw new HttpsError("invalid-argument", "Choose Immediate Dispatch, Express Shipping, or In-Store Pickup.");
   }
 
   const address = input.deliveryAddress;
-  if (!address?.street?.trim() || !address.suburb?.trim() || !address.state?.trim() || !address.postcode?.trim()) {
+  const pickupHub = deliveryMethod === "pickup" ? getDistributionHub((input.pickupHubId || "").trim()) : undefined;
+  if (deliveryMethod === "pickup" && !pickupHub) {
+    throw new HttpsError("invalid-argument", "Choose a distribution hub for In-Store Pickup.");
+  }
+  if (deliveryMethod !== "pickup" && (!address?.street?.trim() || !address.suburb?.trim() || !address.state?.trim() || !address.postcode?.trim())) {
     throw new HttpsError("invalid-argument", "A complete delivery address is required.");
   }
 
@@ -196,9 +202,9 @@ export async function placeRewardOrderForUser(
     throw new HttpsError("invalid-argument", "Add at least one reward to redeem.");
   }
 
-  let shippingFee = EXPRESS_DELIVERY_FEE;
+  let shippingFee = deliveryMethod === "pickup" ? 0 : EXPRESS_DELIVERY_FEE;
   if (deliveryMethod === "immediate") {
-    const normalized = normalizeDeliveryAddress(address);
+    const normalized = normalizeDeliveryAddress(address || {});
     if (!normalized) {
       throw new HttpsError("failed-precondition", "Immediate Dispatch is not available for this address.");
     }
@@ -312,19 +318,29 @@ export async function placeRewardOrderForUser(
       discountAmount: 0,
       shippingFee,
       deliveryMethod,
+      ...(pickupHub ? { pickupHubId: pickupHub.id } : {}),
       totalAmount: shippingFee,
       currency: "AUD",
       status: "Order Placed",
       source: "Reward",
       paymentMethod: "Other",
-      deliveryAddress: {
-        id: "reward-checkout",
-        street: address.street!.trim(),
-        suburb: address.suburb!.trim(),
-        state: address.state!.trim(),
-        postcode: address.postcode!.trim(),
-        country: (address.country || "Australia").trim() || "Australia",
-      },
+      deliveryAddress: pickupHub
+        ? {
+          id: pickupHub.id,
+          street: pickupHub.street,
+          suburb: pickupHub.suburb,
+          state: pickupHub.state,
+          postcode: pickupHub.postcode,
+          country: pickupHub.country,
+        }
+        : {
+          id: "reward-checkout",
+          street: address!.street!.trim(),
+          suburb: address!.suburb!.trim(),
+          state: address!.state!.trim(),
+          postcode: address!.postcode!.trim(),
+          country: (address!.country || "Australia").trim() || "Australia",
+        },
       ageConfirmed: true,
       diditSessionId: typeof userData.diditSessionId === "string" ? userData.diditSessionId : null,
       createdAt: now,

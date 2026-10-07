@@ -5,6 +5,7 @@ import type { Address, DeliveryMethod } from '../types';
 export interface PlaceRewardOrderInput {
   items: { rewardProductId: string; quantity: number }[];
   deliveryMethod: DeliveryMethod;
+  pickupHubId?: string;
   deliveryAddress: Pick<Address, 'street' | 'suburb' | 'state' | 'postcode' | 'country'>;
   customerName: string;
   customerPhone?: string;

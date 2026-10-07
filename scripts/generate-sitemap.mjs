@@ -19,6 +19,7 @@ const CORE_PATHS = [
   '/',
   '/about',
   '/news',
+  '/distribution-hubs',
   '/contact',
   '/partnerships',
   '/terms',
