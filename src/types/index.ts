@@ -137,7 +137,7 @@ export interface CartItem {
 
 export type DeliveryMethod = 'immediate' | 'express';
 
-export type OrderStatus = 'Pending' | 'Verified' | 'Processing' | 'Shipped' | 'Delivered' | 'Cancelled';
+export type OrderStatus = 'Order Placed' | 'Processing' | 'Shipped' | 'Fulfilled' | 'Cancelled';
 export type OrderSource = 'Website' | 'Manual' | 'Reward';
 
 export interface NewsPost {

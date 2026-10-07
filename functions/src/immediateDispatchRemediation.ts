@@ -63,13 +63,13 @@ export const resolveImmediateDispatch = onCall({ secrets: ["RESEND_API_KEY"] }, 
     if (order.deliveryMethod !== "immediate") {
       throw new HttpsError("failed-precondition", "This order is not an Immediate Dispatch order.");
     }
-    if (order.status === "Cancelled" || order.status === "Delivered") {
+    if (order.status === "Cancelled" || order.status === "Fulfilled") {
       throw new HttpsError("failed-precondition", "This order can no longer be changed.");
     }
 
     const resolution = order.immediateDispatchResolution as string | undefined;
     const history = Array.isArray(order.statusHistory) ? [...order.statusHistory] : [];
-    const status = typeof order.status === "string" ? order.status : "Pending";
+    const status = typeof order.status === "string" ? order.status : "Order Placed";
 
     if (action === "mark_unavailable") {
       if (resolution === "full_refund" || resolution === "express_upgrade") {

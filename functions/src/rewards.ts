@@ -314,7 +314,7 @@ export async function placeRewardOrderForUser(
       deliveryMethod,
       totalAmount: shippingFee,
       currency: "AUD",
-      status: "Pending",
+      status: "Order Placed",
       source: "Reward",
       paymentMethod: "Other",
       deliveryAddress: {
@@ -333,7 +333,7 @@ export async function placeRewardOrderForUser(
       pointsClawedBack: false,
       pointsSpent,
       statusHistory: [
-        { status: "Pending", timestamp: now, updatedBy: "Rewards Checkout" },
+        { status: "Order Placed", timestamp: now, updatedBy: "Rewards Checkout" },
       ],
       archived: false,
     });

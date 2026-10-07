@@ -21,7 +21,11 @@ import {
   Ban
 } from 'lucide-react';
 
-const ORDER_STATUS_STEPS: OrderStatus[] = ['Pending', 'Verified', 'Processing', 'Shipped', 'Delivered'];
+const ORDER_STATUS_STEPS: OrderStatus[] = ['Order Placed', 'Processing', 'Shipped', 'Fulfilled'];
+
+function isTerminalOrderStatus(status: OrderStatus): boolean {
+  return status === 'Fulfilled' || status === 'Cancelled';
+}
 
 const CopyIconButton: React.FC<{ label: string; value: string }> = ({ label, value }) => {
   const { showToast } = useToast();
@@ -392,7 +396,6 @@ export const AdminOrders: React.FC = () => {
     // Source filter
     if (sourceFilter !== 'all' && o.source !== sourceFilter) return false;
 
-    // Status filter
     if (statusFilter !== 'all' && o.status !== statusFilter) return false;
 
     // Search query
@@ -475,11 +478,10 @@ export const AdminOrders: React.FC = () => {
                 onChange={(e) => setStatusFilter(e.target.value)}
               >
                 <option value="all">All Statuses</option>
-                <option value="Pending">Pending</option>
-                <option value="Verified">Verified</option>
+                <option value="Order Placed">Order Placed</option>
                 <option value="Processing">Processing</option>
                 <option value="Shipped">Shipped</option>
-                <option value="Delivered">Delivered</option>
+                <option value="Fulfilled">Fulfilled</option>
                 <option value="Cancelled">Cancelled</option>
               </select>
             </div>
@@ -570,7 +572,7 @@ export const AdminOrders: React.FC = () => {
 
                         {viewTab === 'active' ? (
                           <>
-                            {order.status !== 'Delivered' && order.status !== 'Cancelled' && (
+                            {!isTerminalOrderStatus(order.status) && (
                               <button
                                 className="btn btn-primary btn-sm"
                                 title="Advance Status"
@@ -812,7 +814,7 @@ export const AdminOrders: React.FC = () => {
                 <span style={{ color: 'var(--accent-gold)', fontSize: '1.4rem' }}>${selectedOrder.totalAmount.toFixed(2)} AUD</span>
               </div>
 
-              {selectedOrder.deliveryMethod === 'immediate' && selectedOrder.status !== 'Cancelled' && selectedOrder.status !== 'Delivered' && selectedOrder.immediateDispatchResolution !== 'full_refund' && (
+              {selectedOrder.deliveryMethod === 'immediate' && !isTerminalOrderStatus(selectedOrder.status) && selectedOrder.immediateDispatchResolution !== 'full_refund' && (
                 <div
                   style={{
                     border: '1px solid var(--border-subtle)',
@@ -879,7 +881,7 @@ export const AdminOrders: React.FC = () => {
 
               {/* Actions in Modal */}
               <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1rem', flexWrap: 'wrap' }}>
-                {selectedOrder.status !== 'Delivered' && selectedOrder.status !== 'Cancelled' && (
+                {!isTerminalOrderStatus(selectedOrder.status) && (
                   <button
                     className="btn btn-primary"
                     style={{ flex: '1 1 180px' }}
