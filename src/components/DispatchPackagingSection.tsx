@@ -172,7 +172,7 @@ export const DispatchPackagingSection: React.FC = () => {
               lineHeight: 1.15,
               marginBottom: '1.35rem'
             }}>
-              100% Cedar. Humidor Fresh to Your Door.
+              Cedar when it matters. Humidor-fresh to your door.
             </h2>
 
             <p style={{
@@ -182,7 +182,7 @@ export const DispatchPackagingSection: React.FC = () => {
               marginBottom: '1.1rem',
               fontWeight: 400
             }}>
-              Every cigar order ships in a 100% cedar wooden dispatch box — protecting your cigars so they stay as fresh as possible, without degrading in flavour or being affected in any way during transit.
+              Every cigar order is packed to hold its condition — premium hard cardboard with humidity control as standard, so flavour and moisture stay where they should on the way to you.
             </p>
 
             <p style={{
@@ -192,7 +192,7 @@ export const DispatchPackagingSection: React.FC = () => {
               marginBottom: '1.75rem',
               fontWeight: 400
             }}>
-              Inside each box, we include Two-Way Humidity Packs to keep your cigars at maximum freshness — whether they&apos;re with you in a couple of hours via Immediate Dispatch, or arriving by standard Express Shipping.
+              Elevated cigar orders move into a solid cedar humidity control box. The wood buffers the journey the way a humidor does — whether the cigars are with you in a couple of hours via Immediate Dispatch, or arriving by Express Shipping.
             </p>
 
             <div className="dispatch-packaging-features" style={{
@@ -221,10 +221,10 @@ export const DispatchPackagingSection: React.FC = () => {
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, color: '#2f0d0e', fontSize: '0.98rem', marginBottom: '0.2rem' }}>
-                    Solid cedar dispatch boxes
+                    Cedar for elevated dispatch
                   </div>
                   <div style={{ color: '#8c6062', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    Natural wood that helps shield flavour and condition from the journey.
+                    Solid cedar boxes when the order calls for them. Everyday cigar orders travel in premium hard cardboard.
                   </div>
                 </div>
               </div>
@@ -252,7 +252,7 @@ export const DispatchPackagingSection: React.FC = () => {
                     Two-Way Humidity Packs
                   </div>
                   <div style={{ color: '#8c6062', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    Locked-in freshness for Immediate Dispatch and Express Shipping alike.
+                    Included with cardboard and cedar alike, for Immediate Dispatch and Express Shipping.
                   </div>
                 </div>
               </div>
@@ -277,10 +277,10 @@ export const DispatchPackagingSection: React.FC = () => {
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, color: '#2f0d0e', fontSize: '0.98rem', marginBottom: '0.2rem' }}>
-                    Complimentary with every cigar order
+                    Humidity care, included
                   </div>
                   <div style={{ color: '#8c6062', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    Boxes and packs are included free — because the best smoke starts with the best care.
+                    Two-way packs ride with every cigar order. The cedar box is the elevated finish.
                   </div>
                 </div>
               </div>
@@ -297,7 +297,7 @@ export const DispatchPackagingSection: React.FC = () => {
               borderRadius: '0 10px 10px 0'
             }}>
               <span style={{ fontWeight: 600, color: '#2f0d0e' }}>Please note:</span>{' '}
-              Cigarettes and accessories ship in standard dispatch packaging. Our cedar wooden boxes are reserved for cigar orders only.
+              Cigarettes and accessories ship in standard dispatch packaging. Cedar is reserved for elevated cigar orders.
             </p>
           </div>
 

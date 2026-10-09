@@ -11,6 +11,7 @@ import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import { AUSTRALIAN_STATES } from '../constants/locations';
 import { DIDI_PARTNER_BLURB, EXPRESS_DELIVERY_FEE, EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME, INSTORE_PICKUP_BLURB, INSTORE_PICKUP_NAME, deliveryMethodLabel } from '../constants/deliveryCopy';
+import { SPEND_PROMO_IMMEDIATE_CREDIT } from '../constants/spendPromo';
 import { DISTRIBUTION_HUBS, formatHubAddressLine, getDistributionHub } from '../constants/distributionHubs';
 import { quoteImmediateDispatch } from '../services/immediateDispatch';
 import { CopyIconButton } from '../components/CopyIconButton';
@@ -64,7 +65,9 @@ export const CustomerDetailsPage: React.FC = () => {
     removeCoupon,
     subtotal,
     couponDiscountAmount,
-    spendPromoDiscount,
+    spendPromoUnlocked,
+    spendPromoRewardMode,
+    spendPromoShippingCredit,
     totalAmount,
     isFreeShipping: productIsFreeShipping,
     deliveryMethod: productDeliveryMethod,
@@ -212,6 +215,15 @@ export const CustomerDetailsPage: React.FC = () => {
   const deliveryWindow = getDeliveryWindow(now);
 
   const quotedFee = quote?.feeAud ?? 0;
+  const vipImmediate = !rewardsMode && spendPromoUnlocked && spendPromoRewardMode === 'immediate_credit';
+  const vipExpress = !rewardsMode && spendPromoUnlocked && spendPromoRewardMode === 'free_express';
+  const immediateNet = quote
+    ? Math.max(0, quote.feeAud - (vipImmediate ? Math.min(SPEND_PROMO_IMMEDIATE_CREDIT, quote.feeAud) : 0))
+    : null;
+  const showImmediateCreditDollars = vipImmediate && spendPromoShippingCredit > 0 && shippingFee > 0;
+  const shippingLineAmount = showImmediateCreditDollars
+    ? shippingFee + spendPromoShippingCredit
+    : shippingFee;
 
   useEffect(() => {
     if (quoteLoading) return;
@@ -668,8 +680,20 @@ export const CustomerDetailsPage: React.FC = () => {
                             {IMMEDIATE_DISPATCH_NAME}
                           </label>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-                            <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem' }}>
-                              {quoteLoading ? '…' : quote ? (isFreeShipping && deliveryMethod === 'immediate' ? 'FREE' : `$${quote.feeAud.toFixed(2)}`) : '—'}
+                            <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem', display: 'inline-flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                              {quoteLoading ? '…' : !quote ? '—' : (isFreeShipping && deliveryMethod === 'immediate') || (vipImmediate && immediateNet === 0) ? (
+                                <>
+                                  {vipImmediate && <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>${quote.feeAud.toFixed(2)}</span>}
+                                  FREE
+                                </>
+                              ) : vipImmediate && immediateNet !== null ? (
+                                <>
+                                  <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>${quote.feeAud.toFixed(2)}</span>
+                                  ${immediateNet.toFixed(2)}
+                                </>
+                              ) : (
+                                `$${quote.feeAud.toFixed(2)}`
+                              )}
                             </strong>
                             <button
                               type="button"
@@ -690,6 +714,16 @@ export const CustomerDetailsPage: React.FC = () => {
                         {isFreeShipping && quote && (
                           <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: '#4caf50' }}>
                             Your coupon waives this delivery fee.
+                          </p>
+                        )}
+                        {vipImmediate && quote && !isFreeShipping && (
+                          <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: '#4caf50' }}>
+                            $50 VIP credit applied to this fee.
+                          </p>
+                        )}
+                        {vipExpress && deliveryMethod === 'immediate' && (
+                          <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                            Free Express is the active offer — or switch back to the $50 Immediate Dispatch credit above.
                           </p>
                         )}
                         {openInfo === 'immediate' && (
@@ -725,7 +759,16 @@ export const CustomerDetailsPage: React.FC = () => {
                             {EXPRESS_DELIVERY_NAME}
                           </label>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
-                            <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem' }}>${EXPRESS_DELIVERY_FEE.toFixed(2)}</strong>
+                            <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem', display: 'inline-flex', alignItems: 'baseline', gap: '0.35rem' }}>
+                              {vipExpress ? (
+                                <>
+                                  <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>${EXPRESS_DELIVERY_FEE.toFixed(2)}</span>
+                                  FREE
+                                </>
+                              ) : (
+                                `$${EXPRESS_DELIVERY_FEE.toFixed(2)}`
+                              )}
+                            </strong>
                             <button
                               type="button"
                               aria-label="About Express Shipping"
@@ -742,6 +785,16 @@ export const CustomerDetailsPage: React.FC = () => {
                         <p style={{ margin: '0.45rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.5 }}>
                           {freeExpressHoursMessage(deliveryWindow)}
                         </p>
+                        {vipExpress && (
+                          <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: '#4caf50' }}>
+                            VIP Free Express Shipping applied.
+                          </p>
+                        )}
+                        {vipImmediate && deliveryMethod === 'express' && (
+                          <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
+                            Your $50 credit applies to Immediate Dispatch — or switch the offer to Free Express above.
+                          </p>
+                        )}
                         {openInfo === 'express' && deliveryWindow === 'open' && (
                           <p style={{ margin: '0.65rem 0 0', fontSize: '0.82rem', color: 'var(--text-secondary)', lineHeight: 1.55 }}>
                             Flat ${EXPRESS_DELIVERY_FEE.toFixed(2)} AUD, available Australia-wide with courier partners such as StarTrack or AusPost.
@@ -863,10 +916,22 @@ export const CustomerDetailsPage: React.FC = () => {
                       <span>${subtotal.toFixed(2)} AUD</span>
                     </div>
                   )}
-                  {!rewardsMode && spendPromoDiscount > 0 && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
-                      <span>Spend & Save ($400+)</span>
-                      <span>-${spendPromoDiscount.toFixed(2)} AUD</span>
+                  {!rewardsMode && spendPromoUnlocked && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem' }}>
+                      <span>Cedar Humidity Control Box</span>
+                      <span>Included</span>
+                    </div>
+                  )}
+                  {!rewardsMode && spendPromoShippingCredit > 0 && spendPromoRewardMode === 'immediate_credit' && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem' }}>
+                      <span>VIP Immediate Dispatch Credit</span>
+                      <span>{shippingFee === 0 ? 'FREE' : `-$${spendPromoShippingCredit.toFixed(2)} AUD`}</span>
+                    </div>
+                  )}
+                  {!rewardsMode && spendPromoShippingCredit > 0 && spendPromoRewardMode === 'free_express' && (
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem' }}>
+                      <span>VIP Free Express Shipping</span>
+                      <span>FREE</span>
                     </div>
                   )}
                   {!rewardsMode && couponDiscountAmount > 0 && (
@@ -879,10 +944,10 @@ export const CustomerDetailsPage: React.FC = () => {
                     <span>{deliveryMethodLabel(deliveryMethod)}</span>
                     {deliveryMethod === 'immediate' && quoteLoading ? (
                       <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>Pricing…</span>
-                    ) : shippingFee === 0 ? (
+                    ) : shippingLineAmount === 0 ? (
                       <span style={{ color: '#4caf50', fontWeight: 600, flexShrink: 0 }}>FREE ($0.00 AUD)</span>
                     ) : (
-                      <span style={{ color: 'var(--accent-gold)', flexShrink: 0 }}>${shippingFee.toFixed(2)} AUD</span>
+                      <span style={{ color: 'var(--accent-gold)', flexShrink: 0 }}>${shippingLineAmount.toFixed(2)} AUD</span>
                     )}
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-primary)' }}>

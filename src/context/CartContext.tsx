@@ -2,7 +2,7 @@ import React, { createContext, useContext, useState, useEffect } from 'react';
 import type { CartItem, Coupon, DeliveryMethod, Product } from '../types';
 import { EXPRESS_DELIVERY_FEE } from '../constants/deliveryCopy';
 import { DEFAULT_DISTRIBUTION_HUB_ID } from '../constants/distributionHubs';
-import { getSpendPromoState } from '../constants/spendPromo';
+import { getSpendPromoShippingCredit, getSpendPromoState, type SpendPromoRewardMode } from '../constants/spendPromo';
 import { couponLabel, trackAddToCart, trackRemoveFromCart, trackSelectPromotion } from '../lib/analytics';
 
 interface CartContextType {
@@ -17,7 +17,10 @@ interface CartContextType {
   removeCoupon: (code: string) => void;
   subtotal: number;
   couponDiscountAmount: number;
-  spendPromoDiscount: number;
+  spendPromoUnlocked: boolean;
+  spendPromoRewardMode: SpendPromoRewardMode;
+  setSpendPromoRewardMode: (mode: SpendPromoRewardMode) => void;
+  spendPromoShippingCredit: number;
   discountAmount: number;
   shippingFee: number;
   totalAmount: number;
@@ -33,6 +36,15 @@ interface CartContextType {
 
 const CART_KEY = 'cfy_cart_items_v1';
 const COUPON_KEY = 'cfy_applied_coupons_v2';
+const REWARD_MODE_KEY = 'cfy_spend_promo_reward_mode_v1';
+
+function readRewardMode(): SpendPromoRewardMode {
+  try {
+    return localStorage.getItem(REWARD_MODE_KEY) === 'free_express' ? 'free_express' : 'immediate_credit';
+  } catch {
+    return 'immediate_credit';
+  }
+}
 
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
@@ -188,6 +200,15 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('pickup');
   const [pickupHubId, setPickupHubId] = useState(DEFAULT_DISTRIBUTION_HUB_ID);
   const [immediateDispatchFee, setImmediateDispatchFee] = useState(0);
+  const [spendPromoRewardMode, setSpendPromoRewardMode] = useState<SpendPromoRewardMode>(readRewardMode);
+
+  useEffect(() => {
+    try {
+      localStorage.setItem(REWARD_MODE_KEY, spendPromoRewardMode);
+    } catch (e) {
+      console.error('Failed to save spend promo reward mode', e);
+    }
+  }, [spendPromoRewardMode]);
 
   const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
   const isFreeShipping = appliedCoupons.some(c => c.discountType === 'free_shipping');
@@ -198,7 +219,17 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ? quotedImmediateFee
       : EXPRESS_DELIVERY_FEE;
   const waiveImmediate = isFreeShipping && deliveryMethod === 'immediate';
-  const shippingFee = cart.length > 0 && !waiveImmediate ? baseShipping : 0;
+  const spendPromoUnlocked = getSpendPromoState(subtotal).unlocked;
+  const rawSpendCredit = getSpendPromoShippingCredit({
+    unlocked: spendPromoUnlocked,
+    rewardMode: spendPromoRewardMode,
+    deliveryMethod,
+    baseShipping
+  });
+  const spendPromoShippingCredit = waiveImmediate ? 0 : rawSpendCredit;
+  const shippingFee = cart.length === 0 || waiveImmediate
+    ? 0
+    : Math.max(0, baseShipping - spendPromoShippingCredit);
 
   // Item discounts only. free_shipping waives Immediate Dispatch, not Express.
   let rawItemDiscount = 0;
@@ -216,9 +247,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }
 
-  const spendPromoDiscount = getSpendPromoState(subtotal).discount;
   const couponDiscountAmount = Math.min(rawItemDiscount, subtotal);
-  const discountAmount = Math.min(couponDiscountAmount + spendPromoDiscount, subtotal);
+  const discountAmount = couponDiscountAmount;
   const totalAmount = Math.max(0, subtotal - discountAmount + shippingFee);
   const itemCount = cart.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -235,7 +265,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removeCoupon,
       subtotal,
       couponDiscountAmount,
-      spendPromoDiscount,
+      spendPromoUnlocked,
+      spendPromoRewardMode,
+      setSpendPromoRewardMode,
+      spendPromoShippingCredit,
       discountAmount,
       shippingFee,
       totalAmount,

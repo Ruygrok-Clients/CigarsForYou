@@ -31,7 +31,7 @@ export const CartPage: React.FC = () => {
     removeCoupon,
     subtotal,
     couponDiscountAmount,
-    spendPromoDiscount
+    spendPromoUnlocked
   } = useCart();
   const { currentUser, userProfile } = useAuth();
   const { showToast } = useToast();
@@ -39,10 +39,7 @@ export const CartPage: React.FC = () => {
   const [isValidatingCoupon, setIsValidatingCoupon] = useState(false);
 
   // Delivery is chosen on the Customer Details step — cart total is merchandise only.
-  const merchandiseTotal = Math.max(
-    0,
-    subtotal - Math.min(couponDiscountAmount + spendPromoDiscount, subtotal)
-  );
+  const merchandiseTotal = Math.max(0, subtotal - couponDiscountAmount);
 
   const viewedCart = useRef(false);
   useEffect(() => {
@@ -335,10 +332,10 @@ export const CartPage: React.FC = () => {
                   <span>${subtotal.toFixed(2)} AUD</span>
                 </div>
 
-                {spendPromoDiscount > 0 && (
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50' }}>
-                    <span>Spend & Save ($400+)</span>
-                    <span>-${spendPromoDiscount.toFixed(2)} AUD</span>
+                {spendPromoUnlocked && (
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem' }}>
+                    <span>Cedar Humidity Control Box</span>
+                    <span>Included</span>
                   </div>
                 )}
 

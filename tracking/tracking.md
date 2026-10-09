@@ -41,8 +41,8 @@ Rewards `purchase.value` is the AUD delivery fee. Points are not counted as reve
 | `begin_checkout` | Delivery-details page opens with a product or rewards cart | `currency`, `value`, `coupon`, `checkout_type`, `items` | `src/pages/CustomerDetailsPage.tsx` |
 | `add_shipping_info` | Shopper continues after delivery details pass validation | `currency`, `value`, `shipping_tier` (`express` or `immediate`), `coupon`, `checkout_type`, `items` | `src/pages/CustomerDetailsPage.tsx` |
 | `add_payment_info` | Rewards checkout screen opens | `currency`, `value`, `payment_type=rewards`, `checkout_type=rewards`, `items` | `src/pages/CheckoutPage.tsx` |
-| `view_promotion` | Spend-and-save bar is shown | `promotion_id=spend_400`, `promotion_name`, `creative_name` (`progress` or `unlocked`) | `src/components/SpendThresholdPromoBar.tsx` |
-| `select_promotion` | Coupon applied or removed, or spend threshold unlocks | `promotion_id`, `promotion_name`, `creative_slot` (`coupon_apply`, `coupon_remove`, or `spend_threshold`) | `src/context/CartContext.tsx`, `SpendThresholdPromoBar.tsx` |
+| `view_promotion` | VIP Dispatch bar is shown | `promotion_id=spend_350`, `promotion_name`, `creative_name` (`progress`, `unlocked_immediate_credit`, or `unlocked_free_express`) | `src/components/SpendThresholdPromoBar.tsx` |
+| `select_promotion` | Coupon applied or removed, spend threshold unlocks, or VIP reward is swapped | `promotion_id`, `promotion_name`, `creative_slot` (`coupon_apply`, `coupon_remove`, `spend_threshold`, `spend_reward_immediate_credit`, or `spend_reward_free_express`) | `src/context/CartContext.tsx`, `SpendThresholdPromoBar.tsx` |
 | `search` | Navbar search submit, or catalogue `?search=` after typing pauses | `search_term`, `search_source` (`navbar` or `catalog`) | `src/components/Navbar.tsx`, `src/pages/ProductRangePage.tsx` |
 
 The same search term is sent once within two seconds, so a navbar submit and the catalogue page do not double-count.
