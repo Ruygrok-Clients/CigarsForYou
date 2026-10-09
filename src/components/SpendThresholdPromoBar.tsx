@@ -1,5 +1,4 @@
 import React, { useEffect, useRef } from 'react';
-import { Gift, PartyPopper } from 'lucide-react';
 import { getSpendPromoState, SPEND_PROMO_IMMEDIATE_CREDIT, SPEND_PROMO_THRESHOLD } from '../constants/spendPromo';
 import { useCart } from '../context/CartContext';
 import { trackSelectPromotion, trackViewPromotion } from '../lib/analytics';
@@ -51,55 +50,48 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
       role="status"
       aria-live="polite"
     >
-      <div className="spend-promo__sheen" aria-hidden="true" />
       <div className="spend-promo__inner">
         <div className="spend-promo__top">
           <div className="spend-promo__copy">
-            <span className="spend-promo__icon" aria-hidden="true">
-              {unlocked ? <PartyPopper size={16} strokeWidth={2.25} /> : <Gift size={16} strokeWidth={2.25} />}
-            </span>
-            <div>
-              <p className="spend-promo__eyebrow">
-                {unlocked ? 'VIP Dispatch unlocked' : 'VIP Dispatch'}
-              </p>
-              <p className="spend-promo__title">
-                {unlocked ? (
-                  immediateMode ? (
-                    <>
-                      You’ve unlocked a <strong>${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit</strong> + Cedar Humidity Control Box
-                    </>
-                  ) : (
-                    <>
-                      You’ve unlocked <strong>Free Express Shipping</strong> + Cedar Humidity Control Box
-                    </>
-                  )
+            <p className="spend-promo__eyebrow">
+              {unlocked ? 'Included with this order' : 'With orders over $' + threshold}
+            </p>
+            <p className="spend-promo__title">
+              {unlocked ? (
+                immediateMode ? (
+                  <>
+                    ${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit and a cedar humidity box
+                  </>
                 ) : (
                   <>
-                    Spend <strong>${remaining.toFixed(2)}</strong> more for a{' '}
-                    <strong>${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit</strong> — plus a Cedar Humidity Control Box
+                    Complimentary Express shipping and a cedar humidity box
                   </>
-                )}
+                )
+              ) : (
+                <>
+                  ${remaining.toFixed(2)} more for a ${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit and a cedar humidity box
+                </>
+              )}
+            </p>
+            {unlocked && (
+              <p className="spend-promo__support">
+                {immediateMode
+                  ? 'The credit applies to Immediate Dispatch in Sydney and the outskirts.'
+                  : 'Express shipping is included Australia-wide.'}
               </p>
-              {unlocked && (
-                <p className="spend-promo__support">
-                  {immediateMode
-                    ? 'Get it in 1–3hrs — we put $50 toward Immediate Dispatch so Sydney and the outskirts can still move fast.'
-                    : 'Australia-wide Express is on us.'}
-                </p>
-              )}
-              {unlocked && (
-                <button type="button" className="spend-promo__swap" onClick={swapMode}>
-                  {immediateMode
-                    ? 'Prefer Free Express Shipping instead?'
-                    : 'Switch back to $50 Immediate Dispatch credit'}
-                </button>
-              )}
-            </div>
+            )}
+            {unlocked && (
+              <button type="button" className="spend-promo__swap" onClick={swapMode}>
+                {immediateMode
+                  ? 'Use complimentary Express instead'
+                  : 'Use the $50 Immediate Dispatch credit instead'}
+              </button>
+            )}
           </div>
           <span className="spend-promo__badge">
             {unlocked
-              ? (immediateMode ? `$${SPEND_PROMO_IMMEDIATE_CREDIT} credit` : 'Free Express')
-              : `At $${threshold}`}
+              ? (immediateMode ? `$${SPEND_PROMO_IMMEDIATE_CREDIT} credit` : 'Express included')
+              : `$${threshold}`}
           </span>
         </div>
 
@@ -110,16 +102,16 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
             aria-valuemin={0}
             aria-valuemax={threshold}
             aria-valuenow={Math.min(subtotal, threshold)}
-            aria-label={`Progress toward $${threshold} for VIP dispatch`}
+            aria-label={`Progress toward $${threshold} for complimentary dispatch`}
           >
             <div className="spend-promo__fill" style={{ width: `${progress}%` }} />
           </div>
           <div className="spend-promo__meta">
             <span>
-              Cart subtotal <strong>${subtotal.toFixed(2)} AUD</strong>
+              Subtotal <strong>${subtotal.toFixed(2)}</strong>
             </span>
             <span className="spend-promo__goal">
-              {unlocked ? 'Cedar box included' : `Goal $${threshold.toFixed(0)} AUD`}
+              {unlocked ? 'Cedar box included' : `$${threshold.toFixed(0)}`}
             </span>
           </div>
         </div>

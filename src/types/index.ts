@@ -116,6 +116,8 @@ export interface Product {
   fbtCompanionIds?: string[];
   /** Fallback pool used when order data cannot fill all three companion slots. */
   fbtDefaultIds?: string[];
+  /** Units sold. Increases when a paid order is recorded and does not decrease. */
+  purchaseCount?: number;
   origin: string; // e.g. 'Cuban'
   active: boolean;
   shortDescription?: string;
@@ -277,6 +279,8 @@ export interface Order {
   immediateDispatchFeeRefunded?: number;
   /** Points granted for this paid order. Absent until earn has been processed. */
   pointsEarned?: number;
+  /** True after catalog purchase counts were incremented for this paid order. Never reversed. */
+  purchaseCountsApplied?: boolean;
   pointsClawedBack?: boolean;
   /** Points spent on a reward redemption. */
   pointsSpent?: number;

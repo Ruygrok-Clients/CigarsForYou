@@ -21,6 +21,7 @@ import {
   writeOrderSocialProof,
   writeStockNotifySocialProof,
 } from "./socialProof";
+import { applyPurchaseCounts } from "./purchaseCounts";
 import { placeRewardOrderForUser, reevaluateLoyaltyTiers, syncOrderRewards } from "./rewards";
 import { rewriteFbtCompanions } from "./fbtCompanions";
 import { googleMapsApiKey } from "./immediateDispatchFee";
@@ -50,12 +51,21 @@ setGlobalOptions({ maxInstances: 10, region: "us-central1", secrets: ["RESEND_AP
  */
 export const syncOrderRewardsOnWrite = onDocumentWritten("orders/{orderId}", async (event) => {
   if (!event.data?.after.exists) return;
+  const orderId = event.params.orderId;
+  const errors: unknown[] = [];
   try {
-    await syncOrderRewards(event.params.orderId);
+    await syncOrderRewards(orderId);
   } catch (err) {
-    logger.error(`Rewards sync failed for order ${event.params.orderId}:`, err);
-    throw err;
+    logger.error(`Rewards sync failed for order ${orderId}:`, err);
+    errors.push(err);
   }
+  try {
+    await applyPurchaseCounts(orderId);
+  } catch (err) {
+    logger.error(`Purchase count update failed for order ${orderId}:`, err);
+    errors.push(err);
+  }
+  if (errors.length > 0) throw errors[0];
 });
 
 /**
