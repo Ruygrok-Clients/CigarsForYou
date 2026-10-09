@@ -87,7 +87,6 @@ export const LegalPage: React.FC = () => {
                 The site also stores data in your browser (cookies, localStorage, or sessionStorage) so core features work. This includes, for example:
               </p>
               <ul style={{ marginTop: '1rem', paddingLeft: '1.25rem' }}>
-                <li style={{ marginBottom: '0.5rem' }}>Age-gate confirmation that you self-attested you are 18+ (<code>cfy_age_verified_v1</code>)</li>
                 <li style={{ marginBottom: '0.5rem' }}>Cart contents and applied coupons</li>
                 <li style={{ marginBottom: '0.5rem' }}>Rewards cart and loyalty-related session helpers</li>
                 <li style={{ marginBottom: '0.5rem' }}>Selected store location preference</li>
@@ -120,7 +119,7 @@ export const LegalPage: React.FC = () => {
                 <Link to="/contact" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>Contact</Link> page. Tell us that you want collection stopped and/or a permanent deletion, and include enough detail for us to identify your account or prior contact (for example the email address you used). We will action verified requests as soon as reasonably practicable.
               </p>
               <p style={{ marginTop: '1rem' }}>
-                You can also clear cookies and site data in your browser settings at any time. Doing so may reset age-gate confirmation, cart contents, and sign-in state on this device. Blocking Google Analytics in your browser or via privacy tools may reduce analytics collection from that browser.
+                You can also clear cookies and site data in your browser settings at any time. Doing so may reset cart contents and sign-in state on this device. Blocking Google Analytics in your browser or via privacy tools may reduce analytics collection from that browser.
               </p>
 
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>5. Updates</h2>
@@ -144,7 +143,7 @@ export const LegalPage: React.FC = () => {
 
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>2. Age Verification Data</h2>
               <p>
-                Tobacco products may only be sold and delivered to adults aged 18 years or older. Before an account is created, or before checkout if you are not already verified on your account, you must complete a secure Didit age check. Approved results may be linked to your account so you do not need to repeat the check on every visit. Site-entry confirmation (self-attesting that you are 18+) is stored in your browser only and is separate from Didit verification.
+                Tobacco products may only be sold and delivered to adults aged 18 years or older. Before an account is created, or before checkout if you are not already verified on your account, you must complete a secure Didit age check. Approved results may be linked to your account so you do not need to repeat the check on every visit.
               </p>
               <p style={{ marginTop: '1rem' }}>
                 Delivery still requires a government-issued photo ID (driver licence, proof of age card, or passport) to be presented to the courier. Age-verification records are kept for statutory compliance and audit purposes.
@@ -227,11 +226,11 @@ export const LegalPage: React.FC = () => {
                 By accessing CigarsForYou or purchasing tobacco products, you explicitly warrant that you are <strong>18 years of age or older</strong>. Under Australian law, tobacco products may only be sold and delivered to adults.
               </p>
               <p style={{ marginTop: '1rem' }}>
-                We enforce age restriction in layers: (a) a site-entry confirmation that you are 18+; (b) a mandatory online age check through our partner{' '}
+                We enforce age restriction in layers: (a) a mandatory online age check through our partner{' '}
                 <a href="https://didit.me/" target="_blank" rel="noopener noreferrer" style={{ color: 'var(--accent-gold)', fontWeight: 600 }}>
                   Didit
                 </a>{' '}
-                at account creation, or before checkout if your account (or guest session) is not already age verified; and (c) government-issued photo ID checked by delivery personnel prior to hand-off. An account is created only after Didit approval. Orders will be cancelled without refund of shipping if age cannot be verified at delivery.
+                at account creation, or before checkout if your account (or guest session) is not already age verified; and (b) government-issued photo ID checked by delivery personnel prior to hand-off. An account is created only after Didit approval. Orders will be cancelled without refund of shipping if age cannot be verified at delivery.
               </p>
 
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', marginTop: '2rem', marginBottom: '1rem' }}>2. Online Age Verification (Didit)</h2>

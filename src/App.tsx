@@ -5,13 +5,11 @@ import { AuthProvider } from './context/AuthContext';
 import { CartProvider } from './context/CartContext';
 import { RewardsCartProvider } from './context/RewardsCartContext';
 import { LocationProvider } from './context/LocationContext';
-import { AgeGateProvider } from './context/AgeGateContext';
 import { ClosingSoonProvider } from './context/ClosingSoonContext';
 import { ToastProvider } from './components/Toast';
 
 import { Navbar } from './components/Navbar';
 import { Footer } from './components/Footer';
-import { AgeGateModal } from './components/AgeGateModal';
 import { ClosingSoonModal } from './components/ClosingSoonModal';
 import { ClerkGraceModal } from './components/ClerkGraceModal';
 import { FinalCallModal } from './components/FinalCallModal';
@@ -20,7 +18,6 @@ import { ScrollToTop } from './components/ScrollToTop';
 import { AnalyticsRouteListener } from './components/AnalyticsRouteListener';
 import { RouteSeo } from './components/RouteSeo';
 import { SocialProofToast } from './components/SocialProofToast';
-import { useAgeGate } from './context/AgeGateContext';
 import { useSitePresence } from './hooks/useSitePresence';
 import { BRAND_NAME } from './lib/brand';
 
@@ -38,7 +35,6 @@ import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
 import { LegalPage } from './pages/LegalPage';
-import { AgeRestrictedPage } from './pages/AgeRestrictedPage';
 import { AboutUsPage } from './pages/AboutUsPage';
 import { ContactUsPage } from './pages/ContactUsPage';
 import { PartnershipsPage } from './pages/PartnershipsPage';
@@ -66,10 +62,9 @@ const queryClient = new QueryClient();
 
 function LayoutWrapper({ children }: { children: React.ReactNode }) {
   const location = useLocation();
-  const { isAgeVerified } = useAgeGate();
   const isAdminPath = location.pathname.startsWith('/admin');
   const [showLoading, setShowLoading] = useState(true);
-  const trackSitePresence = !isAdminPath && !showLoading && isAgeVerified;
+  const trackSitePresence = !isAdminPath && !showLoading;
 
   useSitePresence(trackSitePresence);
 
@@ -107,8 +102,7 @@ function LayoutWrapper({ children }: { children: React.ReactNode }) {
       {!isAdminPath && !showLoading && <ClosingSoonModal />}
       {!isAdminPath && !showLoading && <ClerkGraceModal />}
       {!isAdminPath && !showLoading && <FinalCallModal />}
-      {!isAdminPath && !showLoading && <AgeGateModal />}
-      {!isAdminPath && !showLoading && isAgeVerified && <SocialProofToast />}
+      {!isAdminPath && !showLoading && <SocialProofToast />}
     </div>
   );
 }
@@ -117,8 +111,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
-        <AgeGateProvider>
-          <ClosingSoonProvider>
+        <ClosingSoonProvider>
           <LocationProvider>
           <CartProvider>
           <RewardsCartProvider>
@@ -158,7 +151,6 @@ export default function App() {
                       <Route path="/distribution-hubs" element={<DistributionHubsPage />} />
                       <Route path="/partnerships" element={<PartnershipsPage />} />
                       <Route path="/contact" element={<ContactUsPage />} />
-                      <Route path="/age-restricted" element={<AgeRestrictedPage />} />
 
                       {/* Hidden Admin Portal Routes */}
                       <Route path="/admin/login" element={<AdminLoginPage />} />
@@ -185,7 +177,6 @@ export default function App() {
           </CartProvider>
           </LocationProvider>
           </ClosingSoonProvider>
-        </AgeGateProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

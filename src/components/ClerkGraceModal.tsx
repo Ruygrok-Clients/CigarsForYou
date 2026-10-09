@@ -1,14 +1,12 @@
 import React from 'react';
 import { Modal } from './Modal';
-import { useLocation } from 'react-router-dom';
 import { ArrowRight, Clock } from 'lucide-react';
 import { useClosingSoon } from '../context/ClosingSoonContext';
 
 export const ClerkGraceModal: React.FC = () => {
   const { showGracePopup, formattedCountdown, dismissGracePopup } = useClosingSoon();
-  const location = useLocation();
 
-  if (!showGracePopup || location.pathname === '/age-restricted') {
+  if (!showGracePopup) {
     return null;
   }
 

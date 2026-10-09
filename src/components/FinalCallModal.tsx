@@ -1,14 +1,12 @@
 import React from 'react';
 import { Modal } from './Modal';
-import { useLocation } from 'react-router-dom';
 import { ArrowRight, Clock } from 'lucide-react';
 import { useClosingSoon } from '../context/ClosingSoonContext';
 
 export const FinalCallModal: React.FC = () => {
   const { showFinalCallPopup, formattedCountdown, finalCallMessage, dismissFinalCallPopup } = useClosingSoon();
-  const location = useLocation();
 
-  if (!showFinalCallPopup || location.pathname === '/age-restricted') {
+  if (!showFinalCallPopup) {
     return null;
   }
 

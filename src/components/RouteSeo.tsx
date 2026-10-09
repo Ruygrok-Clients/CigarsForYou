@@ -13,7 +13,6 @@ const UTILITY_TITLES: Record<string, string> = {
   '/signup': brandTitle('Sign Up'),
   '/forgot-password': brandTitle('Forgot Password'),
   '/order-confirmation': brandTitle('Order Confirmation'),
-  '/age-restricted': brandTitle('Age Restricted'),
 };
 
 function isCataloguePath(path: string): boolean {

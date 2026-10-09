@@ -1,15 +1,13 @@
 import React from 'react';
 import { Modal } from './Modal';
-import { useLocation } from 'react-router-dom';
 import { ArrowRight, Clock, Truck } from 'lucide-react';
 import { EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME } from '../constants/deliveryCopy';
 import { useClosingSoon } from '../context/ClosingSoonContext';
 
 export const ClosingSoonModal: React.FC = () => {
   const { showClosingPopup, formattedCountdown, dismissPopup } = useClosingSoon();
-  const location = useLocation();
 
-  if (!showClosingPopup || location.pathname === '/age-restricted') {
+  if (!showClosingPopup) {
     return null;
   }
 
