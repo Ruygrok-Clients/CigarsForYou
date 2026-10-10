@@ -23,6 +23,13 @@ import {
 } from "./socialProof";
 import { applyPurchaseCounts } from "./purchaseCounts";
 import { placeRewardOrderForUser, reevaluateLoyaltyTiers, syncOrderRewards } from "./rewards";
+import {
+  allocateOrderStockForOrder,
+  applyStockConflictDefaults as applyStockConflictDefaultsJob,
+  getOrderStockIssueForCaller,
+  placeCatalogOrderForUser,
+  resolveStockConflictForOrder,
+} from "./stockAllocation";
 import { rewriteFbtCompanions } from "./fbtCompanions";
 import { googleMapsApiKey } from "./immediateDispatchFee";
 import {
@@ -78,6 +85,74 @@ export const placeRewardOrder = onCall({ secrets: [googleMapsApiKey] }, async (r
     throw new HttpsError("unauthenticated", "Sign in to redeem rewards.");
   }
   return placeRewardOrderForUser(uid, request.data || {});
+});
+
+function orderIdFrom(data: unknown): string {
+  const orderId = typeof (data as { orderId?: unknown })?.orderId === "string"
+    ? (data as { orderId: string }).orderId.trim()
+    : "";
+  if (!orderId) {
+    throw new HttpsError("invalid-argument", "Order id is required.");
+  }
+  return orderId;
+}
+
+/** After payment, allocate catalog stock. Idempotent. Conflict returns a token for /order-issue. */
+export const allocateOrderStock = onCall(async (request) => {
+  const orderId = orderIdFrom(request.data);
+  await getOrderStockIssueForCaller({
+    orderId,
+    uid: request.auth?.uid,
+    token: (request.data as { token?: unknown })?.token,
+  });
+  return allocateOrderStockForOrder(orderId);
+});
+
+export const getOrderStockIssue = onCall(async (request) => {
+  const orderId = orderIdFrom(request.data);
+  return getOrderStockIssueForCaller({
+    orderId,
+    uid: request.auth?.uid,
+    token: (request.data as { token?: unknown })?.token,
+  });
+});
+
+export const resolveStockConflict = onCall({ secrets: ["RESEND_API_KEY"] }, async (request) => {
+  const orderId = orderIdFrom(request.data);
+  await getOrderStockIssueForCaller({
+    orderId,
+    uid: request.auth?.uid,
+    token: (request.data as { token?: unknown })?.token,
+  });
+  const mode = (request.data as { mode?: unknown })?.mode;
+  if (mode !== "full_cancel" && mode !== "partial") {
+    throw new HttpsError("invalid-argument", "Choose a full refund or a line-by-line refund.");
+  }
+  const actor = request.auth?.token.email || request.auth?.uid || "Customer";
+  return resolveStockConflictForOrder({
+    orderId,
+    mode,
+    cancellations: (request.data as { cancellations?: [] })?.cancellations,
+    actor,
+  });
+});
+
+/** Catalog paid-order hook. Refuses storefront callers until PAYMENTS_ENABLED=true. */
+export const placeCatalogOrder = onCall({ secrets: [googleMapsApiKey] }, async (request) => {
+  const uid = request.auth?.uid;
+  if (!uid) {
+    throw new HttpsError("unauthenticated", "Sign in to place an order.");
+  }
+  return placeCatalogOrderForUser(uid, request.data || {});
+});
+
+/** If the customer leaves the stock-issue page, cancel only the quantities we could not allocate. */
+export const applyStockConflictDefaults = onSchedule({
+  schedule: "every 15 minutes",
+  secrets: ["RESEND_API_KEY"],
+}, async () => {
+  const result = await applyStockConflictDefaultsJob();
+  logger.info("Stock conflict defaults applied", result);
 });
 
 /**

@@ -6,8 +6,8 @@ Operational refund behaviour on this platform. There is **no payment processor c
 
 ### 1. Platform Policy & Governance Philosophy
 
-1. **Refunds Are Staff-Driven, Not Customer Self-Serve**:
-   * Customers cannot cancel an order or trigger a refund from their account. Adjustments happen in the Admin Portal (`AdminOrders`).
+1. **Refunds Are Staff-Driven, Except Stock Allocation**:
+   * Customers cannot cancel an order from their account. The only customer self-serve path is a catalog stock-allocation conflict (`/order-issue`). Everything else is handled in the Admin Portal (`AdminOrders`).
 2. **Zero Automated Money Movement**:
    * There is no Stripe (or other) refund API call. Ticking “Record refund” or recording an Immediate Dispatch full refund only stamps Firestore fields (`refundedAt`, `refundMethod: 'manual'`, `refundAmount`). Payment must be returned offline.
 3. **Staff / Admin Discretion**:
@@ -131,7 +131,7 @@ Either cancel **or** a `refundedAt` stamp qualifies. Express upgrade (fee-only) 
 
 $$\text{pointsEarned} = \lfloor \max(0,\ \text{subtotal} - \text{discountAmount}) \rfloor$$
 
-Clawback removes the **whole order award** in one shot (not incremental partials), because the platform only records full-order refunds today.
+Clawback removes the **whole order award** in one shot (not incremental partials). Partial stock-allocation refunds omit `refundedAt` so they do not claw points. A full cancel still does.
 
 ---
 
@@ -140,6 +140,24 @@ Clawback removes the **whole order award** in one shot (not incremental partials
 After a clawback, `reevaluateUserLoyalty` runs for that customer. Tier labels (Bronze / Silver / Gold) follow the site’s rolling loyalty rules; a clawback can reduce qualifying activity and may downgrade tier. Redeeming points for rewards is separate from clawback — cancelling a reward order returns spent points via `redeem_refund` rather than a spend clawback.
 
 Express upgrade leaves points and tier evaluation untouched for that order’s earn.
+
+A partial stock-allocation refund also leaves the earn in place. Cancelling the whole order from that flow claws it, the same as any other cancel.
+
+---
+
+### 6. Catalog stock allocation conflict
+
+Paid catalog checkout (still gated in the storefront) creates an order with `stockAllocationStatus: "pending"`, then `allocateOrderStock` decrements `products` stock inside a transaction.
+
+* If every line fits, status becomes `allocated` and fulfilment can proceed.
+* If any line is short, status becomes `conflict`, fulfilment is paused, and the customer has **60 minutes** on `/order-issue`.
+* Copy on that page treats it as an error on our end. It does not describe the cart hold timer.
+* The customer can refund the whole order, or refund individual quantities. The unallocated quantity on each short line is mandatory and cannot be reduced. They may refund additional quantity up to the full line.
+* If they leave the page, a scheduled job (`applyStockConflictDefaults`, every 15 minutes) cancels and records a refund for **only the unallocated quantity** after the deadline. Further changes need a direct contact.
+* Either resolution creates a one-time fixed `$25` coupon (`usageLimit: 1`) if one was not already created when the conflict was detected, and emails it. The cart floors fixed discounts so the merchandise total cannot go below $0; unused value does not roll over.
+* Full cancel sets `refundedAt`, `refundMethod: "manual"`, and `refundAmount` to the order total, and restores stock that was actually allocated.
+* A partial keep-the-rest resolution sets `partialRefundedAt` and `refundAmount` for the cancelled merchandise only (shipping stays unless the order becomes empty). It does **not** set `refundedAt`. Money is still returned offline until a processor is connected.
+* `advanceOrderStatus` refuses while `stockAllocationStatus` is `conflict` or `fulfilmentPaused` is true.
 
 ---
 
@@ -152,7 +170,9 @@ Express upgrade leaves points and tier evaluation untouched for that order’s e
 | **Immediate: mark unavailable** | No | No | None yet | No | No |
 | **Immediate: full refund** | No (offline) | **Yes** (full order) | Same as cancelled/refunded | Optional per line | **Yes** (if earn clawed) |
 | **Immediate: Express upgrade** | No (offline fee return) | Fee only (`immediateDispatchFeeRefunded`) | **None** (no `refundedAt`) | No | No |
-| **Customer self-refund** | N/A — not supported | — | — | — | — |
+| **Stock conflict: full cancel** | No (offline) | **Yes** (`manual`, full `totalAmount`) | Clawback (order cancelled) | Allocated units restored | **Yes** (if earn clawed) |
+| **Stock conflict: partial / timeout** | No (offline) | Partial only (`partialRefundedAt`, no `refundedAt`) | **None** | Only allocated units the customer also cancels | No |
+| **Customer self-refund (other)** | N/A — not supported | — | — | — | — |
 | **Payment processor refund** | Not wired yet | `refundMethod: 'processor'` reserved | Would ride same sync when cancel / `refundedAt` written | — | — |
 
 ---
@@ -168,4 +188,6 @@ Express upgrade leaves points and tier evaluation untouched for that order’s e
 | Rewards earn / clawback / redeem_refund | `functions/src/rewards.ts` |
 | Orders write trigger | `functions/src/index.ts` (`syncOrderRewardsOnWrite`) |
 | Customer email (unavailable options) | `functions/src/email.ts` |
+| Catalog stock allocation / conflict | `functions/src/stockAllocation.ts` |
+| Stock-issue page | `src/pages/OrderStockIssuePage.tsx` |
 | Public policy copy | `src/pages/LegalPage.tsx` (`/refund-policy`) |

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import confetti from 'canvas-confetti';
 import { useAuth } from '../context/AuthContext';
 import {
@@ -11,9 +11,11 @@ import {
 } from '../utils/rewards';
 import type { LoyaltyTier } from '../types';
 import { Modal } from '../components/Modal';
+import { allocateOrderStock, getOrderStockIssue } from '../services/stockAllocation';
 
 export const OrderConfirmationPage: React.FC = () => {
   const [searchParams] = useSearchParams();
+  const navigate = useNavigate();
   const { userProfile, refreshProfile } = useAuth();
   const orderNumber = searchParams.get('orderNumber') || '';
   const [beforeTier] = useState<LoyaltyTier | null>(() => readLoyaltyTierSnapshot());
@@ -21,6 +23,42 @@ export const OrderConfirmationPage: React.FC = () => {
 
   const tier = normalizeLoyaltyTier(userProfile?.loyaltyTier);
   const showCelebration = Boolean(beforeTier && tierRank(tier) > tierRank(beforeTier) && !celebrationDismissed);
+
+  const orderId = searchParams.get('orderId') || '';
+  const token = searchParams.get('token');
+
+  useEffect(() => {
+    if (!orderId) return;
+    let cancelled = false;
+    (async () => {
+      try {
+        let issue = await getOrderStockIssue({ orderId, token });
+        if (issue.stockAllocationStatus === 'pending') {
+          const allocated = await allocateOrderStock({ orderId, token });
+          if (cancelled) return;
+          if (allocated.stockAllocationStatus === 'conflict') {
+            const params = new URLSearchParams({ orderId });
+            const nextToken = allocated.stockConflictToken || token;
+            if (nextToken) params.set('token', nextToken);
+            navigate(`/order-issue?${params.toString()}`, { replace: true });
+            return;
+          }
+          issue = await getOrderStockIssue({ orderId, token: allocated.stockConflictToken || token });
+        }
+        if (cancelled) return;
+        if (issue.stockAllocationStatus === 'conflict') {
+          const params = new URLSearchParams({ orderId });
+          if (token) params.set('token', token);
+          navigate(`/order-issue?${params.toString()}`, { replace: true });
+        }
+      } catch (err) {
+        console.error('Order stock check failed', err);
+      }
+    })();
+    return () => {
+      cancelled = true;
+    };
+  }, [orderId, token, navigate]);
 
   useEffect(() => {
     if (!beforeTier) return;

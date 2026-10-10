@@ -7,6 +7,7 @@ import { useLocationSelection } from '../context/LocationContext';
 import { useToast } from '../components/Toast';
 import { useClosingSoon } from '../context/ClosingSoonContext';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
+import { CartHoldBanner } from '../components/CartHoldBanner';
 import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import { AUSTRALIAN_STATES } from '../constants/locations';
@@ -225,10 +226,16 @@ export const CustomerDetailsPage: React.FC = () => {
   const immediatePromoNet = quote
     ? Math.max(0, quote.feeAud - Math.min(SPEND_PROMO_IMMEDIATE_CREDIT, quote.feeAud))
     : null;
-  const showImmediateCreditDollars = vipImmediate && spendPromoShippingCredit > 0 && shippingFee > 0;
-  const shippingLineAmount = showImmediateCreditDollars
-    ? shippingFee + spendPromoShippingCredit
-    : shippingFee;
+  const vipImmediateCreditApplied = vipImmediate && spendPromoShippingCredit > 0;
+  const vipExpressCreditApplied = vipExpress && spendPromoShippingCredit > 0;
+  const deliveryVipSubtext = vipImmediateCreditApplied
+    ? (shippingFee > 0
+      ? `VIP Immediate Dispatch Credit for $${SPEND_PROMO_THRESHOLD}+ orders (−$${spendPromoShippingCredit.toFixed(2)} AUD)`
+      : `VIP Immediate Dispatch Credit for $${SPEND_PROMO_THRESHOLD}+ orders`)
+    : vipExpressCreditApplied
+      ? `VIP Free Express Shipping for $${SPEND_PROMO_THRESHOLD}+ orders`
+      : null;
+  const deliveryLineHighlighted = Boolean(deliveryVipSubtext);
 
   useEffect(() => {
     if (quoteLoading) return;
@@ -448,6 +455,7 @@ export const CustomerDetailsPage: React.FC = () => {
         </div>
 
         <ClosingSoonCountdownBanner />
+        {!rewardsMode && <CartHoldBanner />}
 
         {!rewardsMode && <SpendThresholdPromoBar subtotal={subtotal} />}
 
@@ -940,24 +948,12 @@ export const CustomerDetailsPage: React.FC = () => {
                   {!rewardsMode && spendPromoUnlocked && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem', alignItems: 'flex-start' }}>
                       <span style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: 0 }}>
-                        <span>Cedar Humidity Control Delivery Box</span>
+                        <span>Cedar Humidity Delivery Box</span>
                         <span style={{ fontSize: '0.75rem', lineHeight: 1.35, color: 'var(--text-muted)', fontWeight: 400 }}>
                           VIP packaging upgrade for ${SPEND_PROMO_THRESHOLD}+ orders
                         </span>
                       </span>
                       <span style={{ flexShrink: 0 }}>Included</span>
-                    </div>
-                  )}
-                  {!rewardsMode && spendPromoShippingCredit > 0 && spendPromoRewardMode === 'immediate_credit' && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem' }}>
-                      <span>VIP Immediate Dispatch Credit</span>
-                      <span>{shippingFee === 0 ? 'FREE' : `-$${spendPromoShippingCredit.toFixed(2)} AUD`}</span>
-                    </div>
-                  )}
-                  {!rewardsMode && spendPromoShippingCredit > 0 && spendPromoRewardMode === 'free_express' && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem' }}>
-                      <span>VIP Free Express Shipping</span>
-                      <span>FREE</span>
                     </div>
                   )}
                   {!rewardsMode && couponDiscountAmount > 0 && (
@@ -966,14 +962,21 @@ export const CustomerDetailsPage: React.FC = () => {
                       <span>-${couponDiscountAmount.toFixed(2)} AUD</span>
                     </div>
                   )}
-                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--text-secondary)', gap: '1rem' }}>
-                    <span>{deliveryMethodLabel(deliveryMethod)}</span>
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: deliveryLineHighlighted ? '#4caf50' : 'var(--text-secondary)', gap: '1rem', alignItems: 'flex-start' }}>
+                    <span style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: 0 }}>
+                      <span>{deliveryMethodLabel(deliveryMethod)}</span>
+                      {deliveryVipSubtext && (
+                        <span style={{ fontSize: '0.75rem', lineHeight: 1.35, color: 'var(--text-muted)', fontWeight: 400 }}>
+                          {deliveryVipSubtext}
+                        </span>
+                      )}
+                    </span>
                     {deliveryMethod === 'immediate' && quoteLoading ? (
                       <span style={{ color: 'var(--text-muted)', flexShrink: 0 }}>Pricing…</span>
-                    ) : shippingLineAmount === 0 ? (
-                      <span style={{ color: '#4caf50', fontWeight: 600, flexShrink: 0 }}>FREE ($0.00 AUD)</span>
+                    ) : shippingFee === 0 ? (
+                      <span style={{ color: '#4caf50', fontWeight: 600, flexShrink: 0 }}>Free</span>
                     ) : (
-                      <span style={{ color: 'var(--accent-gold)', flexShrink: 0 }}>${shippingLineAmount.toFixed(2)} AUD</span>
+                      <span style={{ color: 'var(--accent-gold)', flexShrink: 0 }}>${shippingFee.toFixed(2)} AUD</span>
                     )}
                   </div>
                   <div style={{ display: 'flex', justifyContent: 'space-between', paddingTop: '0.75rem', borderTop: '1px solid var(--border-color)', fontWeight: 700, fontSize: '1.2rem', color: 'var(--text-primary)' }}>

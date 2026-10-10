@@ -16,6 +16,10 @@ import { toRewardGaItem, trackAddPaymentInfo, trackOnce, trackPurchase } from '.
 
 const paymentsEnabled = import.meta.env.VITE_PAYMENTS_ENABLED === 'true';
 
+// Catalog checkout stays gated. When a processor is connected, call placeCatalogOrder,
+// then open /order-issue if stockAllocationStatus is "conflict", otherwise /order-confirmation.
+// Pass orderId and stockConflictToken. Do not turn this flag on until that path is wired.
+
 export const CheckoutPage: React.FC = () => {
   const [searchParams] = useSearchParams();
   const rewardsMode = searchParams.get('mode') === 'rewards';

@@ -567,6 +567,12 @@ export const AdminOrders: React.FC = () => {
                       {order.immediateDispatchResolution === 'express_upgrade' && (
                         <span className="badge badge-amber" style={{ marginLeft: '0.35rem' }}>Express upgrade</span>
                       )}
+                      {order.stockAllocationStatus === 'conflict' && (
+                        <span className="badge badge-red" style={{ marginLeft: '0.35rem' }}>Stock allocation</span>
+                      )}
+                      {order.stockAllocationStatus === 'resolved' && (
+                        <span className="badge badge-amber" style={{ marginLeft: '0.35rem' }}>Stock resolved</span>
+                      )}
                     </td>
                     <td style={{ padding: '0.75rem', fontSize: '0.8rem', color: 'var(--text-muted)' }}>
                       {order.source === 'Reward' ? (
@@ -702,6 +708,16 @@ export const AdminOrders: React.FC = () => {
               {selectedOrder.immediateDispatchResolution === 'express_upgrade' && (
                 <span className="badge badge-amber" style={{ marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'inline-block' }}>
                   Complimentary Express
+                </span>
+              )}
+              {selectedOrder.stockAllocationStatus === 'conflict' && (
+                <span className="badge badge-red" style={{ marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'inline-block' }}>
+                  Stock allocation
+                </span>
+              )}
+              {selectedOrder.stockAllocationStatus === 'resolved' && (
+                <span className="badge badge-amber" style={{ marginLeft: '0.5rem', marginBottom: '0.5rem', display: 'inline-block' }}>
+                  Stock resolved
                 </span>
               )}
               <h2 style={{ fontSize: '1.8rem', color: 'var(--text-primary)', margin: 0, fontWeight: 700 }}>

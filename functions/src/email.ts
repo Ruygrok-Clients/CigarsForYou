@@ -1138,3 +1138,56 @@ export async function sendB2BEnquiryAdminAlert(enquiry: any) {
     html: wrapAdminEmailTemplate("B2B Partnership Enquiry", bodyContent),
   });
 }
+
+/**
+ * Apology after a stock-allocation problem. One-time $25 code, no rollover.
+ */
+export async function sendStockAllocationApologyEmail(order: {
+  customerEmail?: string;
+  customerName?: string;
+  orderNumber?: string;
+}, couponCode: string) {
+  const customerEmail = order.customerEmail;
+  if (!customerEmail || !customerEmail.includes("@")) {
+    logger.warn("Skipping stock allocation apology email: no valid customer email.", {
+      orderNumber: order.orderNumber,
+    });
+    return { success: false, reason: "No valid customer email" };
+  }
+
+  const code = escapeHtml(couponCode);
+  const bodyContent = `
+    <div class="order-hero">
+      <h2>We're sorry about order #${escapeHtml(order.orderNumber || "")}</h2>
+      <p>There was an error on our end while allocating stock for your order. We're very sorry for the inconvenience.</p>
+    </div>
+
+    <div class="summary-card">
+      <div class="summary-row">
+        <span class="summary-label">Apology code:</span>
+        <span class="summary-val" style="color: #d4af37; font-family: monospace; font-size: 18px;">${code}</span>
+      </div>
+      <div class="summary-row">
+        <span class="summary-label">Value:</span>
+        <span class="summary-val">$25 off one order</span>
+      </div>
+    </div>
+
+    <p style="font-size: 14px; color: #d1d5db; line-height: 1.6;">
+      This code is for one use. It takes $25 off the order total, and the total will not go below $0.
+      Any amount you don't use is not kept and does not roll over to another order.
+    </p>
+    <p style="font-size: 14px; color: #d1d5db; line-height: 1.6;">
+      If you have already left the order page, the items we could not include have been cancelled and marked for refund.
+      Contact us if you need that changed.
+    </p>
+  `;
+
+  return sendResendEmail({
+    from: ORDERS_FROM_EMAIL,
+    to: [customerEmail],
+    replyTo: "orders@cigarsforyou.com.au",
+    subject: `We're sorry — $25 off your next order (${couponCode})`,
+    html: wrapCustomerEmailTemplate("We're sorry — CigarsForYou", bodyContent),
+  });
+}

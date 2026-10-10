@@ -4,6 +4,7 @@ import { useCart } from '../context/CartContext';
 import { useAuth } from '../context/AuthContext';
 import { useToast } from '../components/Toast';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
+import { CartHoldBanner } from '../components/CartHoldBanner';
 import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
 import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { CartFrequentlyBoughtTogether } from '../components/CartFrequentlyBoughtTogether';
@@ -147,6 +148,7 @@ export const CartPage: React.FC = () => {
         </div>
 
         <ClosingSoonCountdownBanner style={{ marginTop: '0.25rem' }} />
+        <CartHoldBanner />
 
         <SpendThresholdPromoBar subtotal={subtotal} />
 
@@ -321,7 +323,7 @@ export const CartPage: React.FC = () => {
                   {spendPromoUnlocked && (
                 <div className="cart-totals__included">
                   <dt>
-                    Cedar Humidity Control Delivery Box
+                    Cedar Humidity Delivery Box
                     <span className="cart-totals__included-note">
                       VIP packaging upgrade for ${SPEND_PROMO_THRESHOLD}+ orders
                     </span>

@@ -32,6 +32,7 @@ import { CustomerDetailsPage } from './pages/CustomerDetailsPage';
 import { CheckoutPage } from './pages/CheckoutPage';
 import { AccountPage } from './pages/AccountPage';
 import { OrderConfirmationPage } from './pages/OrderConfirmationPage';
+import { OrderStockIssuePage } from './pages/OrderStockIssuePage';
 import { LoginPage } from './pages/LoginPage';
 import { SignupPage } from './pages/SignupPage';
 import { ForgotPasswordPage } from './pages/ForgotPasswordPage';
@@ -138,6 +139,7 @@ export default function App() {
                       <Route path="/checkout-details" element={<CustomerDetailsPage />} />
                       <Route path="/checkout" element={<CheckoutPage />} />
                       <Route path="/order-confirmation" element={<OrderConfirmationPage />} />
+                      <Route path="/order-issue" element={<OrderStockIssuePage />} />
                       <Route path="/account" element={<AccountPage />} />
                       <Route path="/login" element={<LoginPage />} />
                       <Route path="/signup" element={<SignupPage />} />

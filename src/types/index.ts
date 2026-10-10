@@ -220,9 +220,25 @@ export interface OrderItem {
   discountPercent?: number;
   /** True when a cancel restored this line's stock. */
   stockRestored?: boolean;
+  /** Units actually taken from catalog stock. Shortfall is quantity − allocatedQuantity. */
+  allocatedQuantity?: number;
+  /** Units the customer (or the timeout) cancelled after a stock conflict. */
+  cancelledQuantity?: number;
 }
 
 export type RefundMethod = 'manual' | 'processor';
+
+export type StockAllocationStatus = 'pending' | 'allocated' | 'conflict' | 'resolved';
+
+export type StockConflictResolution = 'full_cancel' | 'customer_partial' | 'default_shortfall';
+
+export interface StockShortfall {
+  productId: string;
+  name: string;
+  requested: number;
+  allocated: number;
+  shortfall: number;
+}
 
 export type ImmediateDispatchResolution = 'pending_customer' | 'full_refund' | 'express_upgrade';
 
@@ -288,6 +304,22 @@ export interface Order {
   pointsSpent?: number;
   /** True after a cancelled reward order has had its points returned. */
   pointsRefunded?: boolean;
+  /** Catalog stock allocation. Absent on orders placed before this flow. */
+  stockAllocationStatus?: StockAllocationStatus;
+  stockShortfalls?: StockShortfall[];
+  stockConflictDetectedAt?: string;
+  /** Customer decision window. After this, only the unallocated quantity is cancelled. */
+  stockConflictDecisionDeadline?: string;
+  stockConflictResolution?: StockConflictResolution | null;
+  stockConflictResolvedAt?: string;
+  /** Secret for the stock-issue page. Not required when the signed-in customer owns the order. */
+  stockConflictToken?: string;
+  apologyCouponCode?: string;
+  apologyEmailSentAt?: string;
+  /** Set on a partial stock-conflict refund. Omitted on full cancel, which uses refundedAt. */
+  partialRefundedAt?: string;
+  /** True while fulfilment should wait for a stock-conflict decision. */
+  fulfilmentPaused?: boolean;
   statusHistory: OrderStatusHistory[];
   archived?: boolean;
 }

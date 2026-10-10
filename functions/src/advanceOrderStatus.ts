@@ -60,6 +60,9 @@ export const advanceOrderStatus = onCall({ secrets: ["RESEND_API_KEY"] }, async 
     if (status === "Fulfilled" || status === "Cancelled") {
       throw new HttpsError("failed-precondition", "This order can no longer be advanced.");
     }
+    if (order.stockAllocationStatus === "conflict" || order.fulfilmentPaused === true) {
+      throw new HttpsError("failed-precondition", "Fulfilment is paused until the stock allocation problem is resolved.");
+    }
 
     const method = typeof order.deliveryMethod === "string" ? order.deliveryMethod : "express";
     const steps = stepsFor(method);

@@ -14,6 +14,8 @@ function productKey(product: Product): string {
   return product.id || product.slug;
 }
 
+export type CartHoldPhase = 'active' | 'expired' | 'idle';
+
 interface CartContextType {
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
@@ -21,6 +23,10 @@ interface CartContextType {
   /** Optional live catalog product supplies fresh stock, list price, and bulk tiers. */
   updateQuantity: (productId: string, quantity: number, catalogProduct?: Product) => void;
   clearCart: () => void;
+  /** Marketing countdown only — does not lock warehouse stock. */
+  holdExpiresAt: number | null;
+  holdRemainingMs: number;
+  holdPhase: CartHoldPhase;
   appliedCoupons: Coupon[];
   appliedCoupon: Coupon | null; // backward compatibility
   applyCoupon: (coupon: Coupon | null) => void;
@@ -47,6 +53,20 @@ interface CartContextType {
 const CART_KEY = 'cfy_cart_items_v1';
 const COUPON_KEY = 'cfy_applied_coupons_v2';
 const REWARD_MODE_KEY = 'cfy_spend_promo_reward_mode_v1';
+const HOLD_KEY = 'cfy_cart_hold_expires_v1';
+const HOLD_DURATION_MS = 10 * 60 * 1000;
+const HOLD_EXPIRED_VISIBLE_MS = 6000;
+
+function readHoldExpiresAt(): number | null {
+  try {
+    const raw = localStorage.getItem(HOLD_KEY);
+    if (!raw) return null;
+    const value = Number(raw);
+    return Number.isFinite(value) ? value : null;
+  } catch {
+    return null;
+  }
+}
 
 function readRewardMode(): SpendPromoRewardMode {
   try {
@@ -102,6 +122,74 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [appliedCoupons]);
 
+  const [holdExpiresAt, setHoldExpiresAt] = useState<number | null>(readHoldExpiresAt);
+  const [holdRemainingMs, setHoldRemainingMs] = useState(0);
+  const [holdPhase, setHoldPhase] = useState<CartHoldPhase>(() => {
+    const expires = readHoldExpiresAt();
+    if (expires == null) return 'idle';
+    return expires > Date.now() ? 'active' : 'expired';
+  });
+
+  const startHold = () => {
+    const expires = Date.now() + HOLD_DURATION_MS;
+    setHoldExpiresAt(expires);
+    setHoldRemainingMs(HOLD_DURATION_MS);
+    setHoldPhase('active');
+  };
+
+  const clearHold = () => {
+    setHoldExpiresAt(null);
+    setHoldRemainingMs(0);
+    setHoldPhase('idle');
+  };
+
+  useEffect(() => {
+    if (cart.length === 0) {
+      clearHold();
+    }
+  }, [cart.length]);
+
+  useEffect(() => {
+    try {
+      if (holdExpiresAt == null) localStorage.removeItem(HOLD_KEY);
+      else localStorage.setItem(HOLD_KEY, String(holdExpiresAt));
+    } catch (e) {
+      console.error('Failed to save cart hold', e);
+    }
+  }, [holdExpiresAt]);
+
+  useEffect(() => {
+    if (holdExpiresAt == null || cart.length === 0) return;
+
+    const update = () => {
+      const remaining = holdExpiresAt - Date.now();
+      if (remaining <= 0) {
+        setHoldRemainingMs(0);
+        setHoldPhase('expired');
+        return true;
+      }
+      setHoldRemainingMs(remaining);
+      setHoldPhase('active');
+      return false;
+    };
+
+    if (update()) return;
+    const id = window.setInterval(() => {
+      if (update()) window.clearInterval(id);
+    }, 1000);
+    return () => window.clearInterval(id);
+  }, [holdExpiresAt, cart.length]);
+
+  useEffect(() => {
+    if (holdPhase !== 'expired') return;
+    const timer = window.setTimeout(() => {
+      setHoldExpiresAt(null);
+      setHoldRemainingMs(0);
+      setHoldPhase('idle');
+    }, HOLD_EXPIRED_VISIBLE_MS);
+    return () => window.clearTimeout(timer);
+  }, [holdPhase]);
+
   const addToCart = (product: Product, quantity: number = 1) => {
     // `product.price` is the catalogue list unit price. Charged unit price is resolved
     // from bulk tiers (10 / 25+) for tobacco and always capped by stock.
@@ -110,6 +198,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     let trackedQty = 0;
     let unitPrice = product.price;
     const incomingKey = productKey(product);
+    let addedNewLine = false;
 
     setCart((prev) => {
       const existingIndex = prev.findIndex((item) => cartItemKey(item) === incomingKey);
@@ -137,6 +226,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
       trackedQty = Math.min(requested, stockCap);
       if (trackedQty <= 0) return prev;
+      addedNewLine = true;
       unitPrice = resolveCartUnitPrice(product, product.price, trackedQty);
       return [...prev, {
         product: {
@@ -148,6 +238,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
         listUnitPrice: product.price
       }];
     });
+    if (addedNewLine) startHold();
     if (trackedQty > 0) {
       trackAddToCart(product, trackedQty, unitPrice, couponLabel(appliedCoupons.map((coupon) => coupon.code)));
     }
@@ -223,6 +314,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const clearCart = () => {
     setCart([]);
     setAppliedCoupons([]);
+    clearHold();
   };
 
   const applyCoupon = (coupon: Coupon | null) => {
@@ -329,6 +421,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       removeFromCart,
       updateQuantity,
       clearCart,
+      holdExpiresAt,
+      holdRemainingMs,
+      holdPhase,
       appliedCoupons,
       appliedCoupon: appliedCoupons[0] || null,
       applyCoupon,
