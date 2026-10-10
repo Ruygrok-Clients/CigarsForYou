@@ -1321,11 +1321,16 @@ select.form-control option {
   color: var(--text-primary);
 }
 
-.cart-line__bought {
+.cart-line__meta {
   margin: 0;
   font-size: 0.75rem;
   color: var(--text-muted);
   letter-spacing: 0.01em;
+  line-height: 1.4;
+}
+
+.cart-line__meta-sep {
+  color: var(--text-muted);
 }
 
 .cart-line__actions {

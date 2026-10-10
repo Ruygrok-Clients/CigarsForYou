@@ -200,7 +200,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   const [deliveryMethod, setDeliveryMethod] = useState<DeliveryMethod>('pickup');
   const [pickupHubId, setPickupHubId] = useState(DEFAULT_DISTRIBUTION_HUB_ID);
   const [immediateDispatchFee, setImmediateDispatchFee] = useState(0);
-  const [spendPromoRewardMode, setSpendPromoRewardMode] = useState<SpendPromoRewardMode>(readRewardMode);
+  const [spendPromoRewardMode, setSpendPromoRewardModeState] = useState<SpendPromoRewardMode>(readRewardMode);
+  const wasSpendPromoUnlocked = React.useRef(false);
 
   useEffect(() => {
     try {
@@ -211,6 +212,25 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [spendPromoRewardMode]);
 
   const subtotal = cart.reduce((acc, item) => acc + (item.product.price * item.quantity), 0);
+  const spendPromoUnlocked = getSpendPromoState(subtotal).unlocked;
+
+  const deliveryMethodForRewardMode = (mode: SpendPromoRewardMode): DeliveryMethod =>
+    mode === 'free_express' ? 'express' : 'immediate';
+
+  const setSpendPromoRewardMode = (mode: SpendPromoRewardMode) => {
+    setSpendPromoRewardModeState(mode);
+    if (getSpendPromoState(subtotal).unlocked) {
+      setDeliveryMethod(deliveryMethodForRewardMode(mode));
+    }
+  };
+
+  useEffect(() => {
+    if (spendPromoUnlocked && !wasSpendPromoUnlocked.current) {
+      setDeliveryMethod(deliveryMethodForRewardMode(spendPromoRewardMode));
+    }
+    wasSpendPromoUnlocked.current = spendPromoUnlocked;
+  }, [spendPromoUnlocked, spendPromoRewardMode]);
+
   const isFreeShipping = appliedCoupons.some(c => c.discountType === 'free_shipping');
   const quotedImmediateFee = Math.max(0, immediateDispatchFee);
   const baseShipping = deliveryMethod === 'pickup'
@@ -219,7 +239,6 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       ? quotedImmediateFee
       : EXPRESS_DELIVERY_FEE;
   const waiveImmediate = isFreeShipping && deliveryMethod === 'immediate';
-  const spendPromoUnlocked = getSpendPromoState(subtotal).unlocked;
   const rawSpendCredit = getSpendPromoShippingCredit({
     unlocked: spendPromoUnlocked,
     rewardMode: spendPromoRewardMode,

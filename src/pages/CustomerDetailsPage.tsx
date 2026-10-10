@@ -24,6 +24,7 @@ import {
 import type { DeliveryMethod } from '../types';
 import { normalizeLoyaltyTier, resolveProductPointsCost } from '../utils/rewards';
 import { AgeVerificationNotice } from '../components/AgeVerificationNotice';
+import { GoogleReviewsBadge } from '../components/GoogleReviewsBadge';
 import { ensureAgeVerified } from '../lib/didit';
 import {
   couponLabel,
@@ -67,6 +68,7 @@ export const CustomerDetailsPage: React.FC = () => {
     couponDiscountAmount,
     spendPromoUnlocked,
     spendPromoRewardMode,
+    setSpendPromoRewardMode,
     spendPromoShippingCredit,
     totalAmount,
     isFreeShipping: productIsFreeShipping,
@@ -306,8 +308,13 @@ export const CustomerDetailsPage: React.FC = () => {
 
   const selectMethod = (method: DeliveryMethod) => {
     if (method === 'immediate' && !immediateAvailable) return;
-    setDeliveryMethod(method);
     setOpenInfo(method);
+    if (!rewardsMode && spendPromoUnlocked && (method === 'immediate' || method === 'express')) {
+      // Reward-mode setter also selects the matching delivery method.
+      setSpendPromoRewardMode(method === 'immediate' ? 'immediate_credit' : 'free_express');
+      return;
+    }
+    setDeliveryMethod(method);
   };
 
   const handleContinue = async (destination: 'rewards' | 'checkout') => {
@@ -721,9 +728,9 @@ export const CustomerDetailsPage: React.FC = () => {
                             $50 VIP credit applied to this fee.
                           </p>
                         )}
-                        {vipExpress && deliveryMethod === 'immediate' && (
+                        {vipExpress && (
                           <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                            Free Express is the active offer — or switch back to the $50 Immediate Dispatch credit above.
+                            Select this to apply your VIP offer as a ${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit instead.
                           </p>
                         )}
                         {openInfo === 'immediate' && (
@@ -790,9 +797,9 @@ export const CustomerDetailsPage: React.FC = () => {
                             VIP Free Express Shipping applied.
                           </p>
                         )}
-                        {vipImmediate && deliveryMethod === 'express' && (
+                        {vipImmediate && (
                           <p style={{ margin: '0.35rem 0 0', fontSize: '0.78rem', color: 'var(--text-secondary)' }}>
-                            Your $50 credit applies to Immediate Dispatch — or switch the offer to Free Express above.
+                            Select this to apply your VIP offer as free Express shipping instead.
                           </p>
                         )}
                         {openInfo === 'express' && deliveryWindow === 'open' && (
@@ -850,6 +857,9 @@ export const CustomerDetailsPage: React.FC = () => {
                         </h5>
                         <span style={{ fontSize: '0.75rem', color: 'var(--text-muted)' }}>
                           Qty: {item.quantity} × ${item.product.price} AUD
+                          {typeof item.product.purchaseCount === 'number' && item.product.purchaseCount > 0 && (
+                            <> · {Math.floor(item.product.purchaseCount).toLocaleString()} bought</>
+                          )}
                         </span>
                       </div>
                       <span style={{ fontSize: '0.875rem', fontWeight: 600, color: 'var(--accent-gold)' }}>
@@ -971,14 +981,7 @@ export const CustomerDetailsPage: React.FC = () => {
                 >
                   {verifyingAge ? 'Verifying age...' : 'Continue to checkout'}
                 </button>
-                <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.75rem 0 0 0', lineHeight: 1.5 }}>
-                  If you are not already age verified, continuing opens a secure age check.
-                </p>
-                <p style={{ textAlign: 'center', fontSize: '0.75rem', color: 'var(--text-muted)', margin: '0.75rem 0 0 0', lineHeight: 1.5 }}>
-                  {rewardsMode
-                    ? 'Delivery is added on the next step. Online payment is still paused, so the reward order will not be placed yet.'
-                    : 'Online payment is temporarily unavailable. Age verification still runs before checkout, but the order will not be placed yet.'}
-                </p>
+                <GoogleReviewsBadge />
               </div>
             </div>
           </div>

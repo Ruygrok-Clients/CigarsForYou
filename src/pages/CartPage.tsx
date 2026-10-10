@@ -13,17 +13,14 @@ import { selectCartFrequentlyBoughtTogether } from '../utils/cartFbt';
 import { fetchProducts } from '../services/catalog';
 import { couponLabel, toGaItem, trackViewCart } from '../lib/analytics';
 import type { Product } from '../types';
+import { GoogleReviewsBadge } from '../components/GoogleReviewsBadge';
 import {
   ShoppingBag,
   Trash2,
   Tag,
   ChevronLeft,
-  Loader2,
-  Star
+  Loader2
 } from 'lucide-react';
-
-const GOOGLE_REVIEW_RATING = 4.9;
-const GOOGLE_REVIEW_COUNT = 310;
 
 export const CartPage: React.FC = () => {
   const {
@@ -180,9 +177,17 @@ export const CartPage: React.FC = () => {
                       <span className="cart-line__price">${lineTotal.toFixed(2)}</span>
                     </div>
                     <h2 className="cart-line__name">{item.product.name}</h2>
-                    {bought !== null && (
-                      <p className="cart-line__bought">{bought.toLocaleString()} bought</p>
-                    )}
+                    <p className="cart-line__meta">
+                      Qty: {item.quantity} × ${item.product.price} AUD
+                      {bought !== null && (
+                        <>
+                          {' '}
+                          <span className="cart-line__meta-sep" aria-hidden="true">·</span>
+                          {' '}
+                          {bought.toLocaleString()} bought
+                        </>
+                      )}
+                    </p>
                     <div className="cart-line__actions">
                       <div className="cart-qty">
                         <button
@@ -301,33 +306,7 @@ export const CartPage: React.FC = () => {
               Continue to delivery
             </Link>
 
-            <div
-              className="cart-google-reviews"
-              aria-label={`Rated ${GOOGLE_REVIEW_RATING} out of 5 on Google from ${GOOGLE_REVIEW_COUNT} reviews`}
-            >
-              <span className="cart-google-reviews__g" aria-hidden="true">G</span>
-              <div className="cart-google-reviews__body">
-                <div className="cart-google-reviews__row">
-                  <strong>{GOOGLE_REVIEW_RATING.toFixed(1)}</strong>
-                  <span className="cart-google-reviews__stars" aria-hidden="true">
-                    {Array.from({ length: 5 }, (_, i) => {
-                      const fill = Math.min(1, Math.max(0, GOOGLE_REVIEW_RATING - i));
-                      return (
-                        <span key={i} className="cart-google-reviews__star-wrap">
-                          <Star size={14} strokeWidth={0} className="cart-google-reviews__star-empty" />
-                          <span className="cart-google-reviews__star-fill" style={{ width: `${fill * 100}%` }}>
-                            <Star size={14} strokeWidth={0} fill="currentColor" />
-                          </span>
-                        </span>
-                      );
-                    })}
-                  </span>
-                </div>
-                <p className="cart-google-reviews__meta">
-                  Based on <strong>{GOOGLE_REVIEW_COUNT}</strong> Google reviews
-                </p>
-              </div>
-            </div>
+            <GoogleReviewsBadge />
           </aside>
         </div>
 

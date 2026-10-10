@@ -1,4 +1,5 @@
 import React, { useEffect, useRef } from 'react';
+import { PartyPopper } from 'lucide-react';
 import { getSpendPromoState, SPEND_PROMO_IMMEDIATE_CREDIT, SPEND_PROMO_THRESHOLD } from '../constants/spendPromo';
 import { useCart } from '../context/CartContext';
 import { trackSelectPromotion, trackViewPromotion } from '../lib/analytics';
@@ -59,9 +60,14 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
         <div className="spend-promo__header">
           <div className="spend-promo__intro">
             <p className="spend-promo__eyebrow">
-              {unlocked
-                ? 'Unlocked with this order'
-                : `Orders over $${threshold.toFixed(0)}`}
+              {unlocked ? (
+                <>
+                  <PartyPopper size={13} strokeWidth={2} aria-hidden="true" />
+                  Unlocked with this order
+                </>
+              ) : (
+                `Orders over $${threshold.toFixed(0)}`
+              )}
             </p>
             <p className="spend-promo__title">
               {unlocked ? (
