@@ -6,6 +6,7 @@ import { CartProvider } from './context/CartContext';
 import { RewardsCartProvider } from './context/RewardsCartContext';
 import { LocationProvider } from './context/LocationContext';
 import { ClosingSoonProvider } from './context/ClosingSoonContext';
+import { StockNotifyProvider } from './context/StockNotifyContext';
 import { ToastProvider } from './components/Toast';
 
 import { Navbar } from './components/Navbar';
@@ -111,6 +112,7 @@ export default function App() {
   return (
     <QueryClientProvider client={queryClient}>
       <AuthProvider>
+        <StockNotifyProvider>
         <ClosingSoonProvider>
           <LocationProvider>
           <CartProvider>
@@ -176,7 +178,8 @@ export default function App() {
           </RewardsCartProvider>
           </CartProvider>
           </LocationProvider>
-          </ClosingSoonProvider>
+        </ClosingSoonProvider>
+        </StockNotifyProvider>
       </AuthProvider>
     </QueryClientProvider>
   );

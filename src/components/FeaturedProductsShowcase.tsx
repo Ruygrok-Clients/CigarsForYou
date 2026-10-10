@@ -1,9 +1,10 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, ChevronRight, Flame, CheckCircle2, AlertCircle } from 'lucide-react';
+import { ShoppingBag, ChevronRight, Flame, CheckCircle2, AlertCircle, Bell, Check } from 'lucide-react';
 import type { Product } from '../types';
 import { OptionWheel } from './OptionWheel';
 import { useCart } from '../context/CartContext';
+import { useStockNotify } from '../context/StockNotifyContext';
 import { useToast } from './Toast';
 import { responsiveImage } from '../lib/responsiveImage';
 
@@ -30,7 +31,7 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
   });
   const { addToCart } = useCart();
   const { showToast } = useToast();
-
+  const { isWatching } = useStockNotify();
 
   useEffect(() => {
     const activeList = products || [];
@@ -42,6 +43,8 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
     ? 0
     : Math.min(Math.max(selectedIndex, 0), displayProducts.length - 1);
   const activeProduct = displayProducts[activeIndex];
+  const watchingActive = isWatching(activeProduct);
+  const activeOutOfStock = !!activeProduct && activeProduct.stock <= 0;
 
   const wheelItems = displayProducts.map(p => `${p.brand} ${p.name}`);
 
@@ -49,6 +52,10 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
     e.preventDefault();
     if (!activeProduct) return;
     if (activeProduct.stock <= 0) {
+      if (watchingActive) {
+        showToast("You're already signed up for stock alerts on this product");
+        return;
+      }
       if (onOpenNotifyModal) onOpenNotifyModal(activeProduct);
       return;
     }
@@ -361,18 +368,34 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                         <button
                           onClick={handleAddToCart}
                           className="btn btn-primary btn-lg"
+                          disabled={activeOutOfStock && watchingActive}
                           style={{
-                            backgroundColor: '#c06517',
-                            color: '#ffffff',
+                            backgroundColor: activeOutOfStock && watchingActive
+                              ? 'rgba(16, 185, 129, 0.12)'
+                              : '#c06517',
+                            color: activeOutOfStock && watchingActive ? '#059669' : '#ffffff',
+                            border: activeOutOfStock && watchingActive
+                              ? '1px solid rgba(16, 185, 129, 0.35)'
+                              : undefined,
                             flex: 1,
                             minWidth: '180px',
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
-                            gap: '0.6rem'
+                            gap: '0.6rem',
+                            cursor: activeOutOfStock && watchingActive ? 'default' : 'pointer',
+                            opacity: 1
                           }}
                         >
-                          <ShoppingBag size={18} /> Add to Cart
+                          {activeOutOfStock ? (
+                            watchingActive ? (
+                              <><Check size={18} /> You'll Be Notified</>
+                            ) : (
+                              <><Bell size={18} /> Notify Me</>
+                            )
+                          ) : (
+                            <><ShoppingBag size={18} /> Add to Cart</>
+                          )}
                         </button>
 
                         <Link
@@ -667,19 +690,35 @@ export const FeaturedProductsShowcase: React.FC<FeaturedProductsShowcaseProps> =
                         <button
                           onClick={handleAddToCart}
                           className="btn btn-primary btn-lg"
+                          disabled={activeOutOfStock && watchingActive}
                           style={{
-                            backgroundColor: '#c06517',
-                            color: '#ffffff',
+                            backgroundColor: activeOutOfStock && watchingActive
+                              ? 'rgba(16, 185, 129, 0.12)'
+                              : '#c06517',
+                            color: activeOutOfStock && watchingActive ? '#059669' : '#ffffff',
+                            border: activeOutOfStock && watchingActive
+                              ? '1px solid rgba(16, 185, 129, 0.35)'
+                              : undefined,
                             flex: 1,
                             minWidth: '150px',
                             display: 'inline-flex',
                             alignItems: 'center',
                             justifyContent: 'center',
                             gap: '0.5rem',
-                            padding: '0.75rem 1rem'
+                            padding: '0.75rem 1rem',
+                            cursor: activeOutOfStock && watchingActive ? 'default' : 'pointer',
+                            opacity: 1
                           }}
                         >
-                          <ShoppingBag size={18} /> Add to Cart
+                          {activeOutOfStock ? (
+                            watchingActive ? (
+                              <><Check size={18} /> You'll Be Notified</>
+                            ) : (
+                              <><Bell size={18} /> Notify Me</>
+                            )
+                          ) : (
+                            <><ShoppingBag size={18} /> Add to Cart</>
+                          )}
                         </button>
 
                         <Link

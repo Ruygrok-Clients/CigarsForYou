@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, limit } from 'firebase/firestore';
 import { db } from '../firebase';
 import type { BrandStory, Product, ProductRange } from '../types';
 import { useCart } from '../context/CartContext';
+import { useStockNotify } from '../context/StockNotifyContext';
 import { useToast } from '../components/Toast';
 import { StockNotificationModal } from '../components/StockNotificationModal';
 import { ClosingSoonCountdownBanner } from '../components/ClosingSoonCountdownBanner';
@@ -32,13 +33,15 @@ import {
   ArrowRight,
   Calendar,
   MapPin,
-  Building
+  Building,
+  Check
 } from 'lucide-react';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
   const { addToCart } = useCart();
   const { showToast } = useToast();
+  const { isWatching } = useStockNotify();
   const navigate = useNavigate();
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -237,11 +240,12 @@ export const ProductDetailPage: React.FC = () => {
   const activeSavingsPercent = activeTier ? savingsPercent(activeTier) : 0;
 
   const inStock = product.stock > 0;
+  const watchingStock = isWatching(product);
   const selectedVariantRemaining = product.stock;
 
   const handleAddToCart = () => {
     if (!inStock) {
-      setNotifyModalOpen(true);
+      if (!watchingStock) setNotifyModalOpen(true);
       return;
     }
 
@@ -252,7 +256,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleBuyNow = () => {
     if (!inStock) {
-      setNotifyModalOpen(true);
+      if (!watchingStock) setNotifyModalOpen(true);
       return;
     }
 
@@ -575,6 +579,31 @@ export const ProductDetailPage: React.FC = () => {
               {/* Action Buttons: Conditional based on selected option stock */}
               <div style={{ marginBottom: '2.5rem' }}>
                 {!inStock ? (
+                  watchingStock ? (
+                    <button
+                      type="button"
+                      disabled
+                      aria-label="You'll be notified when this product is back in stock"
+                      style={{
+                        backgroundColor: 'rgba(16, 185, 129, 0.12)',
+                        color: '#059669',
+                        border: '1px solid rgba(16, 185, 129, 0.35)',
+                        borderRadius: '8px',
+                        padding: '0 1.8rem',
+                        height: '48px',
+                        fontSize: '0.95rem',
+                        fontWeight: 700,
+                        cursor: 'default',
+                        display: 'inline-flex',
+                        alignItems: 'center',
+                        justifyContent: 'center',
+                        gap: '0.5rem',
+                        width: '100%'
+                      }}
+                    >
+                      <Check size={18} /> You'll be notified when in stock
+                    </button>
+                  ) : (
                   <button
                     type="button"
                     onClick={() => setNotifyModalOpen(true)}
@@ -600,6 +629,7 @@ export const ProductDetailPage: React.FC = () => {
                   >
                     <Bell size={18} /> Notify me when in stock
                   </button>
+                  )
                 ) : (
                   <div>
                     <div style={{ display: 'flex', gap: '0.85rem', alignItems: 'center', flexWrap: 'wrap' }}>

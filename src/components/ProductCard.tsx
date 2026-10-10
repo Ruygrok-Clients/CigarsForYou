@@ -1,8 +1,9 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { ShoppingBag, Bell, Flame } from 'lucide-react';
+import { ShoppingBag, Bell, Flame, Check } from 'lucide-react';
 import type { Product } from '../types';
 import { useCart } from '../context/CartContext';
+import { useStockNotify } from '../context/StockNotifyContext';
 import { useToast } from './Toast';
 import { trackSelectItem } from '../lib/analytics';
 import { responsiveImage } from '../lib/responsiveImage';
@@ -18,12 +19,18 @@ interface ProductCardProps {
 export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyModal, listId, listName, imageLoading = 'eager' }) => {
   const { addToCart } = useCart();
   const { showToast } = useToast();
+  const { isWatching } = useStockNotify();
   const isOutOfStock = product.stock <= 0;
+  const watching = isWatching(product);
 
   const handleQuickAdd = (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     if (isOutOfStock) {
+      if (watching) {
+        showToast("You're already signed up for stock alerts on this product");
+        return;
+      }
       if (onOpenNotifyModal) onOpenNotifyModal(product);
       return;
     }
@@ -187,6 +194,28 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
           {/* Action Buttons */}
           <div style={{ display: 'grid', gridTemplateColumns: '1fr', gap: '0.5rem' }}>
             {isOutOfStock ? (
+              watching ? (
+                <button
+                  type="button"
+                  className="btn btn-secondary btn-sm btn-full"
+                  disabled
+                  aria-label="You'll be notified when this product is back in stock"
+                  style={{
+                    display: 'flex',
+                    alignItems: 'center',
+                    justifyContent: 'center',
+                    gap: '0.4rem',
+                    borderRadius: '8px',
+                    backgroundColor: 'rgba(16, 185, 129, 0.1)',
+                    borderColor: 'rgba(16, 185, 129, 0.28)',
+                    color: '#059669',
+                    cursor: 'default',
+                    opacity: 1
+                  }}
+                >
+                  <Check size={14} /> You'll Be Notified
+                </button>
+              ) : (
               <button 
                 type="button"
                 className="btn btn-secondary btn-sm btn-full"
@@ -204,6 +233,7 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product, onOpenNotifyM
               >
                 <Bell size={14} /> Notify Me
               </button>
+              )
             ) : (
               <button
                 type="button"

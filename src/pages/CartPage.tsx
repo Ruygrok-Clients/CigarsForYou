@@ -23,6 +23,8 @@ import {
   ChevronLeft,
   Loader2
 } from 'lucide-react';
+import { SPEND_PROMO_THRESHOLD } from '../constants/spendPromo';
+import { getBulkTiers, resolveTier, savingsAmount } from '../utils/bulkPricing';
 
 export const CartPage: React.FC = () => {
   const {
@@ -160,9 +162,15 @@ export const CartPage: React.FC = () => {
             {cart.map((item) => {
               const key = item.product.id || item.product.slug;
               const live = item.product.id ? liveById.get(item.product.id) : undefined;
+              const pricingProduct = live ?? item.product;
               const rawCount = live?.purchaseCount ?? item.product.purchaseCount;
               const bought = typeof rawCount === 'number' && rawCount > 0 ? Math.floor(rawCount) : null;
-              const lineTotal = item.product.price * item.quantity;
+              const unitPrice = item.product.price;
+              const listUnitPrice = item.listUnitPrice ?? pricingProduct.price;
+              const lineTotal = unitPrice * item.quantity;
+              const activeBulkTier = resolveTier(getBulkTiers(pricingProduct), item.quantity);
+              const lineSavings = savingsAmount(listUnitPrice, unitPrice, item.quantity);
+              const showBulkSavings = lineSavings > 0.004 && activeBulkTier != null && activeBulkTier.minQuantity > 1;
               const stockCap = Math.max(0, Math.floor(live?.stock ?? item.product.stock ?? 0));
               const atMaxStock = item.quantity >= stockCap;
 
@@ -178,7 +186,19 @@ export const CartPage: React.FC = () => {
                   <div className="cart-line__body">
                     <div className="cart-line__top">
                       <span className="cart-line__brand">{item.product.brand}</span>
-                      <span className="cart-line__price">${lineTotal.toFixed(2)}</span>
+                      <div className="cart-line__price-wrap">
+                        <span className="cart-line__price">${lineTotal.toFixed(2)}</span>
+                        {showBulkSavings && (
+                          <span className="cart-line__savings" aria-live="polite">
+                            <span className="cart-line__savings-amount">
+                              Saving ${lineSavings.toFixed(2)}
+                            </span>
+                            <span className="cart-line__savings-note">
+                              {activeBulkTier.minQuantity}+ unit bulk rate
+                            </span>
+                          </span>
+                        )}
+                      </div>
                     </div>
                     <h2 className="cart-line__name">{item.product.name}</h2>
                     <p className="cart-line__meta">
@@ -300,7 +320,12 @@ export const CartPage: React.FC = () => {
               </div>
                   {spendPromoUnlocked && (
                 <div className="cart-totals__included">
-                  <dt>Cedar Humidity Control Delivery Box</dt>
+                  <dt>
+                    Cedar Humidity Control Delivery Box
+                    <span className="cart-totals__included-note">
+                      VIP packaging upgrade for ${SPEND_PROMO_THRESHOLD}+ orders
+                    </span>
+                  </dt>
                   <dd>Included</dd>
                 </div>
               )}

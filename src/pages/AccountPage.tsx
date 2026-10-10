@@ -4,6 +4,7 @@ import { collection, query, where, getDocs, deleteDoc, doc } from 'firebase/fire
 import { db } from '../firebase';
 import { useAuth } from '../context/AuthContext';
 import { useCart } from '../context/CartContext';
+import { useStockNotify } from '../context/StockNotifyContext';
 import { useToast } from '../components/Toast';
 import { AdminAccountGate } from '../components/AdminAccountGate';
 import { RewardsProgramPanel } from '../components/RewardsProgramPanel';
@@ -196,6 +197,7 @@ const OrderTotals: React.FC<{ order: Order; couponTypes?: CouponTypeMap }> = ({ 
 export const AccountPage: React.FC = () => {
   const { currentUser, userProfile, loading: authLoading, logOut, updateUserProfile, isAdmin } = useAuth();
   const { addToCart } = useCart();
+  const { markWatching, unmarkWatching } = useStockNotify();
   const { showToast } = useToast();
   const navigate = useNavigate();
   const [searchParams] = useSearchParams();
@@ -393,6 +395,12 @@ export const AccountPage: React.FC = () => {
         notifList.sort((a, b) => new Date(b.requestedAt).getTime() - new Date(a.requestedAt).getTime());
         setNotifications(notifList);
 
+        // Keep storefront "You'll be notified" state in sync with account alerts.
+        notifList.forEach((n) => {
+          if (n.notified || !n.productId) return;
+          markWatching({ id: n.productId, slug: n.productId });
+        });
+
         // 3. Fetch products to get stock availability & images
         const prodSnap = await getDocs(collection(db, 'products'));
         const pMap: Record<string, Product> = {};
@@ -410,7 +418,7 @@ export const AccountPage: React.FC = () => {
     };
 
     fetchData();
-  }, [authLoading, currentUser, currentUser?.email, userProfile?.email, navigate]);
+  }, [authLoading, currentUser, currentUser?.email, userProfile?.email, navigate, markWatching]);
 
   const handleSaveIdentity = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -560,8 +568,15 @@ export const AccountPage: React.FC = () => {
 
   const handleRemoveNotification = async (id: string) => {
     try {
+      const removed = notifications.find((n) => n.id === id);
       await deleteDoc(doc(db, 'stockNotifications', id));
       setNotifications(prev => prev.filter(n => n.id !== id));
+      if (removed?.productId) {
+        unmarkWatching(removed.productId);
+        const matched = productsMap[removed.productId];
+        if (matched?.slug) unmarkWatching(matched.slug);
+        if (matched?.id) unmarkWatching(matched.id);
+      }
       showToast('Notification alert removed');
     } catch (err) {
       console.error('Error removing notification request:', err);

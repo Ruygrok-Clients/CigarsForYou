@@ -63,7 +63,7 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
               {unlocked ? (
                 <>
                   <PartyPopper size={13} strokeWidth={2} aria-hidden="true" />
-                  Unlocked with this order
+                  VIP reward unlocked
                 </>
               ) : (
                 `Orders over $${threshold.toFixed(0)}`
@@ -72,7 +72,7 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
             <p className="spend-promo__title">
               {unlocked ? (
                 <>
-                  Included: {rewardLabel} + Cedar Humidity Control Delivery Box
+                  Your ${threshold.toFixed(0)}+ cigar order includes {rewardLabel} and a Cedar Humidity Control Delivery Box
                 </>
               ) : (
                 <>
@@ -88,39 +88,41 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
           </span>
         </div>
 
-        <div className="spend-promo__mid">
-          <div className="spend-promo__media" aria-hidden="true">
-            <img
-              src={packagingClosed}
-              alt=""
-              width={72}
-              height={72}
-              decoding="async"
-            />
-          </div>
-          <ul className="spend-promo__benefits">
-            <li className="spend-promo__benefit spend-promo__benefit--dispatch">
-              <strong>
-                {unlocked
-                  ? (immediateMode ? `$${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit` : 'Complimentary Express shipping')
-                  : `$${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit`}
-              </strong>
-              <span>
-                {unlocked
-                  ? (immediateMode
-                    ? 'Applied to Immediate Dispatch in Sydney and the outskirts.'
-                    : 'Express shipping included Australia-wide.')
-                  : `Or choose complimentary Express Australia-wide once unlocked. Credit applies to Immediate Dispatch in Sydney and the outskirts.`}
-              </span>
-            </li>
-            <li className="spend-promo__benefit spend-promo__benefit--box">
+        <ul className="spend-promo__benefits">
+          <li className="spend-promo__benefit spend-promo__benefit--dispatch">
+            <strong>
+              {unlocked
+                ? (immediateMode ? `$${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit` : 'Complimentary Express shipping')
+                : `$${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit`}
+            </strong>
+            <span>
+              {unlocked
+                ? (immediateMode
+                  ? `Granted because your subtotal is $${threshold.toFixed(0)} or more — applied to Immediate Dispatch in Sydney and the outskirts.`
+                  : `Granted because your subtotal is $${threshold.toFixed(0)} or more — Express shipping included Australia-wide.`)
+                : `Or choose complimentary Express Australia-wide once unlocked. Credit applies to Immediate Dispatch in Sydney and the outskirts.`}
+            </span>
+          </li>
+          <li className="spend-promo__benefit spend-promo__benefit--box">
+            <div className="spend-promo__media" aria-hidden="true">
+              <img
+                src={packagingClosed}
+                alt=""
+                width={72}
+                height={72}
+                decoding="async"
+              />
+            </div>
+            <div className="spend-promo__benefit-copy">
               <strong>Cedar Humidity Control Delivery Box</strong>
               <span>
-                Solid cedar presentation packaging for elevated orders — a premium finish on top of the two-way humidity packs included with every cigar order.
+                {unlocked
+                  ? `Included with this order as your $${threshold.toFixed(0)}+ VIP packaging upgrade — solid cedar presentation on top of the two-way humidity packs that ship with every cigar order.`
+                  : 'Solid cedar presentation packaging for elevated orders — a premium finish on top of the two-way humidity packs included with every cigar order.'}
               </span>
-            </li>
-          </ul>
-        </div>
+            </div>
+          </li>
+        </ul>
 
         {unlocked && (
           <button type="button" className="spend-promo__swap" onClick={swapMode}>
@@ -146,7 +148,7 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
               Subtotal <strong>${subtotal.toFixed(2)}</strong>
             </span>
             <span className="spend-promo__goal">
-              {unlocked ? 'Cedar box included' : `$${threshold.toFixed(0)}`}
+              {unlocked ? `Unlocked at $${threshold.toFixed(0)}+` : `$${threshold.toFixed(0)}`}
             </span>
           </div>
         </div>

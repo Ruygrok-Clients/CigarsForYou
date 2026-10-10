@@ -11,7 +11,7 @@ import { SpendThresholdPromoBar } from '../components/SpendThresholdPromoBar';
 import { validateAndFetchCoupon } from '../utils/coupon';
 import { AUSTRALIAN_STATES } from '../constants/locations';
 import { DIDI_PARTNER_BLURB, EXPRESS_DELIVERY_FEE, EXPRESS_DELIVERY_NAME, IMMEDIATE_DISPATCH_NAME, INSTORE_PICKUP_BLURB, INSTORE_PICKUP_NAME, deliveryMethodLabel } from '../constants/deliveryCopy';
-import { SPEND_PROMO_IMMEDIATE_CREDIT } from '../constants/spendPromo';
+import { SPEND_PROMO_IMMEDIATE_CREDIT, SPEND_PROMO_THRESHOLD } from '../constants/spendPromo';
 import { DISTRIBUTION_HUBS, formatHubAddressLine, getDistributionHub } from '../constants/distributionHubs';
 import { quoteImmediateDispatch } from '../services/immediateDispatch';
 import { CopyIconButton } from '../components/CopyIconButton';
@@ -938,9 +938,14 @@ export const CustomerDetailsPage: React.FC = () => {
                     </div>
                   )}
                   {!rewardsMode && spendPromoUnlocked && (
-                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem' }}>
-                      <span>Cedar Humidity Control Delivery Box</span>
-                      <span>Included</span>
+                    <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem', alignItems: 'flex-start' }}>
+                      <span style={{ display: 'flex', flexDirection: 'column', gap: '0.15rem', minWidth: 0 }}>
+                        <span>Cedar Humidity Control Delivery Box</span>
+                        <span style={{ fontSize: '0.75rem', lineHeight: 1.35, color: 'var(--text-muted)', fontWeight: 400 }}>
+                          VIP packaging upgrade for ${SPEND_PROMO_THRESHOLD}+ orders
+                        </span>
+                      </span>
+                      <span style={{ flexShrink: 0 }}>Included</span>
                     </div>
                   )}
                   {!rewardsMode && spendPromoShippingCredit > 0 && spendPromoRewardMode === 'immediate_credit' && (

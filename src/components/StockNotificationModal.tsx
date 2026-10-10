@@ -6,6 +6,7 @@ import { X, Bell, Check } from 'lucide-react';
 import { useToast } from './Toast';
 import { Modal } from './Modal';
 import { useAuth } from '../context/AuthContext';
+import { useStockNotify } from '../context/StockNotifyContext';
 import { trackEvent } from '../lib/analytics';
 
 interface StockNotificationModalProps {
@@ -15,11 +16,13 @@ interface StockNotificationModalProps {
 
 export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ product, onClose }) => {
   const { currentUser, userProfile } = useAuth();
+  const { isWatching, markWatching } = useStockNotify();
   const [name, setName] = useState(userProfile?.displayName || currentUser?.displayName || '');
   const [email, setEmail] = useState(currentUser?.email || userProfile?.email || '');
   const [submitting, setSubmitting] = useState(false);
   const [submitted, setSubmitted] = useState(false);
   const { showToast } = useToast();
+  const alreadyWatching = isWatching(product);
 
   useEffect(() => {
     const nextName = userProfile?.displayName || currentUser?.displayName || '';
@@ -29,10 +32,18 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
     }
   }, [currentUser, userProfile]);
 
+  useEffect(() => {
+    if (alreadyWatching) setSubmitted(true);
+  }, [alreadyWatching]);
+
   if (!product) return null;
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
+    if (alreadyWatching || submitted) {
+      setSubmitted(true);
+      return;
+    }
     if (!name.trim()) {
       showToast('Please enter your name', 'error');
       return;
@@ -55,6 +66,7 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
         requestedAt: new Date().toISOString(),
         notified: false
       });
+      markWatching(product);
       setSubmitted(true);
       trackEvent('stock_notify_signup', {
         item_id: product.id || product.slug,
@@ -126,7 +138,9 @@ export const StockNotificationModal: React.FC<StockNotificationModalProps> = ({ 
             </div>
             <h4 style={{ color: 'var(--text-primary)', fontWeight: 700, marginBottom: '0.5rem' }}>You're on the List!</h4>
             <p style={{ fontSize: '0.875rem', color: 'var(--text-secondary)', marginBottom: '1.5rem' }}>
-              We've registered <strong>{email}</strong>. As soon as new inventory arrives, you will be notified.
+              {email
+                ? <>We've registered <strong>{email}</strong>. As soon as new inventory arrives, you will be notified.</>
+                : <>You're already signed up for alerts on this product. We'll email you as soon as it's back in stock.</>}
             </p>
             <button className="btn btn-primary btn-full" onClick={onClose} style={{ borderRadius: '6px' }}>
               Done
