@@ -135,6 +135,8 @@ export interface Product {
 export interface CartItem {
   product: Product;
   quantity: number;
+  /** Catalogue unit price before quantity bulk discount. Used to reprice when qty changes. */
+  listUnitPrice?: number;
 }
 
 export type DeliveryMethod = 'immediate' | 'express' | 'pickup';

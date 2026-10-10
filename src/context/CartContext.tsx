@@ -3,13 +3,23 @@ import type { CartItem, Coupon, DeliveryMethod, Product } from '../types';
 import { EXPRESS_DELIVERY_FEE } from '../constants/deliveryCopy';
 import { DEFAULT_DISTRIBUTION_HUB_ID } from '../constants/distributionHubs';
 import { getSpendPromoShippingCredit, getSpendPromoState, type SpendPromoRewardMode } from '../constants/spendPromo';
+import { resolveCartUnitPrice, stockLimitForProduct } from '../utils/bulkPricing';
 import { couponLabel, trackAddToCart, trackRemoveFromCart, trackSelectPromotion } from '../lib/analytics';
+
+function cartItemKey(item: Pick<CartItem, 'product'>): string {
+  return item.product.id || item.product.slug;
+}
+
+function productKey(product: Product): string {
+  return product.id || product.slug;
+}
 
 interface CartContextType {
   cart: CartItem[];
   addToCart: (product: Product, quantity?: number) => void;
   removeFromCart: (productId: string) => void;
-  updateQuantity: (productId: string, quantity: number) => void;
+  /** Optional live catalog product supplies fresh stock, list price, and bulk tiers. */
+  updateQuantity: (productId: string, quantity: number, catalogProduct?: Product) => void;
   clearCart: () => void;
   appliedCoupons: Coupon[];
   appliedCoupon: Coupon | null; // backward compatibility
@@ -93,32 +103,49 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [appliedCoupons]);
 
   const addToCart = (product: Product, quantity: number = 1) => {
-    // Unit price is frozen at add time (bulk discounts are applied on the product page).
-    // Changing quantity in the cart does not re-resolve a bulk tier.
+    // `product.price` is the catalogue list unit price. Charged unit price is resolved
+    // from bulk tiers (10 / 25+) for tobacco and always capped by stock.
     const requested = Math.max(1, quantity);
+    const stockCap = stockLimitForProduct(product);
     let trackedQty = 0;
     let unitPrice = product.price;
+    const incomingKey = productKey(product);
+
     setCart((prev) => {
-      const existingIndex = prev.findIndex(item => item.product.id === product.id);
+      const existingIndex = prev.findIndex((item) => cartItemKey(item) === incomingKey);
 
       if (existingIndex > -1) {
         const updated = [...prev];
-        const cap = product.stock || 100;
-        const newQty = Math.min(updated[existingIndex].quantity + requested, cap);
-        trackedQty = newQty - updated[existingIndex].quantity;
-        unitPrice = updated[existingIndex].product.price;
+        const existing = updated[existingIndex];
+        const listUnitPrice = existing.listUnitPrice ?? product.price;
+        const newQty = Math.min(existing.quantity + requested, stockCap);
+        trackedQty = newQty - existing.quantity;
+        unitPrice = resolveCartUnitPrice(product, listUnitPrice, newQty);
         updated[existingIndex] = {
-          ...updated[existingIndex],
-          quantity: newQty
+          ...existing,
+          listUnitPrice,
+          quantity: newQty,
+          product: {
+            ...existing.product,
+            ...product,
+            price: unitPrice,
+            stock: stockCap
+          }
         };
         return updated;
       }
 
-      trackedQty = Math.min(requested, product.stock || 100);
-      unitPrice = product.price;
+      trackedQty = Math.min(requested, stockCap);
+      if (trackedQty <= 0) return prev;
+      unitPrice = resolveCartUnitPrice(product, product.price, trackedQty);
       return [...prev, {
-        product,
-        quantity: trackedQty
+        product: {
+          ...product,
+          price: unitPrice,
+          stock: stockCap
+        },
+        quantity: trackedQty,
+        listUnitPrice: product.price
       }];
     });
     if (trackedQty > 0) {
@@ -128,9 +155,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const removeFromCart = (productId: string) => {
     let removed: CartItem | undefined;
-    setCart(prev => {
-      removed = prev.find(item => item.product.id === productId);
-      return prev.filter(item => item.product.id !== productId);
+    setCart((prev) => {
+      removed = prev.find((item) => cartItemKey(item) === productId);
+      return prev.filter((item) => cartItemKey(item) !== productId);
     });
     if (removed && removed.quantity > 0) {
       trackRemoveFromCart(
@@ -142,7 +169,7 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   };
 
-  const updateQuantity = (productId: string, quantity: number) => {
+  const updateQuantity = (productId: string, quantity: number, catalogProduct?: Product) => {
     if (quantity <= 0) {
       removeFromCart(productId);
       return;
@@ -150,22 +177,46 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     let delta = 0;
     let changed: CartItem | undefined;
-    setCart(prev => prev.map(item => {
-      if (item.product.id !== productId) return item;
-      const nextQty = Math.min(quantity, item.product.stock || 100);
+    let nextUnitPrice = 0;
+    setCart((prev) => prev.map((item) => {
+      if (cartItemKey(item) !== productId) return item;
+
+      const mergedProduct: Product = catalogProduct
+        ? {
+            ...item.product,
+            ...catalogProduct,
+            // Keep cart line identity stable.
+            id: item.product.id || catalogProduct.id,
+            slug: item.product.slug || catalogProduct.slug
+          }
+        : item.product;
+
+      const listUnitPrice = catalogProduct?.price ?? item.listUnitPrice ?? item.product.price;
+      const stockCap = stockLimitForProduct(mergedProduct);
+      const nextQty = Math.min(quantity, stockCap);
+      const unitPrice = resolveCartUnitPrice(mergedProduct, listUnitPrice, nextQty);
+
       delta = nextQty - item.quantity;
       changed = item;
+      nextUnitPrice = unitPrice;
+
       return {
         ...item,
-        quantity: nextQty
+        listUnitPrice,
+        quantity: nextQty,
+        product: {
+          ...mergedProduct,
+          price: unitPrice,
+          stock: stockCap
+        }
       };
     }));
     if (!changed || delta === 0) return;
     const coupon = couponLabel(appliedCoupons.map((entry) => entry.code));
     if (delta > 0) {
-      trackAddToCart(changed.product, delta, changed.product.price, coupon);
+      trackAddToCart(changed.product, delta, nextUnitPrice, coupon);
     } else {
-      trackRemoveFromCart(changed.product, Math.abs(delta), changed.product.price, coupon);
+      trackRemoveFromCart(changed.product, Math.abs(delta), nextUnitPrice, coupon);
     }
   };
 

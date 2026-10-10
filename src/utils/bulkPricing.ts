@@ -35,6 +35,22 @@ export function unitPriceForTier(basePrice: number, tier: BulkDiscountTier | nul
   return Math.round(raw * 100) / 100;
 }
 
+/** Catalogue list price → charged unit price for a cart quantity (bulk tiers for tobacco). */
+export function resolveCartUnitPrice(
+  product: Pick<Product, 'category' | 'bulkDiscountTiers'>,
+  listUnitPrice: number,
+  quantity: number
+): number {
+  const base = Math.round(Math.max(0, listUnitPrice) * 100) / 100;
+  if (!isTobaccoRange(product.category)) return base;
+  return unitPriceForTier(base, resolveTier(getBulkTiers(product), quantity));
+}
+
+export function stockLimitForProduct(product: Pick<Product, 'stock'>): number {
+  const stock = Math.floor(Number(product.stock));
+  return Number.isFinite(stock) ? Math.max(0, stock) : 0;
+}
+
 export function savingsPercent(tier: BulkDiscountTier): number {
   return Math.round((1 - tier.unitPriceMultiplier) * 100);
 }

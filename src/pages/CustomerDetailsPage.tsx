@@ -219,8 +219,11 @@ export const CustomerDetailsPage: React.FC = () => {
   const quotedFee = quote?.feeAud ?? 0;
   const vipImmediate = !rewardsMode && spendPromoUnlocked && spendPromoRewardMode === 'immediate_credit';
   const vipExpress = !rewardsMode && spendPromoUnlocked && spendPromoRewardMode === 'free_express';
-  const immediateNet = quote
-    ? Math.max(0, quote.feeAud - (vipImmediate ? Math.min(SPEND_PROMO_IMMEDIATE_CREDIT, quote.feeAud) : 0))
+  // When the VIP spend offer is unlocked, always show promo pricing on both
+  // delivery options (not only the currently selected reward mode).
+  const showVipDeliveryPricing = !rewardsMode && spendPromoUnlocked;
+  const immediatePromoNet = quote
+    ? Math.max(0, quote.feeAud - Math.min(SPEND_PROMO_IMMEDIATE_CREDIT, quote.feeAud))
     : null;
   const showImmediateCreditDollars = vipImmediate && spendPromoShippingCredit > 0 && shippingFee > 0;
   const shippingLineAmount = showImmediateCreditDollars
@@ -449,8 +452,8 @@ export const CustomerDetailsPage: React.FC = () => {
         {!rewardsMode && <SpendThresholdPromoBar subtotal={subtotal} />}
 
         <form onSubmit={(e) => e.preventDefault()}>
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))', gap: '2.5rem', alignItems: 'start' }}>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
+          <div className="checkout-container-grid">
+            <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem', minWidth: 0 }}>
               <div className="card" style={{ padding: '1.75rem', backgroundColor: 'var(--bg-surface)' }}>
                 <h3 style={{ fontSize: '1.25rem', color: 'var(--text-primary)', marginBottom: '1.25rem', display: 'flex', alignItems: 'center', gap: '0.6rem' }}>
                   <User size={20} style={{ color: 'var(--accent-gold)' }} />
@@ -688,15 +691,21 @@ export const CustomerDetailsPage: React.FC = () => {
                           </label>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
                             <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem', display: 'inline-flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                              {quoteLoading ? '…' : !quote ? '—' : (isFreeShipping && deliveryMethod === 'immediate') || (vipImmediate && immediateNet === 0) ? (
+                              {quoteLoading ? '…' : !quote ? '—' : (isFreeShipping && deliveryMethod === 'immediate') || (showVipDeliveryPricing && immediatePromoNet === 0) ? (
                                 <>
-                                  {vipImmediate && <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>${quote.feeAud.toFixed(2)}</span>}
+                                  {showVipDeliveryPricing && (
+                                    <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>
+                                      ${quote.feeAud.toFixed(2)}
+                                    </span>
+                                  )}
                                   FREE
                                 </>
-                              ) : vipImmediate && immediateNet !== null ? (
+                              ) : showVipDeliveryPricing && immediatePromoNet !== null ? (
                                 <>
-                                  <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>${quote.feeAud.toFixed(2)}</span>
-                                  ${immediateNet.toFixed(2)}
+                                  <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>
+                                    ${quote.feeAud.toFixed(2)}
+                                  </span>
+                                  ${immediatePromoNet.toFixed(2)}
                                 </>
                               ) : (
                                 `$${quote.feeAud.toFixed(2)}`
@@ -767,9 +776,11 @@ export const CustomerDetailsPage: React.FC = () => {
                           </label>
                           <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', flexShrink: 0 }}>
                             <strong style={{ color: 'var(--accent-gold)', fontSize: '0.95rem', display: 'inline-flex', alignItems: 'baseline', gap: '0.35rem' }}>
-                              {vipExpress ? (
+                              {showVipDeliveryPricing ? (
                                 <>
-                                  <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>${EXPRESS_DELIVERY_FEE.toFixed(2)}</span>
+                                  <span style={{ color: 'var(--text-muted)', textDecoration: 'line-through', fontWeight: 500, fontSize: '0.8rem' }}>
+                                    ${EXPRESS_DELIVERY_FEE.toFixed(2)}
+                                  </span>
                                   FREE
                                 </>
                               ) : (
@@ -815,8 +826,8 @@ export const CustomerDetailsPage: React.FC = () => {
 
             </div>
 
-            <div>
-              <div className="card" style={{ padding: '1.75rem', border: '1px solid var(--border-color)', position: 'sticky', top: '100px' }}>
+            <div className="checkout-summary-column checkout-summary-sticky">
+              <div className="card" style={{ padding: '1.75rem', border: '1px solid var(--border-color)' }}>
                 <h3 style={{ fontSize: '1.3rem', color: 'var(--text-primary)', marginBottom: '1.25rem' }}>
                   Order Summary ({summaryCount} items)
                 </h3>

@@ -239,20 +239,15 @@ export const ProductDetailPage: React.FC = () => {
   const inStock = product.stock > 0;
   const selectedVariantRemaining = product.stock;
 
-  const cartProduct = (): Product => ({
-    ...product,
-    price: unitPrice
-  });
-
   const handleAddToCart = () => {
     if (!inStock) {
       setNotifyModalOpen(true);
       return;
     }
 
-    const itemToAdd = cartProduct();
-    addToCart(itemToAdd, quantity);
-    showToast(`Added ${quantity}x ${itemToAdd.name} ($${totalLinePrice.toFixed(2)} AUD) to cart!`);
+    // Pass catalogue list price; CartContext resolves bulk tiers from quantity.
+    addToCart(product, quantity);
+    showToast(`Added ${quantity}x ${product.name} ($${totalLinePrice.toFixed(2)} AUD) to cart!`);
   };
 
   const handleBuyNow = () => {
@@ -261,7 +256,7 @@ export const ProductDetailPage: React.FC = () => {
       return;
     }
 
-    addToCart(cartProduct(), quantity);
+    addToCart(product, quantity);
     navigate('/cart');
   };
 
@@ -280,10 +275,10 @@ export const ProductDetailPage: React.FC = () => {
   const bundleTotalPrice = totalLinePrice + recommendedSubtotal;
 
   const handleAddBundleToCart = () => {
-    addToCart(cartProduct(), quantity);
+    addToCart(product, quantity);
 
-    checkedRecommendedCigars.forEach(cigar => {
-      addToCart({ ...cigar, price: companionUnitPrice(cigar) }, 1);
+    checkedRecommendedCigars.forEach((cigar) => {
+      addToCart(cigar, 1);
     });
 
     showToast(`Added bundle (${1 + checkedRecommendedCigars.length} items) to your cart!`);

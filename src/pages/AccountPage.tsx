@@ -577,13 +577,18 @@ export const AccountPage: React.FC = () => {
         name: item.name,
         brand: item.brand,
         slug: item.productId,
-        price: item.price,
+        // Prefer catalogue list price so bulk tiers are not applied twice.
+        price: item.listUnitPrice ?? item.price,
         currency: 'AUD',
         stock: 100,
         imageUrl: '',
         category: 'cigars',
         origin: 'Cuban',
-        active: true
+        active: true,
+        // Without a known list price, lock the charged unit price (no further bulk).
+        ...(item.listUnitPrice
+          ? {}
+          : { bulkDiscountTiers: [{ id: 'reorder-lock', minQuantity: 1, unitPriceMultiplier: 1 }] })
       }, item.quantity);
       count += item.quantity;
     });

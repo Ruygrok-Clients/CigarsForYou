@@ -14,9 +14,11 @@ import { fetchProducts } from '../services/catalog';
 import { couponLabel, toGaItem, trackViewCart } from '../lib/analytics';
 import type { Product } from '../types';
 import { GoogleReviewsBadge } from '../components/GoogleReviewsBadge';
+import FuseButton from '../components/FuseButton';
+import { HugeiconsIcon } from '@hugeicons/react';
+import { Delete02Icon } from '@hugeicons/core-free-icons';
 import {
   ShoppingBag,
-  Trash2,
   Tag,
   ChevronLeft,
   Loader2
@@ -161,6 +163,8 @@ export const CartPage: React.FC = () => {
               const rawCount = live?.purchaseCount ?? item.product.purchaseCount;
               const bought = typeof rawCount === 'number' && rawCount > 0 ? Math.floor(rawCount) : null;
               const lineTotal = item.product.price * item.quantity;
+              const stockCap = Math.max(0, Math.floor(live?.stock ?? item.product.stock ?? 0));
+              const atMaxStock = item.quantity >= stockCap;
 
               return (
                 <article key={key} className="cart-line">
@@ -192,28 +196,42 @@ export const CartPage: React.FC = () => {
                       <div className="cart-qty">
                         <button
                           type="button"
-                          onClick={() => updateQuantity(key, item.quantity - 1)}
+                          onClick={() => updateQuantity(key, item.quantity - 1, live)}
                           aria-label="Decrease quantity"
+                          disabled={item.quantity <= 1}
                         >
                           −
                         </button>
                         <span>{item.quantity}</span>
                         <button
                           type="button"
-                          onClick={() => updateQuantity(key, item.quantity + 1)}
+                          onClick={() => updateQuantity(key, item.quantity + 1, live)}
                           aria-label="Increase quantity"
+                          disabled={atMaxStock}
+                          title={atMaxStock ? 'Maximum stock reached' : undefined}
                         >
                           +
                         </button>
                       </div>
-                      <button
-                        type="button"
+                      <FuseButton
                         className="cart-line__remove"
-                        onClick={() => removeFromCart(key)}
-                        aria-label={`Remove ${item.product.name} from cart`}
-                      >
-                        <Trash2 size={15} />
-                      </button>
+                        label="Remove"
+                        undoLabel="Undo"
+                        doneLabel="Removed"
+                        icon={<HugeiconsIcon icon={Delete02Icon} size={14} strokeWidth={1.8} />}
+                        color="var(--text-primary)"
+                        background="var(--bg-surface-elevated)"
+                        fuseColor="var(--accent-gold)"
+                        size="sm"
+                        radius={18}
+                        undoWindow={4000}
+                        fuse="outline"
+                        fuseThickness={1.5}
+                        commitOn="fuseEnd"
+                        pauseOnHover
+                        settle="reset"
+                        onCommit={() => removeFromCart(key)}
+                      />
                     </div>
                   </div>
                 </article>
