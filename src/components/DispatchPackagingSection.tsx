@@ -172,7 +172,7 @@ export const DispatchPackagingSection: React.FC = () => {
               lineHeight: 1.15,
               marginBottom: '1.35rem'
             }}>
-              Cedar when it matters. Humidor-fresh to your door.
+              Premium humidity protection with every cigar order.
             </h2>
 
             <p style={{
@@ -182,7 +182,7 @@ export const DispatchPackagingSection: React.FC = () => {
               marginBottom: '1.1rem',
               fontWeight: 400
             }}>
-              Every cigar order is packed to hold its condition — premium hard cardboard with humidity control as standard, so flavour and moisture stay where they should on the way to you.
+              Every cigar order is packed for quality and condition — with top-of-the-range two-way humidity control packs included as standard. They do the heavy lifting, keeping moisture where it should be whether you choose Immediate Dispatch or Express Shipping.
             </p>
 
             <p style={{
@@ -192,7 +192,7 @@ export const DispatchPackagingSection: React.FC = () => {
               marginBottom: '1.75rem',
               fontWeight: 400
             }}>
-              Elevated cigar orders move into a solid cedar humidity control box. The wood buffers the journey the way a humidor does — whether the cigars are with you in a couple of hours via Immediate Dispatch, or arriving by Express Shipping.
+              Elevated cigar orders also arrive in a solid cedar Humidity Control Delivery Box. The cedar is mainly a cosmetic, premium-feel finish that makes the unboxing feel a touch more special, with only a marginal extra humidity buffer from the wood itself. The two-way packs remain the real protection for your cigars in transit.
             </p>
 
             <div className="dispatch-packaging-features" style={{
@@ -217,14 +217,14 @@ export const DispatchPackagingSection: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Package size={20} strokeWidth={1.75} />
+                  <Droplets size={20} strokeWidth={1.75} />
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, color: '#2f0d0e', fontSize: '0.98rem', marginBottom: '0.2rem' }}>
-                    Cedar for elevated dispatch
+                    Two-way humidity packs, every order
                   </div>
                   <div style={{ color: '#8c6062', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    Solid cedar boxes when the order calls for them. Everyday cigar orders travel in premium hard cardboard.
+                    Top-of-the-range two-way control packs ride with every cigar order. This is the core humidity protection — the part that does the real work.
                   </div>
                 </div>
               </div>
@@ -245,14 +245,14 @@ export const DispatchPackagingSection: React.FC = () => {
                   alignItems: 'center',
                   justifyContent: 'center'
                 }}>
-                  <Droplets size={20} strokeWidth={1.75} />
+                  <Package size={20} strokeWidth={1.75} />
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, color: '#2f0d0e', fontSize: '0.98rem', marginBottom: '0.2rem' }}>
-                    Two-Way Humidity Packs
+                    Quality &amp; condition, assured
                   </div>
                   <div style={{ color: '#8c6062', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    Included with cardboard and cedar alike, for Immediate Dispatch and Express Shipping.
+                    Every cigar order is packed to protect freshness and condition in transit — strong protection as standard, not an upgrade.
                   </div>
                 </div>
               </div>
@@ -277,10 +277,10 @@ export const DispatchPackagingSection: React.FC = () => {
                 </div>
                 <div>
                   <div style={{ fontWeight: 600, color: '#2f0d0e', fontSize: '0.98rem', marginBottom: '0.2rem' }}>
-                    Humidity care, included
+                    Cedar box for elevated orders
                   </div>
                   <div style={{ color: '#8c6062', fontSize: '0.9rem', lineHeight: 1.5 }}>
-                    Two-way packs ride with every cigar order. The cedar box is the elevated finish.
+                    A solid cedar Humidity Control Delivery Box adds premium presentation and a subtle wood buffer. Everyday cigar orders ship in premium hard cardboard — both include the two-way packs.
                   </div>
                 </div>
               </div>
@@ -297,7 +297,7 @@ export const DispatchPackagingSection: React.FC = () => {
               borderRadius: '0 10px 10px 0'
             }}>
               <span style={{ fontWeight: 600, color: '#2f0d0e' }}>Please note:</span>{' '}
-              Cigarettes and accessories ship in standard dispatch packaging. Cedar is reserved for elevated cigar orders.
+              Accessories ship in standard dispatch packaging. The cedar Humidity Control Delivery Box is reserved for cigar & cigarette orders.
             </p>
           </div>
 

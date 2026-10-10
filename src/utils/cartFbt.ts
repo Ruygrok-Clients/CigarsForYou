@@ -2,7 +2,16 @@ import type { Product } from '../types';
 
 const DEFAULT_LIMIT = 12;
 
-/** Companions stored on cart products, ranked by how many cart lines list them. */
+function isEligibleCatalogProduct(product: Product, inCart: Set<string>): boolean {
+  return Boolean(
+    product.id
+    && product.active === true
+    && (product.stock ?? 0) > 0
+    && !inCart.has(product.id)
+  );
+}
+
+/** Companions on cart lines first; fill remaining slots from popular in-stock catalog. */
 export function selectCartFrequentlyBoughtTogether(
   cartProducts: Array<Pick<Product, 'id' | 'fbtCompanionIds'>>,
   catalog: Product[],
@@ -22,17 +31,30 @@ export function selectCartFrequentlyBoughtTogether(
 
   const byId = new Map<string, Product>();
   for (const product of catalog) {
-    if (!product.id || product.active !== true || (product.stock ?? 0) <= 0) continue;
-    if (inCart.has(product.id)) continue;
+    if (!isEligibleCatalogProduct(product, inCart) || !product.id) continue;
     byId.set(product.id, product);
   }
 
-  return [...scores.entries()]
+  const fromCompanions = [...scores.entries()]
     .sort((a, b) => {
       if (b[1] !== a[1]) return b[1] - a[1];
       return (byId.get(a[0])?.name || '').localeCompare(byId.get(b[0])?.name || '');
     })
     .map(([id]) => byId.get(id))
-    .filter((product): product is Product => Boolean(product))
-    .slice(0, limit);
+    .filter((product): product is Product => Boolean(product));
+
+  if (fromCompanions.length >= limit) {
+    return fromCompanions.slice(0, limit);
+  }
+
+  const used = new Set(fromCompanions.map((product) => product.id).filter((id): id is string => Boolean(id)));
+  const fillers = [...byId.values()]
+    .filter((product) => product.id && !used.has(product.id))
+    .sort((a, b) => {
+      const countDiff = (b.purchaseCount ?? 0) - (a.purchaseCount ?? 0);
+      if (countDiff !== 0) return countDiff;
+      return (a.name || '').localeCompare(b.name || '');
+    });
+
+  return [...fromCompanions, ...fillers].slice(0, limit);
 }

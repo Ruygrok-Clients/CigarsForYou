@@ -2,9 +2,10 @@ import React, { useEffect, useRef } from 'react';
 import { getSpendPromoState, SPEND_PROMO_IMMEDIATE_CREDIT, SPEND_PROMO_THRESHOLD } from '../constants/spendPromo';
 import { useCart } from '../context/CartContext';
 import { trackSelectPromotion, trackViewPromotion } from '../lib/analytics';
+import packagingClosed from '../assets/product-packaging/closed.jpeg';
 import './SpendThresholdPromoBar.css';
 
-const PROMO_ID = 'spend_350';
+const PROMO_ID = 'spend_380';
 const PROMO_NAME = `Spend $${SPEND_PROMO_THRESHOLD} VIP dispatch`;
 
 interface SpendThresholdPromoBarProps {
@@ -43,6 +44,10 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
     trackSelectPromotion(PROMO_ID, PROMO_NAME, `spend_reward_${next}`);
   };
 
+  const rewardLabel = immediateMode
+    ? `$${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit`
+    : 'Complimentary Express shipping';
+
   return (
     <div
       className={`spend-promo${unlocked ? ' spend-promo--unlocked' : ''}${className ? ` ${className}` : ''}`}
@@ -51,49 +56,73 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
       aria-live="polite"
     >
       <div className="spend-promo__inner">
-        <div className="spend-promo__top">
-          <div className="spend-promo__copy">
+        <div className="spend-promo__header">
+          <div className="spend-promo__intro">
             <p className="spend-promo__eyebrow">
-              {unlocked ? 'Included with this order' : 'With orders over $' + threshold}
+              {unlocked
+                ? 'Unlocked with this order'
+                : `Orders over $${threshold.toFixed(0)}`}
             </p>
             <p className="spend-promo__title">
               {unlocked ? (
-                immediateMode ? (
-                  <>
-                    ${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit and a cedar humidity box
-                  </>
-                ) : (
-                  <>
-                    Complimentary Express shipping and a cedar humidity box
-                  </>
-                )
+                <>
+                  Included: {rewardLabel} + Cedar Humidity Control Delivery Box
+                </>
               ) : (
                 <>
-                  ${remaining.toFixed(2)} more for a ${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit and a cedar humidity box
+                  ${remaining.toFixed(2)} more for ${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit + Cedar Humidity Control Delivery Box
                 </>
               )}
             </p>
-            {unlocked && (
-              <p className="spend-promo__support">
-                {immediateMode
-                  ? 'The credit applies to Immediate Dispatch in Sydney and the outskirts.'
-                  : 'Express shipping is included Australia-wide.'}
-              </p>
-            )}
-            {unlocked && (
-              <button type="button" className="spend-promo__swap" onClick={swapMode}>
-                {immediateMode
-                  ? 'Use complimentary Express instead'
-                  : 'Use the $50 Immediate Dispatch credit instead'}
-              </button>
-            )}
           </div>
           <span className="spend-promo__badge">
             {unlocked
-              ? (immediateMode ? `$${SPEND_PROMO_IMMEDIATE_CREDIT} credit` : 'Express included')
-              : `$${threshold}`}
+              ? (immediateMode ? `$${SPEND_PROMO_IMMEDIATE_CREDIT} + box` : 'Express + box')
+              : `$${threshold.toFixed(0)}+`}
           </span>
         </div>
+
+        <div className="spend-promo__mid">
+          <div className="spend-promo__media" aria-hidden="true">
+            <img
+              src={packagingClosed}
+              alt=""
+              width={72}
+              height={72}
+              decoding="async"
+            />
+          </div>
+          <ul className="spend-promo__benefits">
+            <li className="spend-promo__benefit spend-promo__benefit--dispatch">
+              <strong>
+                {unlocked
+                  ? (immediateMode ? `$${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit` : 'Complimentary Express shipping')
+                  : `$${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit`}
+              </strong>
+              <span>
+                {unlocked
+                  ? (immediateMode
+                    ? 'Applied to Immediate Dispatch in Sydney and the outskirts.'
+                    : 'Express shipping included Australia-wide.')
+                  : `Or choose complimentary Express Australia-wide once unlocked. Credit applies to Immediate Dispatch in Sydney and the outskirts.`}
+              </span>
+            </li>
+            <li className="spend-promo__benefit spend-promo__benefit--box">
+              <strong>Cedar Humidity Control Delivery Box</strong>
+              <span>
+                Solid cedar presentation packaging for elevated orders — a premium finish on top of the two-way humidity packs included with every cigar order.
+              </span>
+            </li>
+          </ul>
+        </div>
+
+        {unlocked && (
+          <button type="button" className="spend-promo__swap" onClick={swapMode}>
+            {immediateMode
+              ? 'Switch to complimentary Express instead'
+              : `Switch to the $${SPEND_PROMO_IMMEDIATE_CREDIT} Immediate Dispatch credit instead`}
+          </button>
+        )}
 
         <div className="spend-promo__track-wrap">
           <div
@@ -102,7 +131,7 @@ export const SpendThresholdPromoBar: React.FC<SpendThresholdPromoBarProps> = ({
             aria-valuemin={0}
             aria-valuemax={threshold}
             aria-valuenow={Math.min(subtotal, threshold)}
-            aria-label={`Progress toward $${threshold} for complimentary dispatch`}
+            aria-label={`Progress toward $${threshold} for ${rewardLabel} and a Cedar Humidity Control Delivery Box`}
           >
             <div className="spend-promo__fill" style={{ width: `${progress}%` }} />
           </div>

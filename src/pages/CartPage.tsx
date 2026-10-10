@@ -275,9 +275,9 @@ export const CartPage: React.FC = () => {
                 <dt>Subtotal</dt>
                 <dd>${subtotal.toFixed(2)} AUD</dd>
               </div>
-              {spendPromoUnlocked && (
+                  {spendPromoUnlocked && (
                 <div className="cart-totals__included">
-                  <dt>Cedar humidity box</dt>
+                  <dt>Cedar Humidity Control Delivery Box</dt>
                   <dd>Included</dd>
                 </div>
               )}

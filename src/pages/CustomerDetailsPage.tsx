@@ -918,7 +918,7 @@ export const CustomerDetailsPage: React.FC = () => {
                   )}
                   {!rewardsMode && spendPromoUnlocked && (
                     <div style={{ display: 'flex', justifyContent: 'space-between', color: '#4caf50', gap: '1rem' }}>
-                      <span>Cedar Humidity Control Box</span>
+                      <span>Cedar Humidity Control Delivery Box</span>
                       <span>Included</span>
                     </div>
                   )}

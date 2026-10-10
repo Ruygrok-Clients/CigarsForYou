@@ -1,7 +1,7 @@
 import type { DeliveryMethod } from '../types';
 
 /** Automatic cart promo: spend threshold unlocks VIP dispatch perks. */
-export const SPEND_PROMO_THRESHOLD = 350;
+export const SPEND_PROMO_THRESHOLD = 380;
 export const SPEND_PROMO_IMMEDIATE_CREDIT = 50;
 
 export type SpendPromoRewardMode = 'immediate_credit' | 'free_express';
