@@ -54,7 +54,7 @@ const CART_KEY = 'cfy_cart_items_v1';
 const COUPON_KEY = 'cfy_applied_coupons_v2';
 const REWARD_MODE_KEY = 'cfy_spend_promo_reward_mode_v1';
 const HOLD_KEY = 'cfy_cart_hold_expires_v1';
-const HOLD_DURATION_MS = 10 * 60 * 1000;
+const HOLD_DURATION_MS = 15 * 60 * 1000;
 const HOLD_EXPIRED_VISIBLE_MS = 6000;
 
 function readHoldExpiresAt(): number | null {
