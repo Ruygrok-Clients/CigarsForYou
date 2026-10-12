@@ -294,17 +294,6 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
 
         <div style={{ display: 'grid', gridTemplateColumns: 'minmax(240px, 270px) 1fr', gap: '2.5rem', alignItems: 'start' }} className="catalog-grid-layout">
           <aside className="catalog-sidebar-sticky" style={{ position: 'sticky', top: '145px', alignSelf: 'flex-start' }}>
-            <div style={{
-              fontSize: '0.75rem',
-              fontWeight: 700,
-              letterSpacing: '0.12em',
-              textTransform: 'uppercase',
-              color: '#71717a',
-              marginBottom: '1.25rem'
-            }}>
-              CATEGORIES
-            </div>
-
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.35rem' }}>
               {categoriesList.map((cat) => {
                 const isSelected = cat.slug === 'all'
@@ -324,10 +313,11 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                       alignItems: 'center',
                       justifyContent: 'space-between',
                       width: '100%',
-                      padding: isSelected ? '0.75rem 1rem' : '0.65rem 0.85rem',
+                      minHeight: '44px',
+                      padding: '0.65rem 0.85rem',
                       borderRadius: isSelected ? '12px' : '10px',
                       backgroundColor: isSelected ? '#ffffff' : 'transparent',
-                      border: isSelected ? '1.5px solid #e2ded5' : 'none',
+                      border: isSelected ? '1.5px solid #e2ded5' : '1.5px solid transparent',
                       boxShadow: isSelected ? '0 2px 8px rgba(0, 0, 0, 0.04)' : 'none',
                       color: isSelected ? '#1a1a1a' : '#515154',
                       fontWeight: isSelected ? 600 : 500,
@@ -370,14 +360,18 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                 <Search size={18} style={{ position: 'absolute', left: '1rem', top: '50%', transform: 'translateY(-50%)', color: '#71717a' }} />
                 <input
                   type="text"
-                  className="form-control"
+                  className="form-control form-control--light"
                   style={{
+                    height: '44px',
+                    paddingTop: 0,
+                    paddingBottom: 0,
                     paddingLeft: '2.75rem',
                     backgroundColor: '#ffffff',
                     borderRadius: '10px',
                     border: '1px solid #e2ded5',
                     fontSize: '0.95rem',
-                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)'
+                    boxShadow: '0 2px 6px rgba(0,0,0,0.02)',
+                    boxSizing: 'border-box'
                   }}
                   placeholder={copy.searchPlaceholder}
                   value={searchQuery}
@@ -399,15 +393,17 @@ export const ProductRangePage: React.FC<{ range: ProductRange }> = ({ range }) =
                 <div style={{ display: 'flex', alignItems: 'center', gap: '0.4rem' }}>
                   <SlidersHorizontal size={16} style={{ color: '#c06517' }} />
                   <select
-                    className="form-control"
+                    className="form-control form-control--light"
                     style={{
                       width: 'auto',
-                      padding: '0.5rem 0.85rem',
+                      height: '44px',
+                      padding: '0 2.75rem 0 0.85rem',
                       backgroundColor: '#ffffff',
-                      borderRadius: '8px',
+                      borderRadius: '10px',
                       border: '1px solid #e2ded5',
                       fontSize: '0.875rem',
-                      color: '#1a1a1a'
+                      color: '#18181b',
+                      boxSizing: 'border-box'
                     }}
                     value={sortBy}
                     onChange={(e) => setSortBy(e.target.value as typeof sortBy)}

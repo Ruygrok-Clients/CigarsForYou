@@ -335,36 +335,115 @@ export async function writeStockNotifySocialProof(
 const SITE_PRESENCE_STALE_MS = 90_000;
 const VIEWER_BASE_MIN = 5;
 const VIEWER_BASE_MAX = 12;
-/** How long a pregenerated base stays before the next publish re-rolls it. */
-const VIEWER_BASE_TTL_MS = 60 * 60 * 1000;
 /** Single current count the storefront toast subscribes to (not a feed history row). */
 export const LIVE_SITE_VIEWERS_DOC = "social_proof_live/site_viewers";
+
+/**
+ * Page-type mix for generated viewers. Home / shop / news are silent sinks.
+ * The products share is then fanned out across catalog ids.
+ */
+const SINK_WEIGHTS = { home: 20, shop: 20, news: 10 } as const;
+const PRODUCTS_POOL_WEIGHT = 50;
+const IN_STOCK_WEIGHT = 8;
+const LOW_STOCK_WEIGHT = 12;
+const OUT_OF_STOCK_WEIGHT = 1;
+const LOW_STOCK_THRESHOLD = 20;
+
+export type ViewerSinks = { home: number; shop: number; news: number };
+
+export type AllocatableProduct = { id: string; stock: number };
+
+export type ViewerAllocation = {
+  sinks: ViewerSinks;
+  products: Record<string, number>;
+};
 
 function rollViewerBase(): number {
   return VIEWER_BASE_MIN
     + Math.floor(Math.random() * (VIEWER_BASE_MAX - VIEWER_BASE_MIN + 1));
 }
 
-function readPersistedViewerBase(
-  data: FirebaseFirestore.DocumentData | undefined,
-  now: number,
-): number | null {
-  if (!data) return null;
-  const base = data.baseCount;
-  if (typeof base !== "number" || !Number.isInteger(base)) return null;
-  if (base < VIEWER_BASE_MIN || base > VIEWER_BASE_MAX) return null;
-  const baseAt = data.baseAt instanceof admin.firestore.Timestamp
-    ? data.baseAt.toMillis()
-    : typeof data.baseAt === "number"
-      ? data.baseAt
-      : null;
-  if (baseAt == null || now - baseAt >= VIEWER_BASE_TTL_MS) return null;
-  return base;
+function productViewerWeight(stock: number): number {
+  if (stock > 0 && stock < LOW_STOCK_THRESHOLD) return LOW_STOCK_WEIGHT;
+  if (stock > 0) return IN_STOCK_WEIGHT;
+  return OUT_OF_STOCK_WEIGHT;
+}
+
+function weightedPick<T extends { weight: number }>(items: T[], random: () => number): T {
+  const total = items.reduce((sum, item) => sum + Math.max(0, item.weight), 0);
+  if (total <= 0) return items[items.length - 1];
+  let roll = random() * total;
+  for (const item of items) {
+    roll -= Math.max(0, item.weight);
+    if (roll < 0) return item;
+  }
+  return items[items.length - 1];
+}
+
+/**
+ * Spread exactly `baseCount` generated viewers across silent sinks and products.
+ * Real presence is not included — callers add live sessions on top.
+ */
+export function allocateGeneratedViewers(
+  baseCount: number,
+  products: AllocatableProduct[],
+  random: () => number = Math.random,
+): ViewerAllocation {
+  const count = Math.max(0, Math.floor(baseCount));
+  const sinks: ViewerSinks = { home: 0, shop: 0, news: 0 };
+  const productCounts = new Map<string, number>();
+  const eligible = products.filter((product) => product.id.trim().length > 0);
+
+  const buckets: { key: "home" | "shop" | "news" | "products"; weight: number }[] = [
+    { key: "home", weight: SINK_WEIGHTS.home },
+    { key: "shop", weight: SINK_WEIGHTS.shop },
+    { key: "news", weight: SINK_WEIGHTS.news },
+  ];
+  if (eligible.length > 0) {
+    buckets.push({ key: "products", weight: PRODUCTS_POOL_WEIGHT });
+  }
+
+  const productSlots = eligible.map((product) => ({
+    id: product.id,
+    weight: productViewerWeight(product.stock),
+  }));
+
+  for (let i = 0; i < count; i += 1) {
+    const bucket = weightedPick(buckets, random);
+    if (bucket.key === "products") {
+      const picked = weightedPick(productSlots, random);
+      productCounts.set(picked.id, (productCounts.get(picked.id) ?? 0) + 1);
+      continue;
+    }
+    sinks[bucket.key] += 1;
+  }
+
+  const allocatedProducts: Record<string, number> = {};
+  for (const [id, viewers] of productCounts) {
+    if (viewers > 0) allocatedProducts[id] = viewers;
+  }
+
+  return { sinks, products: allocatedProducts };
+}
+
+async function loadAllocatableProducts(): Promise<AllocatableProduct[]> {
+  const snap = await getDb().collection("products").get();
+  const products: AllocatableProduct[] = [];
+  snap.forEach((docSnap) => {
+    const data = docSnap.data();
+    if (data.active === false) return;
+    const stock = typeof data.stock === "number" && Number.isFinite(data.stock)
+      ? data.stock
+      : 0;
+    products.push({ id: docSnap.id, stock });
+  });
+  return products;
 }
 
 /**
  * Prune stale site-presence docs, then publish display viewer count:
- * pregenerated base (5–12) + real live presence. Clients read the single
+ * a freshly rolled base (5–12) allocated across silent sinks + products,
+ * plus real live presence on the site total. Clients read the single
  * social_proof_live/site_viewers doc — they do not invent the base themselves.
  */
 export async function publishLiveSiteViewersSocialProof(
@@ -375,6 +454,8 @@ export async function publishLiveSiteViewersSocialProof(
   baseCount: number;
   liveCount: number;
   deletedStale: number;
+  sinks: ViewerSinks;
+  allocatedProducts: number;
 }> {
   const db = getDb();
   const snap = await db.collection("sitePresence").get();
@@ -407,11 +488,11 @@ export async function publishLiveSiteViewersSocialProof(
 
   if (pending > 0) await batch.commit();
 
-  const liveRef = db.doc(LIVE_SITE_VIEWERS_DOC);
-  const existing = await liveRef.get();
-  const persistedBase = readPersistedViewerBase(existing.data(), now);
-  const baseCount = persistedBase ?? rollViewerBase();
+  const baseCount = rollViewerBase();
+  const catalog = await loadAllocatableProducts();
+  const allocation = allocateGeneratedViewers(baseCount, catalog);
   const viewerCount = baseCount + liveCount;
+  const liveRef = db.doc(LIVE_SITE_VIEWERS_DOC);
 
   await liveRef.set(
     {
@@ -419,9 +500,9 @@ export async function publishLiveSiteViewersSocialProof(
       viewerCount,
       baseCount,
       liveCount,
-      baseAt: persistedBase != null
-        ? (existing.data()?.baseAt ?? admin.firestore.Timestamp.fromMillis(now))
-        : admin.firestore.Timestamp.fromMillis(now),
+      sinks: allocation.sinks,
+      products: allocation.products,
+      baseAt: admin.firestore.Timestamp.fromMillis(now),
       displayAt: admin.firestore.Timestamp.fromMillis(now),
       source: "site_viewers",
       updatedAt: admin.firestore.FieldValue.serverTimestamp(),
@@ -429,5 +510,13 @@ export async function publishLiveSiteViewersSocialProof(
     { merge: true },
   );
 
-  return { written: true, viewerCount, baseCount, liveCount, deletedStale };
+  return {
+    written: true,
+    viewerCount,
+    baseCount,
+    liveCount,
+    deletedStale,
+    sinks: allocation.sinks,
+    allocatedProducts: Object.keys(allocation.products).length,
+  };
 }

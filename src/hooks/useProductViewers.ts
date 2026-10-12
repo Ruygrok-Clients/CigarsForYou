@@ -15,15 +15,6 @@ const HEARTBEAT_MS = 30_000;
 const STALE_MS = 90_000;
 const SESSION_KEY = 'cfy-viewer-session';
 
-const memoryFakeCounts = new Map<string, number>();
-
-function pickWeightedCount(): 1 | 2 | 3 {
-  const roll = Math.random();
-  if (roll < 0.7) return 1;
-  if (roll < 0.9) return 2;
-  return 3;
-}
-
 function getOrCreateSessionId(): string {
   try {
     const existing = sessionStorage.getItem(SESSION_KEY);
@@ -33,23 +24,6 @@ function getOrCreateSessionId(): string {
     return id;
   } catch {
     return crypto.randomUUID();
-  }
-}
-
-function getOrCreateFakeCount(productId: string): number {
-  const key = `cfy-viewer-fake-${productId}`;
-  try {
-    const existing = sessionStorage.getItem(key);
-    if (existing === '1' || existing === '2' || existing === '3') return Number(existing);
-    const count = pickWeightedCount();
-    sessionStorage.setItem(key, String(count));
-    return count;
-  } catch {
-    const cached = memoryFakeCounts.get(productId);
-    if (cached) return cached;
-    const count = pickWeightedCount();
-    memoryFakeCounts.set(productId, count);
-    return count;
   }
 }
 
@@ -68,6 +42,21 @@ function countLiveSessions(snap: QuerySnapshot, sessionId: string): number {
   return count;
 }
 
+function allocatedForProduct(
+  products: unknown,
+  productId: string,
+): number {
+  if (!products || typeof products !== 'object') return 0;
+  const value = (products as Record<string, unknown>)[productId];
+  return typeof value === 'number' && Number.isFinite(value) && value > 0
+    ? Math.floor(value)
+    : 0;
+}
+
+/**
+ * Product-page viewer count: server-allocated generated viewers for this
+ * product, plus real presence sessions. Clients do not invent a local fake.
+ */
 export function useProductViewers(productId: string | undefined): number | null {
   const [displayCount, setDisplayCount] = useState<number | null>(null);
 
@@ -78,18 +67,20 @@ export function useProductViewers(productId: string | undefined): number | null 
     }
 
     const sessionId = getOrCreateSessionId();
-    const fakeCount = getOrCreateFakeCount(productId);
     const sessionRef = doc(db, 'productPresence', productId, 'sessions', sessionId);
     const sessionsRef = collection(db, 'productPresence', productId, 'sessions');
+    const liveViewersRef = doc(db, 'social_proof_live', 'site_viewers');
 
     let latestSnap: QuerySnapshot | null = null;
+    let allocated = 0;
+    let allocationReady = false;
     let present = true;
     let cancelled = false;
 
     const apply = () => {
-      if (!latestSnap || cancelled) return;
+      if (cancelled || !allocationReady || !latestSnap) return;
       const liveCount = countLiveSessions(latestSnap, sessionId);
-      setDisplayCount(liveCount <= 1 ? fakeCount : liveCount);
+      setDisplayCount(allocated + liveCount);
     };
 
     const join = () =>
@@ -97,10 +88,24 @@ export function useProductViewers(productId: string | undefined): number | null 
 
     void join().catch(() => {});
 
-    const unsubscribe = onSnapshot(sessionsRef, (snap) => {
+    const unsubscribeSessions = onSnapshot(sessionsRef, (snap) => {
       latestSnap = snap;
       apply();
     });
+
+    const unsubscribeAllocation = onSnapshot(
+      liveViewersRef,
+      (snap) => {
+        allocated = allocatedForProduct(snap.data()?.products, productId);
+        allocationReady = true;
+        apply();
+      },
+      () => {
+        allocated = 0;
+        allocationReady = true;
+        apply();
+      },
+    );
 
     const heartbeat = window.setInterval(() => {
       apply();
@@ -141,7 +146,8 @@ export function useProductViewers(productId: string | undefined): number | null 
       window.removeEventListener('pagehide', onPageHide);
       window.removeEventListener('beforeunload', onPageHide);
       leave();
-      unsubscribe();
+      unsubscribeSessions();
+      unsubscribeAllocation();
     };
   }, [productId]);
 

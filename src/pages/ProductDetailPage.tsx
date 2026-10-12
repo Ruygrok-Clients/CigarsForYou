@@ -26,6 +26,7 @@ import { responsiveImage } from '../lib/responsiveImage';
 import { fetchBrandStory, fetchProducts } from '../services/catalog';
 import { ProductCard } from '../components/ProductCard';
 import { InlineMarkdown } from '../components/InlineMarkdown';
+import { AnimatedNumber } from '../components/AnimatedNumber';
 import { 
   Bell, 
   Flame, 
@@ -242,6 +243,11 @@ export const ProductDetailPage: React.FC = () => {
   const inStock = product.stock > 0;
   const watchingStock = isWatching(product);
   const selectedVariantRemaining = product.stock;
+  const hasViewers = viewerCount != null && viewerCount > 0;
+  const purchaseCountRaw = product.purchaseCount;
+  const boughtCount = typeof purchaseCountRaw === 'number' && purchaseCountRaw > 0
+    ? Math.floor(purchaseCountRaw)
+    : null;
 
   const handleAddToCart = () => {
     if (!inStock) {
@@ -485,24 +491,39 @@ export const ProductDetailPage: React.FC = () => {
 
               {selectedVariantRemaining > 0 && selectedVariantRemaining < 20 && (
                 <p style={{
-                  color: '#c06517',
-                  fontSize: '0.9rem',
-                  fontWeight: 700,
-                  margin: '0 0 0.35rem',
-                  letterSpacing: '0.01em'
+                  color: '#6e6e73',
+                  fontSize: '0.85rem',
+                  fontWeight: 500,
+                  margin: '0 0 0.25rem'
                 }}>
                   {selectedVariantRemaining} Remaining
                 </p>
               )}
 
-              {viewerCount != null && viewerCount > 0 && (
-                <p style={{
-                  color: '#6e6e73',
-                  fontSize: '0.85rem',
-                  fontWeight: 500,
-                  margin: '0 0 0.75rem'
-                }}>
-                  {viewerCount} {viewerCount === 1 ? 'person' : 'people'} viewing this right now
+              {(hasViewers || boughtCount !== null) && (
+                <p
+                  className="social-proof-shimmer"
+                  style={{
+                    fontSize: '0.85rem',
+                    fontWeight: 500,
+                    margin: '0 0 0.75rem'
+                  }}
+                >
+                  {hasViewers && (
+                    <>
+                      <AnimatedNumber value={viewerCount ?? 0} /> {(viewerCount ?? 0) === 1 ? 'person' : 'people'} viewing this right now
+                    </>
+                  )}
+                  {hasViewers && boughtCount !== null && (
+                    <>
+                      {' '}
+                      <span aria-hidden="true">·</span>
+                      {' '}
+                    </>
+                  )}
+                  {boughtCount !== null && (
+                    <>{boughtCount.toLocaleString()} bought</>
+                  )}
                 </p>
               )}
 

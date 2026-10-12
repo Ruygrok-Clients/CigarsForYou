@@ -251,7 +251,8 @@ export const cleanupSocialProof = onSchedule(
 
 /**
  * Prune stale site-presence sessions and publish the display viewer count
- * (pregenerated base 5–12 + real live presence) to social_proof_live/site_viewers.
+ * (fresh base 5–12 allocated across sinks + products, plus real live presence)
+ * to social_proof_live/site_viewers.
  */
 export const publishLiveSiteViewers = onSchedule(
   {

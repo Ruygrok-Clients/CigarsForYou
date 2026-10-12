@@ -106,7 +106,7 @@ export const LoyaltyTierChip: React.FC<LoyaltyTierChipProps> = ({
     };
   }, [open]);
 
-  const label = signedIn ? tierLabel(tier) : 'Loyalty';
+  const label = signedIn ? tierLabel(tier) : 'No Loyalty';
 
   return (
     <div className="loyalty-chip-wrap" ref={wrapRef}>
@@ -163,10 +163,10 @@ export const LoyaltyTierChip: React.FC<LoyaltyTierChipProps> = ({
               <p className="loyalty-pop__kicker">Members</p>
               <p className="loyalty-pop__value">+{cartPoints} pts</p>
               <p className="loyalty-pop__note">
-                Signed-in members earn one point per dollar of merchandise after coupons. This cart would add {cartPoints} points toward Bronze, Silver, or Gold.
+                Create an account to earn one point per dollar of merchandise after coupons. This cart would add {cartPoints} points toward Bronze, Silver, or Gold tier benefits — and you can spend points in the rewards shop to redeem products for free.
               </p>
-              <Link to="/login" className="loyalty-pop__link" onClick={() => setOpen(false)}>
-                Sign in to track your tier
+              <Link to="/signup" className="loyalty-pop__link" onClick={() => setOpen(false)}>
+                Create an account to track and collect points
               </Link>
             </>
           )}
