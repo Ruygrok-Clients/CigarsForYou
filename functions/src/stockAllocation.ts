@@ -773,7 +773,6 @@ export async function placeCatalogOrderForUser(
   const allocation = await allocateOrderStockForOrder(orderRef.id);
   return {
     orderId: orderRef.id,
-    orderNumber,
     ...allocation,
   };
 }
